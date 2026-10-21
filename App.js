@@ -101,7 +101,7 @@ function ActionButton({ icon, label, onPress, active = false }) {
 
 export default function App() {
   const { height: windowHeight } = useWindowDimensions();
-  const FEED_HEIGHT = Math.max(360, windowHeight - (Platform.OS === 'web' ? 205 : 245));
+  const FEED_HEIGHT = Math.max(360, windowHeight - (Platform.OS === 'web' ? 170 : 300));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
   const [following, setFollowing] = useState({});
@@ -115,6 +115,9 @@ export default function App() {
   });
   const [searchText, setSearchText] = useState('');
   const [activeNav, setActiveNav] = useState('Video');
+  const [showProfile, setShowProfile] = useState(false);
+  const [accountName, setAccountName] = useState('Mtumiaji wa SOKORA');
+  const [accountHandle, setAccountHandle] = useState('@sokora_user');
   const [feedVideos, setFeedVideos] = useState(demoVideos.map((video) => ({ ...video, isDemo: true })));
   const [feedMode, setFeedMode] = useState('demo');
   const [feedLoading, setFeedLoading] = useState(true);
@@ -172,6 +175,9 @@ export default function App() {
   const toggleLike = (id) => setLiked((current) => ({ ...current, [id]: !current[id] }));
   const toggleFollow = (seller) => setFollowing((current) => ({ ...current, [seller]: !current[seller] }));
   const toggleSave = (id) => setSaved((current) => ({ ...current, [id]: !current[id] }));
+  const myFollowingCount = Object.values(following).filter(Boolean).length;
+  const myLikedCount = Object.values(liked).filter(Boolean).length;
+  const mySavedCount = Object.values(saved).filter(Boolean).length;
 
   const shareVideo = async (video) => {
     try {
@@ -291,7 +297,8 @@ export default function App() {
           <View style={styles.headerLinks}>
             <Pressable onPress={() => setActiveTab('Kwa ajili yako')}><Text style={[styles.headerLink, activeTab === 'Kwa ajili yako' && styles.headerLinkActive]}>For you</Text></Pressable>
             <Pressable onPress={() => setActiveTab('Inafuatwa')}><Text style={[styles.headerLink, activeTab === 'Inafuatwa' && styles.headerLinkActive]}>Discover</Text></Pressable>
-            <Pressable onPress={startLive}><Text style={styles.headerLive}>● LIVE</Text></Pressable>
+            <Pressable onPress={startLive} style={styles.headerLiveButton}><Text style={styles.headerLive}>● LIVE</Text></Pressable>
+            <Pressable onPress={() => { setShowProfile(true); setActiveNav('Wasifu'); }} style={styles.profileTopButton}><Text style={styles.profileTopButtonText}>Wasifu</Text></Pressable>
           </View>
         </View>
         <View style={styles.searchBox}>
@@ -332,6 +339,7 @@ export default function App() {
           data={visibleVideos}
           keyExtractor={(item) => item.id}
           renderItem={renderVideo}
+          style={styles.feedScroll}
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={Platform.OS !== 'web'}
           windowSize={3}
@@ -388,24 +396,63 @@ export default function App() {
           </View>
         </View>
       </Modal>
+
+      <Modal visible={showProfile} animationType="slide" onRequestClose={() => setShowProfile(false)}>
+        <SafeAreaView style={styles.profileScreen}>
+          <View style={styles.profileHeader}>
+            <Pressable onPress={() => setShowProfile(false)} style={styles.profileBack}><Text style={styles.profileBackText}>‹  Rudi</Text></Pressable>
+            <Text style={styles.profileScreenTitle}>Wasifu wangu</Text>
+            <View style={{ width: 54 }} />
+          </View>
+          <ScrollView contentContainerStyle={styles.profileContent}>
+            <View style={styles.profileIdentity}>
+              <View style={styles.profileAvatar}><Text style={styles.profileAvatarText}>{accountName.trim().charAt(0).toUpperCase() || 'S'}</Text></View>
+              <Text style={styles.profileName}>{accountName}</Text>
+              <Text style={styles.profileHandle}>{accountHandle}</Text>
+              <Text style={styles.profileBio}>Karibu SOKORA — soko la video za bidhaa Tanzania.</Text>
+            </View>
+            <View style={styles.profileStats}>
+              <View style={styles.profileStat}><Text style={styles.profileStatNumber}>{myFollowingCount}</Text><Text style={styles.profileStatLabel}>Following</Text></View>
+              <View style={styles.profileStat}><Text style={styles.profileStatNumber}>0</Text><Text style={styles.profileStatLabel}>Followers</Text></View>
+              <View style={[styles.profileStat, { borderRightWidth: 0 }]}><Text style={styles.profileStatNumber}>{myLikedCount}</Text><Text style={styles.profileStatLabel}>Likes</Text></View>
+            </View>
+            <View style={styles.profileEditCard}>
+              <Text style={styles.profileSectionTitle}>Taarifa za akaunti</Text>
+              <Text style={styles.profileFieldLabel}>Jina linaloonekana</Text>
+              <TextInput value={accountName} onChangeText={setAccountName} style={styles.profileInput} placeholder="Jina lako" placeholderTextColor="#8296A8" />
+              <Text style={styles.profileFieldLabel}>Username</Text>
+              <TextInput value={accountHandle} onChangeText={(value) => setAccountHandle(value.startsWith('@') ? value : '@' + value)} style={styles.profileInput} placeholder="@username" placeholderTextColor="#8296A8" autoCapitalize="none" />
+            </View>
+            <View style={styles.profileQuickStats}>
+              <View style={styles.profileQuickRow}><Text style={styles.profileQuickLabel}>Video ulizopenda</Text><Text style={styles.profileQuickValue}>{myLikedCount}</Text></View>
+              <View style={styles.profileQuickRow}><Text style={styles.profileQuickLabel}>Video ulizohifadhi</Text><Text style={styles.profileQuickValue}>{mySavedCount}</Text></View>
+              <View style={styles.profileQuickRow}><Text style={styles.profileQuickLabel}>Wauzaji unaowafuata</Text><Text style={styles.profileQuickValue}>{myFollowingCount}</Text></View>
+            </View>
+            <Text style={styles.profileNote}>Takwimu hizi ni za kifaa hiki kwa sasa. Followers wa kweli, kuingia kwenye akaunti na takwimu zinazoonekana kwa watumiaji wote zinahitaji backend ya akaunti.</Text>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, minHeight: 0, backgroundColor: '#102A43', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 480, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 1, borderRightWidth: 1, borderColor: '#24445D' } : {}) },
-  header: { backgroundColor: 'transparent', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 18 : 8, paddingBottom: 0 },
+  safe: { flex: 1, minHeight: 0, backgroundColor: '#081A2B', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 560, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
+  header: { backgroundColor: 'transparent', paddingHorizontal: 18, paddingTop: Platform.OS === 'web' ? 24 : 10, paddingBottom: 6 },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
-  brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 19 : 23, fontWeight: '900', letterSpacing: 1.2 },
-  headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerLink: { color: '#9DB0BF', fontSize: 11, fontWeight: '700' },
+  brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 26, fontWeight: '900', letterSpacing: 1.5 },
+  headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
+  headerLink: { color: '#C1D0DC', fontSize: 13, fontWeight: '800', paddingVertical: 7 },
   headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#18A999' },
-  headerLive: { color: '#FF5A63', fontSize: 11, fontWeight: '900' },
+  headerLive: { color: '#FF5A63', fontSize: 13, fontWeight: '900' },
+  headerLiveButton: { paddingVertical: 8, paddingHorizontal: 2 },
+  profileTopButton: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 9, backgroundColor: '#18354D' },
+  profileTopButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
 
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 7 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 34 : 40, borderRadius: 8, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: '#385166' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 44, borderRadius: 10, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: '#385166' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
-  searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 5, fontSize: 12 },
+  searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 7, fontSize: 14 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
 
   liveSection: { backgroundColor: '#102A43', borderBottomWidth: 1, borderBottomColor: '#24445D' },
@@ -421,7 +468,8 @@ const styles = StyleSheet.create({
   feedStatusText: { color: '#C3D2DA', fontSize: 10, marginTop: 4, maxWidth: 230 },
   uploadButton: { backgroundColor: '#24445D', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
   uploadButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
-  feedList: { paddingHorizontal: Platform.OS === 'web' ? 0 : 10, paddingBottom: 0, alignItems: 'stretch' },
+  feedScroll: { flex: 1, minHeight: 0 },
+  feedList: { paddingHorizontal: Platform.OS === 'web' ? 0 : 10, paddingBottom: 0, alignItems: 'stretch', flexGrow: 0 },
   videoCard: { width: '100%', alignSelf: 'stretch', borderRadius: Platform.OS === 'web' ? 0 : 17, overflow: 'hidden', justifyContent: 'space-between', marginBottom: Platform.OS === 'web' ? 0 : 12, position: 'relative' },
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
   demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
@@ -440,27 +488,27 @@ const styles = StyleSheet.create({
   videoDescription: { flex: 1, paddingBottom: 2 },
   sellerLine: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 8 },
   sellerName: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
-  followButton: { backgroundColor: '#E53945', borderRadius: 5, paddingHorizontal: 11, paddingVertical: 6, minHeight: 28, justifyContent: 'center' },
+  followButton: { backgroundColor: '#E53945', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 9, minHeight: 38, justifyContent: 'center' },
   followingButton: { backgroundColor: '#344B5E' },
-  followButtonText: { color: '#FFFFFF', fontSize: 9, fontWeight: '900' },
+  followButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   videoCaption: { color: '#FFFFFF', fontSize: 11, lineHeight: 16, marginBottom: 10, textShadowColor: '#0008', textShadowRadius: 3 },
-  productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 5, paddingHorizontal: 12, paddingVertical: 9, minHeight: 36, justifyContent: 'center', borderWidth: 0 },
-  productPriceText: { color: '#102A43', fontSize: 10, fontWeight: '900' },
-  actionsRail: { alignItems: 'center', gap: 13, width: 50, paddingBottom: 3 },
-  actionButton: { alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 50, paddingTop: 3, paddingBottom: 3, backgroundColor: 'transparent' },
-  actionIcon: { color: '#FFFFFF', fontSize: 25, fontWeight: '700', textShadowColor: '#000A', textShadowRadius: 5 },
+  productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 9, paddingHorizontal: 16, paddingVertical: 12, minHeight: 44, justifyContent: 'center', borderWidth: 0 },
+  productPriceText: { color: '#102A43', fontSize: 12, fontWeight: '900' },
+  actionsRail: { alignItems: 'center', gap: 14, width: 60, paddingBottom: 4 },
+  actionButton: { alignItems: 'center', justifyContent: 'center', minWidth: 56, minHeight: 58, paddingHorizontal: 4, paddingTop: 4, paddingBottom: 4, backgroundColor: 'transparent' },
+  actionIcon: { color: '#FFFFFF', fontSize: 31, fontWeight: '800', textShadowColor: '#000A', textShadowRadius: 5 },
   actionIconActive: { color: '#18A999' },
-  actionLabel: { color: '#FFFFFF', fontSize: 8, fontWeight: '800', marginTop: 2, textShadowColor: '#000A', textShadowRadius: 5, textAlign: 'center' },
+  actionLabel: { color: '#FFFFFF', fontSize: 10, fontWeight: '900', marginTop: 3, textShadowColor: '#000A', textShadowRadius: 5, textAlign: 'center' },
   endOfFeed: { color: '#B3C5D0', fontSize: 10, textAlign: 'center', paddingHorizontal: 25, paddingVertical: 14, lineHeight: 15 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   emptyEmoji: { fontSize: 38, marginBottom: 12 },
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0B2239', borderTopWidth: 1, borderTopColor: '#252833', paddingHorizontal: 8, paddingTop: Platform.OS === 'web' ? 7 : 8, paddingBottom: Platform.OS === 'web' ? 7 : 7, minHeight: Platform.OS === 'web' ? 56 : 60 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0B2239', borderTopWidth: 1, borderTopColor: '#31485B', paddingHorizontal: 8, paddingTop: 8, paddingBottom: 8, minHeight: Platform.OS === 'web' ? 68 : 70, flexShrink: 0 },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 48, gap: 3 },
-  navIcon: { color: '#A9BECC', fontSize: 19, fontWeight: '800' },
+  navIcon: { color: '#A9BECC', fontSize: 23, fontWeight: '900' },
   navIconActive: { color: '#18A999' },
-  navLabel: { color: '#B3C5D0', fontSize: 9, fontWeight: '700' },
+  navLabel: { color: '#B3C5D0', fontSize: 11, fontWeight: '800' },
   navLabelActive: { color: '#FFFFFF' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#000A' },
   commentSheet: { maxHeight: '78%', minHeight: '48%', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 17, paddingTop: 10, paddingBottom: 18 },
@@ -477,4 +525,31 @@ const styles = StyleSheet.create({
   sendComment: { backgroundColor: '#18A999', paddingHorizontal: 13, paddingVertical: 11, borderRadius: 9 },
   sendCommentText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
   modalFootnote: { color: '#B3C5D0', fontSize: 9, marginTop: 9, textAlign: 'center' },
+
+  profileScreen: { flex: 1, backgroundColor: '#081A2B' },
+  profileHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#233D52' },
+  profileBack: { minWidth: 54, paddingVertical: 8 },
+  profileBackText: { color: '#65D6C8', fontSize: 14, fontWeight: '800' },
+  profileScreenTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: '900' },
+  profileContent: { padding: 20, paddingBottom: 36 },
+  profileIdentity: { alignItems: 'center', paddingVertical: 18 },
+  profileAvatar: { width: 92, height: 92, borderRadius: 46, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1D4A60', borderWidth: 3, borderColor: '#65D6C8', marginBottom: 12 },
+  profileAvatarText: { color: '#FFFFFF', fontSize: 36, fontWeight: '900' },
+  profileName: { color: '#FFFFFF', fontSize: 22, fontWeight: '900' },
+  profileHandle: { color: '#9FB4C5', fontSize: 14, marginTop: 4 },
+  profileBio: { color: '#C7D5DF', fontSize: 13, marginTop: 10, textAlign: 'center', lineHeight: 19 },
+  profileStats: { flexDirection: 'row', backgroundColor: '#102A43', borderRadius: 14, paddingVertical: 18, marginVertical: 10 },
+  profileStat: { flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#29465D' },
+  profileStatNumber: { color: '#FFFFFF', fontSize: 22, fontWeight: '900' },
+  profileStatLabel: { color: '#B7C9D5', fontSize: 12, fontWeight: '700', marginTop: 4 },
+  profileEditCard: { backgroundColor: '#102A43', borderRadius: 14, padding: 16, marginTop: 12 },
+  profileSectionTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', marginBottom: 12 },
+  profileFieldLabel: { color: '#B7C9D5', fontSize: 12, fontWeight: '800', marginTop: 10, marginBottom: 6 },
+  profileInput: { backgroundColor: '#081A2B', color: '#FFFFFF', borderWidth: 1, borderColor: '#35536A', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 12, fontSize: 14 },
+  profileQuickStats: { backgroundColor: '#102A43', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 4, marginTop: 14 },
+  profileQuickRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#29465D' },
+  profileQuickLabel: { color: '#D4E0E8', fontSize: 13, fontWeight: '700' },
+  profileQuickValue: { color: '#65D6C8', fontSize: 14, fontWeight: '900' },
+  profileNote: { color: '#91A9BA', fontSize: 11, lineHeight: 17, marginTop: 14 },
+
 });
