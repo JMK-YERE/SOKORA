@@ -18,7 +18,7 @@ import {
 
 const { height: windowHeight } = Dimensions.get('window');
 const API_BASE_URL = (typeof process !== 'undefined' && process.env && process.env.EXPO_PUBLIC_API_URL)
-  ? process.env.EXPO_PUBLIC_API_URL.replace(/\\/+$/, '')
+  ? process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')
   : '';
 
 function normalizeApiVideo(row, index) {
