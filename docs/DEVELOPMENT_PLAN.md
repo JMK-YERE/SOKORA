@@ -1,70 +1,82 @@
-# SOKORA — Development Roadmap
+# SOKORA — Development Plan
 
 ## Product direction
-SOKORA is a Tanzania-focused marketplace concept combining product discovery, local businesses, and short-form product videos. The current repository contains an Expo / React Native UI foundation. It is not yet a complete marketplace.
+SOKORA is a public, Tanzania-focused social-commerce marketplace inspired by short-video discovery apps. It should open into a vertical feed where people can discover products and services, then view the seller and product details. It is not a TikTok clone for entertainment only; commerce and trusted local sellers are the core.
 
-## Current milestone
-- Expo + React Native app shell.
-- Swahili-first home screen and category navigation.
-- Expo web export command: `npm run build:web`.
-- GitHub Actions workflow at `.github/workflows/expo-web-build.yml` to install dependencies, export the web build, and retain the `dist/` artifact.
-- The current web preview uses illustrative sample products only. No real seller data, account, messaging, order, or payment functionality is connected yet.
+## Current milestone: mobile feed foundation
+Implemented in `App.js`:
+- Dark mobile-first vertical feed with paging/snapping.
+- Sample product posts, seller identity, location, and price.
+- Local UI state for likes, follows, saved items, and comments.
+- “Kwa ajili yako” and “Inafuatwa” tabs.
+- Search over sample products, sellers, and locations.
+- Live creator strip with preview-only join/start-live dialogs.
+- Native share sheet using React Native `Share`.
+- Bottom navigation and upload entry point.
+- Demo labels so sample content is not confused with real listings.
 
-## Recommended implementation sequence
+**Limitations:** sample content is hard-coded and not persisted to a server. Real authentication, video upload/storage/playback, downloadable hosted videos, cross-device interactions, notifications, and live streaming are not connected yet. A button or dialog does not mean its backend capability exists.
 
-### Milestone 1 — Build and UI quality
-1. Confirm the Expo web build in GitHub Actions.
-2. Run Android and web smoke tests.
-3. Establish responsive design tokens and reusable UI components.
-4. Replace placeholder actions with accessible navigation and clear empty/loading/error states.
+## Milestones
 
-### Milestone 2 — Inspect and connect Neon safely
-1. Confirm the intended Neon project and production branch before any change.
-2. Inspect existing databases, tables, roles, permissions, and current data.
-3. Document the existing schema; do not recreate existing tables or add a second authentication system without a reviewed design.
-4. Use migrations and test against a separate development branch first.
-5. Store credentials only in hosting environment variables or a secrets manager; never commit them.
+### 1. Stabilize mobile and web UI
+- Verify Expo Android and Expo Web builds.
+- Test small screens, feed snapping, accessibility, and error states.
+- Split screens/components as features grow; add lint and tests.
+Acceptance: Android and web builds complete and the feed works without runtime errors.
 
-### Milestone 3 — Accounts and seller profiles
-- Choose one authentication system after inspecting current Neon setup.
-- Add customer and seller profiles, verified contact details, sessions, role checks, and account recovery.
-- Enforce authorization on the server, not only by hiding UI elements.
-- Add privacy controls and account deletion/export workflows.
+### 2. Backend and database
+- Confirm the intended Neon project and branch before any changes.
+- Review existing tables and data before migrations; never drop production data.
+- Version migrations for users, seller profiles, products, videos, follows, likes, comments, saved posts, reports, live sessions, and moderation events.
+- Add an API layer; never expose database credentials or privileged tokens in the client.
+Acceptance: health check passes, migrations are repeatable, and API authorization tests pass.
 
-### Milestone 4 — Listings, search, and media
-- Product/service listing CRUD with title, description, price, category, location, availability, and seller ownership.
-- Search and filtering by category, region, price, and recency.
-- Upload images/video to object storage using short-lived presigned URLs; validate file size/type and keep private media private by default.
-- Store metadata in PostgreSQL, not binary media blobs.
-- Add reporting, moderation, and abuse prevention before public user-generated uploads.
+### 3. Accounts and seller profiles
+- Sign-up, sign-in, recovery, profile editing, and seller/business profiles.
+- Public browsing without login; login required for posting and social actions.
+- Enforce ownership and permissions on the server for every write.
+Acceptance: users can only edit their own profile and content.
 
-### Milestone 5 — Messaging and transactions
-- Buyer-to-seller messaging with authorization and rate limits.
-- Orders and order status history only after the business rules are agreed.
-- Integrate Tanzanian payment providers only after merchant onboarding, callback verification, reconciliation, and refund flows are designed.
-- Do not represent an order or payment as complete until the provider confirms it.
+### 4. Real video publishing
+- Add a supported Expo video picker/camera workflow.
+- Validate file type, size, duration, and upload progress.
+- Use short-lived signed upload authorization to object storage.
+- Generate thumbnails, transcode to mobile-friendly formats, and track processing status.
+- Use adaptive playback; don't load large video files into memory.
+- Enable downloads only where creator permissions and platform rules allow.
+Acceptance: a seller uploads a video, publishes it, and another device can play it.
 
-### Milestone 6 — Reliability and launch readiness
-- Audit logs for sensitive seller/admin actions.
-- Database backups and tested restore procedure.
-- Rate limiting, input validation, secure headers, dependency updates, and error monitoring.
-- Automated tests for auth, listings, uploads, messaging, and authorization boundaries.
-- Verify mobile responsiveness, accessibility, and slow-network behavior.
-- Publish a privacy policy, terms, prohibited-items rules, seller standards, and support contact.
+### 5. Social interactions
+- Persistent likes, comments, follows, saves, share links, and notifications.
+- Cursor-based feed pagination and duplicate prevention.
+- Reporting, blocking, moderation, and rate limits.
+Acceptance: interactions persist across devices and are authorized server-side.
 
-## Proposed technical shape
-- **Client:** Expo + React Native; React Native Web for the browser experience.
-- **Data:** Existing Neon PostgreSQL project, after inspection.
-- **Media:** Neon Object Storage or another confirmed S3-compatible provider, with private-by-default access and presigned uploads.
-- **API:** A server-side API layer for authorization and business logic. The client must never receive database owner credentials.
-- **Hosting:** Static hosting for the exported web client; an API service/function separately when the backend exists.
-- **CI:** GitHub Actions for install/build checks and artifacts; add unit/integration tests as features arrive.
+### 6. Live shopping
+- Select a live provider after checking cost, Tanzania availability, latency, moderation, and free-tier limits.
+- Verify seller permissions before creating a stream.
+- Track scheduled/live/ended/failed states, viewer join/leave, chat, pinned products, report/mute/block controls, and end-stream actions.
+- Show LIVE badges only for real active sessions.
+Acceptance: one device streams, another joins with audio/video, and a moderator can stop/report the stream.
 
-## Current blockers / risks
-- Render's current SOKORA Go service does not match the Expo source code.
-- The new Render static-site build was blocked because the workspace had exhausted its build-pipeline minutes for the billing period; this is not evidence that the source build itself passed or failed.
-- The Neon connector was scoped to project `fragrant-mud-65041570`, while the intended project ID provided for SOKORA is `wild-leaf-93545275`. Do not modify a database until the connection is corrected and the project/branch are verified.
-- No end-to-end database, auth, media, messaging, order, or payment test has passed yet.
+### 7. Marketplace and trust
+- Product/service listings, categories, location, price, availability, seller contact, and order workflow.
+- Report scam/counterfeit listings, seller verification, moderation queue, audit events.
+- Privacy policy, terms, community rules, copyright/takedown flow, and data deletion/export policy.
+Acceptance: listings are searchable and reportable, with private user data excluded from public APIs.
 
-## Definition of done for a milestone
-A milestone is complete only when its code is committed, the build/test output is captured, the relevant flows are tested, security boundaries are checked, and any hosting deployment reports a successful status. A visual preview alone is not a production deployment.
+### 8. Launch readiness
+- CI builds for Android/web, automated tests, dependency/security checks.
+- Error monitoring, backups, media cost alerts, and recovery plan.
+- Test on affordable Android devices and slower mobile networks.
+- Document secrets, deployment, smoke tests, and rollback.
+Acceptance: release checks and recovery steps are verified.
+
+## Engineering rules
+1. Never describe a UI prototype as a live backend feature.
+2. Never commit API keys, database URLs, or streaming secrets.
+3. Do not change Neon production data until project, branch, and schema are verified.
+4. Enforce authorization server-side and use signed upload URLs for private media.
+5. Build reporting, moderation, privacy, and rate limits before opening public user-generated content at scale.
+6. Video delivery and live streaming may incur costs as usage grows; verify pricing before selecting providers.
