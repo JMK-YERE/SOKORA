@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Dimensions,
   Platform,
   FlatList,
   Modal,
@@ -70,7 +69,7 @@ const demoVideos = [
   },
   {
     id: 'home',
-    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    videoUrl: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
     seller: '@mama_neema_home',
     verified: false,
     product: 'Kiti cha sebuleni',
@@ -132,7 +131,15 @@ export default function App() {
       .then((payload) => {
         if (!active) return;
         const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.items) ? payload.items : []);
-        setFeedVideos(rows.map(normalizeApiVideo));
+        const uniqueRows = [];
+        const seenVideoIds = new Set();
+        for (const row of rows) {
+          const id = String(row.video_id ?? row.id ?? row.video_url ?? '');
+          if (!id || seenVideoIds.has(id)) continue;
+          seenVideoIds.add(id);
+          uniqueRows.push(row);
+        }
+        setFeedVideos(uniqueRows.map(normalizeApiVideo));
         setFeedMode('backend');
         setFeedMessage(rows.length ? '' : 'Bado hakuna video zilizochapishwa. Weka bidhaa na video ili zionekane hapa.');
       })
@@ -218,7 +225,7 @@ export default function App() {
             controls: false,
             playsInline: true,
             muted: true,
-            autoPlay: true,
+            autoPlay: false,
             loop: true,
             preload: 'metadata',
             'aria-label': 'Video ya majaribio ya SOKORA: ' + item.product,
@@ -275,23 +282,21 @@ export default function App() {
       <View style={styles.header}>
         <View style={styles.headerBrandRow}>
           <View>
-            <Text style={styles.brand}>SOKORA <Text style={styles.brandPlay}>▶</Text></Text>
+            <Text style={styles.brand}>SOKORA</Text>
             <Text style={styles.tagline}>Tazama. Gundua. Nunua.</Text>
           </View>
-          <Pressable style={styles.goLiveButton} onPress={startLive}><Text style={styles.goLiveText}>● LIVE</Text></Pressable>
+          <View style={styles.headerLinks}>
+            <Pressable onPress={() => setActiveTab('Kwa ajili yako')}><Text style={[styles.headerLink, activeTab === 'Kwa ajili yako' && styles.headerLinkActive]}>For you</Text></Pressable>
+            <Pressable onPress={() => setActiveTab('Inafuatwa')}><Text style={[styles.headerLink, activeTab === 'Inafuatwa' && styles.headerLinkActive]}>Discover</Text></Pressable>
+            <Pressable onPress={startLive}><Text style={styles.headerLive}>● LIVE</Text></Pressable>
+          </View>
         </View>
         <View style={styles.searchBox}>
           <Text style={styles.searchIcon}>⌕</Text>
           <TextInput value={searchText} onChangeText={setSearchText} placeholder="Tafuta bidhaa, muuzaji au mji..." placeholderTextColor="#9AA3B2" style={styles.searchInput} returnKeyType="search" />
           {!!searchText && <Pressable onPress={() => setSearchText('')}><Text style={styles.clearSearch}>✕</Text></Pressable>}
         </View>
-        <View style={styles.feedTabs}>
-          {['Kwa ajili yako', 'Inafuatwa'].map((tab) => (
-            <Pressable key={tab} onPress={() => setActiveTab(tab)} style={[styles.feedTab, activeTab === tab && styles.feedTabActive]}>
-              <Text style={[styles.feedTabText, activeTab === tab && styles.feedTabTextActive]}>{tab}</Text>
-            </Pressable>
-          ))}
-        </View>
+
       </View>
 
       {Platform.OS !== 'web' && (
@@ -326,7 +331,7 @@ export default function App() {
           renderItem={renderVideo}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.feedList}
-          snapToInterval={FEED_HEIGHT + 12}
+          snapToInterval={FEED_HEIGHT + (Platform.OS === 'web' ? 0 : 12)}
           snapToAlignment="start"
           decelerationRate="fast"
           disableIntervalMomentum
@@ -383,21 +388,19 @@ export default function App() {
 const styles = StyleSheet.create({
   safe: { flex: 1, minHeight: 0, backgroundColor: '#102A43', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 480, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 1, borderRightWidth: 1, borderColor: '#24445D' } : {}) },
   header: { backgroundColor: '#102A43', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 7 : 8, paddingBottom: 0 },
-  headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 36 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 19 : 23, fontWeight: '900', letterSpacing: 1.2 },
-  brandPlay: { color: '#18A999', fontSize: 15 },
+  headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerLink: { color: '#9DB0BF', fontSize: 11, fontWeight: '700' },
+  headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#18A999' },
+  headerLive: { color: '#FF5A63', fontSize: 11, fontWeight: '900' },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
-  goLiveButton: { backgroundColor: '#E53945', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, minHeight: 34, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FF7880', shadowColor: '#000000', shadowOpacity: 0.18, shadowRadius: 5, elevation: 2 },
-  goLiveText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 7 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 36 : 42, borderRadius: 12, backgroundColor: '#183A56', borderWidth: 1, borderColor: '#2A4A63' },
+
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 7 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 34 : 40, borderRadius: 8, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: '#385166' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 5, fontSize: 12 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
-  feedTabs: { flexDirection: 'row', justifyContent: 'center', gap: 25, marginTop: Platform.OS === 'web' ? 5 : 10 },
-  feedTab: { paddingHorizontal: 8, paddingTop: 5, paddingBottom: Platform.OS === 'web' ? 5 : 9, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  feedTabActive: { borderBottomColor: '#18A999' },
-  feedTabText: { color: '#B3C5D0', fontSize: 12, fontWeight: '700' },
-  feedTabTextActive: { color: '#FFFFFF' },
+
   liveSection: { backgroundColor: '#102A43', borderBottomWidth: 1, borderBottomColor: '#24445D' },
   liveList: { paddingHorizontal: 13, paddingVertical: 10, gap: 15 },
   liveCreator: { width: 70, alignItems: 'center' },
@@ -430,14 +433,14 @@ const styles = StyleSheet.create({
   videoDescription: { flex: 1, paddingBottom: 2 },
   sellerLine: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 8 },
   sellerName: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
-  followButton: { backgroundColor: '#18A999', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7, minHeight: 30, justifyContent: 'center', borderWidth: 1, borderColor: '#70E0D3' },
-  followingButton: { backgroundColor: '#2C4A61', borderWidth: 1, borderColor: '#FFFFFF55' },
+  followButton: { backgroundColor: '#E53945', borderRadius: 5, paddingHorizontal: 11, paddingVertical: 6, minHeight: 28, justifyContent: 'center' },
+  followingButton: { backgroundColor: '#344B5E' },
   followButtonText: { color: '#FFFFFF', fontSize: 9, fontWeight: '900' },
   videoCaption: { color: '#FFFFFF', fontSize: 11, lineHeight: 16, marginBottom: 10, textShadowColor: '#0008', textShadowRadius: 3 },
-  productPrice: { alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, minHeight: 36, justifyContent: 'center', borderWidth: 1, borderColor: '#FFFFFF' },
+  productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 5, paddingHorizontal: 12, paddingVertical: 9, minHeight: 36, justifyContent: 'center', borderWidth: 0 },
   productPriceText: { color: '#102A43', fontSize: 10, fontWeight: '900' },
   actionsRail: { alignItems: 'center', gap: 13, width: 50, paddingBottom: 3 },
-  actionButton: { alignItems: 'center', justifyContent: 'center', minWidth: 46, minHeight: 54, paddingTop: 4, paddingBottom: 4, borderRadius: 24, backgroundColor: '#07142155' },
+  actionButton: { alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 50, paddingTop: 3, paddingBottom: 3, backgroundColor: 'transparent' },
   actionIcon: { color: '#FFFFFF', fontSize: 25, fontWeight: '700', textShadowColor: '#000A', textShadowRadius: 5 },
   actionIconActive: { color: '#18A999' },
   actionLabel: { color: '#FFFFFF', fontSize: 8, fontWeight: '800', marginTop: 2, textShadowColor: '#000A', textShadowRadius: 5, textAlign: 'center' },
