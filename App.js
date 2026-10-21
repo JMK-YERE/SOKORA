@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import NativeProductVideo from './NativeProductVideo';
 import {
   Alert,
   Platform,
@@ -90,28 +90,6 @@ const liveCreators = [
   { id: 'live-home', name: 'Mama Neema', emoji: '🪑', viewers: '54' },
   { id: 'live-tech', name: 'JMK Tech', emoji: '💻', viewers: '31' },
 ];
-
-function NativeProductVideo({ uri, active, product }) {
-  const player = useVideoPlayer(uri, (instance) => {
-    instance.loop = true;
-    instance.muted = true;
-    instance.audioMixingMode = 'mixWithOthers';
-  });
-  useEffect(() => {
-    if (!player) return;
-    if (active) player.play();
-    else player.pause();
-  }, [active, player]);
-  return (
-    <VideoView
-      player={player}
-      style={styles.nativeVideo}
-      contentFit="cover"
-      nativeControls={false}
-      accessibilityLabel={'Video ya bidhaa: ' + product}
-    />
-  );
-}
 
 function ActionButton({ icon, label, onPress, active = false }) {
   return (
