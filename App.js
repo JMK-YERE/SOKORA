@@ -451,10 +451,10 @@ const styles = StyleSheet.create({
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 26, fontWeight: '900', letterSpacing: 1.5 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
   headerLink: { color: '#C1D0DC', fontSize: 13, fontWeight: '800', paddingVertical: 7 },
-  headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#18A999' },
+  headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#18A999', backgroundColor: 'transparent' },
   headerLive: { color: '#FF5A63', fontSize: 13, fontWeight: '900' },
   headerLiveButton: { paddingVertical: 8, paddingHorizontal: 2 },
-  profileTopButton: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 9, backgroundColor: '#18354D' },
+  profileTopButton: { paddingHorizontal: 6, paddingVertical: 8, borderRadius: 0, backgroundColor: 'transparent' },
   profileTopButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
 
