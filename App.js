@@ -123,6 +123,13 @@ export default function App() {
   const [feedMode, setFeedMode] = useState('demo');
   const [feedLoading, setFeedLoading] = useState(true);
   const [feedMessage, setFeedMessage] = useState('');
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadPrice, setUploadPrice] = useState('');
+  const [uploadLocation, setUploadLocation] = useState('Dodoma');
+  const [uploadCaption, setUploadCaption] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -208,10 +215,49 @@ export default function App() {
     Alert.alert('Maoni yameongezwa', 'Maoni haya yamehifadhiwa kwenye mfano wa app kwenye kifaa hiki pekee. Backend itahitajika kuyafanya yaonekane kwa watu wote.');
   };
 
-  const uploadVideo = () => Alert.alert(
-    'Weka video ya bidhaa',
-    'Muundo wa sehemu hii umeandaliwa. Hatua inayofuata itaongeza kuchagua video, maelezo ya bidhaa, bei, eneo na kupakia faili kwenye hifadhi salama. Kwa sasa hakuna video inayopakiwa kwa umma.',
-  );
+  const uploadVideo = () => {
+    setUploadFile(null);
+    setUploadTitle('');
+    setUploadPrice('');
+    setUploadCaption('');
+    setShowUpload(true);
+  };
+
+  const publishProduct = async () => {
+    if (!uploadFile || !uploadTitle.trim() || !uploadPrice.trim()) {
+      Alert.alert('Taarifa hazijakamilika', 'Chagua video au picha, andika jina la bidhaa na bei.');
+      return;
+    }
+    if (!API_BASE_URL) {
+      Alert.alert('API haijaunganishwa', 'Faili limechaguliwa kwenye kifaa hiki, lakini uchapishaji wa umma unahitaji EXPO_PUBLIC_API_URL na endpoint ya upload kwenye backend. Hakuna faili lililotumwa.');
+      return;
+    }
+    const body = new FormData();
+    body.append('file', uploadFile);
+    body.append('product_name', uploadTitle.trim());
+    body.append('price_tzs', uploadPrice.trim());
+    body.append('location', uploadLocation.trim());
+    body.append('caption', uploadCaption.trim());
+    setUploading(true);
+    try {
+      const response = await fetch(API_BASE_URL + '/api/videos', { method: 'POST', body });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      setShowUpload(false);
+      setFeedMessage('Bidhaa imetumwa. Inapakia upya feed…');
+      const refreshed = await fetch(API_BASE_URL + '/api/feed?limit=20', { headers: { Accept: 'application/json' } });
+      if (refreshed.ok) {
+        const payload = await refreshed.json();
+        const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.items) ? payload.items : []);
+        setFeedVideos(rows.map(normalizeApiVideo));
+        setFeedMode('backend');
+      }
+      Alert.alert('Imetumwa', 'Backend imekubali bidhaa yako.');
+    } catch (error) {
+      Alert.alert('Haijachapishwa', 'Backend haikukubali upload (' + String(error.message || error) + '). Hakuna bidhaa iliyothibitishwa kuchapishwa. Hakikisha endpoint ya POST /api/videos inakubali multipart/form-data.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const startLive = () => Alert.alert(
     'Anza LIVE',
@@ -383,6 +429,39 @@ export default function App() {
         ))}
       </View>
 
+      <Modal visible={showUpload} animationType="slide" transparent onRequestClose={() => setShowUpload(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.uploadSheet}>
+            <View style={styles.modalTitleRow}>
+              <Text style={styles.modalTitle}>➕ Weka bidhaa SOKORA</Text>
+              <Pressable onPress={() => setShowUpload(false)}><Text style={styles.closeModal}>✕</Text></Pressable>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 18 }}>
+              <Text style={styles.uploadIntro}>Chagua video ya bidhaa au picha, kisha jaza taarifa zake.</Text>
+              {Platform.OS === 'web' ? React.createElement('input', {
+                type: 'file',
+                accept: 'video/*,image/*',
+                onChange: (event) => setUploadFile(event.target.files && event.target.files[0] ? event.target.files[0] : null),
+                style: { display: 'block', width: '100%', color: '#FFFFFF', marginTop: 12, marginBottom: 12 },
+              }) : <Text style={styles.uploadIntro}>Kuchagua faili kwenye simu kutahitaji kuunganishwa na kichagua media cha Android/iOS.</Text>}
+              {!!uploadFile && <Text style={styles.uploadFileName}>✓ {uploadFile.name || 'Faili limechaguliwa'} · {Math.max(1, Math.round((uploadFile.size || 0) / 1024))} KB</Text>}
+              <Text style={styles.uploadFieldLabel}>Jina la bidhaa *</Text>
+              <TextInput value={uploadTitle} onChangeText={setUploadTitle} style={styles.uploadInput} placeholder="Mfano: Samsung Galaxy A55" placeholderTextColor="#9FB4C5" />
+              <Text style={styles.uploadFieldLabel}>Bei kwa TSh *</Text>
+              <TextInput value={uploadPrice} onChangeText={setUploadPrice} keyboardType="numeric" style={styles.uploadInput} placeholder="Mfano: 650000" placeholderTextColor="#9FB4C5" />
+              <Text style={styles.uploadFieldLabel}>Eneo</Text>
+              <TextInput value={uploadLocation} onChangeText={setUploadLocation} style={styles.uploadInput} placeholder="Mji / eneo" placeholderTextColor="#9FB4C5" />
+              <Text style={styles.uploadFieldLabel}>Maelezo ya bidhaa</Text>
+              <TextInput value={uploadCaption} onChangeText={setUploadCaption} multiline style={[styles.uploadInput, { minHeight: 76, textAlignVertical: 'top' }]} placeholder="Eleza bidhaa, hali yake na delivery..." placeholderTextColor="#9FB4C5" />
+              <Pressable disabled={uploading} onPress={publishProduct} style={[styles.publishButton, uploading && { opacity: 0.6 }]}>
+                <Text style={styles.publishButtonText}>{uploading ? 'Inatuma…' : 'Chapisha bidhaa'}</Text>
+              </Pressable>
+              <Text style={styles.uploadFootnote}>Uchapishaji wa umma utafanikiwa tu ikiwa backend ya SOKORA ina endpoint ya POST /api/videos na hifadhi ya media.</Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={!!selectedVideo} transparent animationType="slide" onRequestClose={() => setSelectedVideo(null)}>
         <View style={styles.modalOverlay}>
           <View style={styles.commentSheet}>
@@ -520,6 +599,14 @@ const styles = StyleSheet.create({
   navLabelActive: { color: '#65D6C8', fontWeight: '900' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#000A' },
   commentSheet: { maxHeight: '78%', minHeight: '48%', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 17, paddingTop: 10, paddingBottom: 18 },
+  uploadSheet: { maxHeight: '88%', minHeight: '55%', width: '100%', maxWidth: 520, alignSelf: 'center', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 20 },
+  uploadIntro: { color: '#C3D2DA', fontSize: 13, lineHeight: 19, marginTop: 12 },
+  uploadFileName: { color: '#65D6C8', fontSize: 12, fontWeight: '800', marginVertical: 8 },
+  uploadFieldLabel: { color: '#D4E0E8', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 6 },
+  uploadInput: { backgroundColor: '#081A2B', color: '#FFFFFF', borderWidth: 1, borderColor: '#35536A', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 12, fontSize: 14 },
+  publishButton: { backgroundColor: '#18A999', borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 18 },
+  publishButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '900' },
+  uploadFootnote: { color: '#9FB4C5', fontSize: 10, lineHeight: 15, marginTop: 10, textAlign: 'center' },
   modalHandle: { width: 38, height: 4, borderRadius: 2, backgroundColor: '#6B879B', alignSelf: 'center', marginBottom: 15 },
   modalTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#2C4A61' },
   modalTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '900', flex: 1, marginRight: 10 },
