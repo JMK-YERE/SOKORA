@@ -21,6 +21,7 @@ const FEED_HEIGHT = Math.max(500, Math.min(windowHeight * 0.69, 700));
 const demoVideos = [
   {
     id: 'phone',
+    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     seller: '@jiji_gadgets_tz',
     verified: true,
     product: 'Simu janja ya kisasa',
@@ -34,6 +35,7 @@ const demoVideos = [
   },
   {
     id: 'fashion',
+    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
     seller: '@mariam_fashion',
     verified: true,
     product: 'Viatu vya mtindo',
@@ -47,6 +49,7 @@ const demoVideos = [
   },
   {
     id: 'home',
+    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     seller: '@mama_neema_home',
     verified: false,
     product: 'Kiti cha sebuleni',
@@ -155,10 +158,31 @@ export default function App() {
   const renderVideo = ({ item }) => (
     <View style={[styles.videoCard, { height: FEED_HEIGHT, backgroundColor: item.background }]}>
       <View style={styles.videoBackdropCircle} />
-      <View style={styles.productArt}>
-        <Text style={styles.productEmoji}>{item.emoji}</Text>
-        <Text style={styles.productArtCaption}>SOKORA · SOKO LA TANZANIA</Text>
-      </View>
+      {Platform.OS === 'web' ? (
+        <View style={styles.demoVideoStage}>
+          {React.createElement('video', {
+            key: item.videoUrl,
+            src: item.videoUrl,
+            controls: true,
+            playsInline: true,
+            muted: true,
+            loop: true,
+            preload: 'metadata',
+            'aria-label': 'Video ya majaribio ya SOKORA: ' + item.product,
+            style: { width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#102A43' },
+          })}
+          <View style={styles.demoVideoOverlay}>
+            <Text style={styles.demoVideoTag}>VIDEO YA MAJARIBIO</Text>
+            <Text style={styles.demoVideoProduct}>{item.emoji}  {item.product}</Text>
+            <Text style={styles.demoVideoHint}>Video za mfano kwa kupima feed · si video halisi za bidhaa</Text>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.productArt}>
+          <Text style={styles.productEmoji}>{item.emoji}</Text>
+          <Text style={styles.productArtCaption}>SOKORA · VIDEO ZA MAJARIBIO</Text>
+        </View>
+      )}
 
       <View style={styles.videoTopLine}>
         <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>VIDEO YA MFANO</Text></View>
@@ -329,6 +353,11 @@ const styles = StyleSheet.create({
   feedList: { paddingHorizontal: 10, paddingBottom: 10 },
   videoCard: { borderRadius: 17, overflow: 'hidden', justifyContent: 'space-between', marginBottom: 12, position: 'relative' },
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
+  demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
+  demoVideoOverlay: { position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'flex-start', pointerEvents: 'none' },
+  demoVideoTag: { color: '#FFFFFF', backgroundColor: '#102A43DD', overflow: 'hidden', borderRadius: 6, paddingHorizontal: 9, paddingVertical: 6, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
+  demoVideoProduct: { color: '#FFFFFF', fontSize: 17, fontWeight: '900', marginTop: 10, textShadowColor: '#000A', textShadowRadius: 5 },
+  demoVideoHint: { color: '#FFFFFF', fontSize: 9, marginTop: 5, textShadowColor: '#000A', textShadowRadius: 5 },
   productArt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30 },
   productEmoji: { fontSize: 105, textShadowColor: '#0006', textShadowOffset: { width: 0, height: 12 }, textShadowRadius: 18 },
   productArtCaption: { color: '#FFFFFF88', fontSize: 9, fontWeight: '900', letterSpacing: 2, marginTop: 18 },
