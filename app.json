@@ -4,13 +4,14 @@
     "slug": "sokora",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "android": {
       "package": "tz.sokora.app",
       "adaptiveIcon": {
         "backgroundColor": "#071B33"
-      }
+      },
+      "edgeToEdgeEnabled": true
     }
   }
 }
