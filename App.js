@@ -39,7 +39,9 @@ function normalizeApiVideo(row, index) {
     isDemo: false,
   };
 }
-const FEED_HEIGHT = Platform.OS === 'web'\n  ? Math.max(420, windowHeight - 155)\n  : Math.max(420, windowHeight - 245);
+const FEED_HEIGHT = Platform.OS === 'web'
+  ? Math.max(420, windowHeight - 118)
+  : Math.max(420, windowHeight - 245);
 
 const demoVideos = [
   {
