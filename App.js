@@ -293,7 +293,7 @@ export default function App() {
         </View>
       </View>
 
-      {Platform.OS !== 'web' && <View style={styles.liveSection}>
+      {Platform.OS !== 'web' && (\n      <View style={styles.liveSection}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveList}>
           {liveCreators.map((creator) => (
             <Pressable key={creator.id} style={styles.liveCreator} onPress={() => joinLive(creator)}>
@@ -305,10 +305,10 @@ export default function App() {
         </ScrollView>
       </View>
 
-      <View style={styles.feedHeader}>
+      )}\n\n      {Platform.OS !== 'web' && (\n      <View style={styles.feedHeader}>
         <View><Text style={styles.feedHeaderTitle}>Video za bidhaa</Text>{!!feedMessage && <Text style={styles.feedStatusText}>{feedMessage}</Text>}</View>
         <Pressable onPress={uploadVideo} style={styles.uploadButton}><Text style={styles.uploadButtonText}>＋ Weka video</Text></Pressable>
-      </View>
+      </View>\n      )}
 
       {feedLoading ? (
         <View style={styles.emptyState}><Text style={styles.emptyTitle}>Inapakia video…</Text><Text style={styles.emptyText}>Tunasoma video kutoka SOKORA.</Text></View>
