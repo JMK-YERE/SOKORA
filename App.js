@@ -363,11 +363,11 @@ export default function App() {
 
       <View style={styles.bottomNav}>
         {[
-          { id: 'Video', icon: '▶', label: 'Video' },
-          { id: 'Gundua', icon: '⌕', label: 'Gundua' },
-          { id: 'Weka', icon: '＋', label: 'Weka' },
-          { id: 'Inbox', icon: '♡', label: 'Inbox' },
-          { id: 'Wasifu', icon: '◉', label: 'Wasifu' },
+          { id: 'Video', icon: '🎬', label: 'Video' },
+          { id: 'Gundua', icon: '🔎', label: 'Gundua' },
+          { id: 'Weka', icon: '➕', label: 'Weka' },
+          { id: 'Inbox', icon: '💬', label: 'Inbox' },
+          { id: 'Wasifu', icon: '👤', label: 'Wasifu' },
         ].map((nav) => (
           <Pressable key={nav.id} style={styles.navItem} onPress={() => {
             setActiveNav(nav.id);
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 26, fontWeight: '900', letterSpacing: 1.5 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
-  headerLink: { color: '#C1D0DC', fontSize: 13, fontWeight: '800', paddingVertical: 7 },
+  headerLink: { color: '#C1D0DC', fontSize: 13, fontWeight: '800', paddingVertical: 7, backgroundColor: 'transparent' },
   headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#18A999', backgroundColor: 'transparent' },
   headerLive: { color: '#FF5A63', fontSize: 13, fontWeight: '900' },
   headerLiveButton: { paddingVertical: 8, paddingHorizontal: 2 },
@@ -512,11 +512,11 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 38, marginBottom: 12 },
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#081A2B', borderTopWidth: 1, borderTopColor: '#31485B', paddingHorizontal: 6, paddingTop: 7, paddingBottom: Platform.OS === 'web' ? 10 : 8, minHeight: Platform.OS === 'web' ? 72 : 74, flexShrink: 0, zIndex: 5, elevation: 8 },
-  navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 54, minHeight: 54, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 14, gap: 3 },
-  navIcon: { color: '#A9BECC', fontSize: 23, fontWeight: '900' },
-  navIconActive: { color: '#65D6C8' },
-  navLabel: { color: '#B3C5D0', fontSize: 11, fontWeight: '800' },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#081A2B', borderTopWidth: 1, borderTopColor: '#31485B', paddingHorizontal: 4, paddingTop: 8, paddingBottom: Platform.OS === 'web' ? 10 : 8, minHeight: Platform.OS === 'web' ? 84 : 86, flexShrink: 0, zIndex: 5, elevation: 8 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 58, minHeight: 66, paddingHorizontal: 4, paddingVertical: 5, borderRadius: 18, gap: 3 },
+  navIcon: { color: '#A9BECC', fontSize: 30, fontWeight: '900', lineHeight: 36 },
+  navIconActive: { color: '#65D6C8', fontSize: 33 },
+  navLabel: { color: '#B3C5D0', fontSize: 12, fontWeight: '800' },
   navLabelActive: { color: '#FFFFFF' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#000A' },
   commentSheet: { maxHeight: '78%', minHeight: '48%', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 17, paddingTop: 10, paddingBottom: 18 },
