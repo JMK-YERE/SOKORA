@@ -101,7 +101,7 @@ function ActionButton({ icon, label, onPress, active = false }) {
 
 export default function App() {
   const { height: windowHeight } = useWindowDimensions();
-  const FEED_HEIGHT = Math.max(360, windowHeight - (Platform.OS === 'web' ? 150 : 245));
+  const FEED_HEIGHT = Math.max(360, windowHeight - (Platform.OS === 'web' ? 205 : 245));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
   const [following, setFollowing] = useState({});
@@ -133,10 +133,13 @@ export default function App() {
         const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.items) ? payload.items : []);
         const uniqueRows = [];
         const seenVideoIds = new Set();
+        const seenVideoUrls = new Set();
         for (const row of rows) {
-          const id = String(row.video_id ?? row.id ?? row.video_url ?? '');
-          if (!id || seenVideoIds.has(id)) continue;
-          seenVideoIds.add(id);
+          const id = String(row.video_id ?? row.id ?? '');
+          const url = String(row.video_url ?? '').trim();
+          if ((!id && !url) || (id && seenVideoIds.has(id)) || (url && seenVideoUrls.has(url))) continue;
+          if (id) seenVideoIds.add(id);
+          if (url) seenVideoUrls.add(url);
           uniqueRows.push(row);
         }
         setFeedVideos(uniqueRows.map(normalizeApiVideo));
@@ -225,7 +228,7 @@ export default function App() {
             controls: false,
             playsInline: true,
             muted: true,
-            autoPlay: false,
+            autoPlay: item.id === visibleVideos[0]?.id,
             loop: true,
             preload: 'metadata',
             'aria-label': 'Video ya majaribio ya SOKORA: ' + item.product,
@@ -330,6 +333,10 @@ export default function App() {
           keyExtractor={(item) => item.id}
           renderItem={renderVideo}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={Platform.OS !== 'web'}
+          windowSize={3}
+          initialNumToRender={1}
+          maxToRenderPerBatch={2}
           contentContainerStyle={styles.feedList}
           snapToInterval={FEED_HEIGHT + (Platform.OS === 'web' ? 0 : 12)}
           snapToAlignment="start"
@@ -387,8 +394,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, minHeight: 0, backgroundColor: '#102A43', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 480, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 1, borderRightWidth: 1, borderColor: '#24445D' } : {}) },
-  header: { backgroundColor: '#102A43', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 7 : 8, paddingBottom: 0 },
-  headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 36 },
+  header: { backgroundColor: 'transparent', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 18 : 8, paddingBottom: 0 },
+  headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 19 : 23, fontWeight: '900', letterSpacing: 1.2 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerLink: { color: '#9DB0BF', fontSize: 11, fontWeight: '700' },
