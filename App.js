@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import {
   Alert,
   Platform,
@@ -90,6 +91,28 @@ const liveCreators = [
   { id: 'live-tech', name: 'JMK Tech', emoji: '💻', viewers: '31' },
 ];
 
+function NativeProductVideo({ uri, active, product }) {
+  const player = useVideoPlayer(uri, (instance) => {
+    instance.loop = true;
+    instance.muted = true;
+    instance.audioMixingMode = 'mixWithOthers';
+  });
+  useEffect(() => {
+    if (!player) return;
+    if (active) player.play();
+    else player.pause();
+  }, [active, player]);
+  return (
+    <VideoView
+      player={player}
+      style={styles.nativeVideo}
+      contentFit="cover"
+      nativeControls={false}
+      accessibilityLabel={'Video ya bidhaa: ' + product}
+    />
+  );
+}
+
 function ActionButton({ icon, label, onPress, active = false }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.actionButton}>
@@ -102,7 +125,7 @@ function ActionButton({ icon, label, onPress, active = false }) {
 export default function App() {
   const { height: windowHeight } = useWindowDimensions();
   const [feedViewportHeight, setFeedViewportHeight] = useState(0);
-  const FEED_HEIGHT = feedViewportHeight > 0 ? feedViewportHeight : Math.max(280, windowHeight - (Platform.OS === 'web' ? 220 : 320));
+  const FEED_HEIGHT = feedViewportHeight > 0 ? feedViewportHeight : Math.max(280, windowHeight - (Platform.OS === 'web' ? 220 : 86));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
   const [following, setFollowing] = useState({});
@@ -284,19 +307,25 @@ export default function App() {
             autoPlay: item.id === visibleVideos[0]?.id,
             loop: true,
             preload: 'metadata',
-            'aria-label': 'Video ya majaribio ya SOKORA: ' + item.product,
-            style: { width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#102A43' },
+            'aria-label': 'Video ya SOKORA: ' + item.product,
+            style: { width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#070B13' },
           })}
           <View style={styles.demoVideoOverlay}>
-            <Text style={styles.demoVideoTag}>{item.isDemo ? 'VIDEO YA MAJARIBIO' : 'VIDEO YA BIDHAA'}</Text>
+            <Text style={styles.demoVideoTag}>{item.isDemo ? 'DEMO' : 'VIDEO YA BIDHAA'}</Text>
             <Text style={styles.demoVideoProduct}>{item.emoji}  {item.product}</Text>
-            {item.isDemo && <Text style={styles.demoVideoHint}>Video za mfano kwa kupima feed · si video halisi za bidhaa</Text>}
+            {item.isDemo && <Text style={styles.demoVideoHint}>Video ya mfano · si tangazo halisi</Text>}
           </View>
+        </View>
+      ) : Platform.OS !== 'web' && item.videoUrl ? (
+        <View style={styles.demoVideoStage}>
+          <NativeProductVideo uri={item.videoUrl} active={item.id === visibleVideos[0]?.id} product={item.product} />
+          {item.isDemo && <View style={styles.demoVideoOverlay}><Text style={styles.demoVideoTag}>VIDEO YA MFANO</Text></View>}
         </View>
       ) : (
         <View style={styles.productArt}>
+          <View style={styles.productArtGlow} />
           <Text style={styles.productEmoji}>{item.emoji}</Text>
-          <Text style={styles.productArtCaption}>{item.isDemo ? 'SOKORA · VIDEO ZA MAJARIBIO' : 'SOKORA · BIDHAA'}</Text>
+          <Text style={styles.productArtCaption}>{item.isDemo ? 'SOKORA · DEMO' : 'SOKORA · BIDHAA'}</Text>
         </View>
       )}
 
@@ -524,12 +553,12 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, minHeight: 0, backgroundColor: '#081A2B', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 560, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
-  header: { backgroundColor: 'transparent', paddingHorizontal: 18, paddingTop: Platform.OS === 'web' ? 24 : 10, paddingBottom: 6, borderWidth: 0, elevation: 0 },
+  safe: { flex: 1, minHeight: 0, backgroundColor: '#070B13', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 560, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
+  header: { backgroundColor: Platform.OS === 'web' ? '#0A101D' : '#070B13E8', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 24 : 8, paddingBottom: 8, borderWidth: 0, elevation: 0, ...(Platform.OS !== 'web' ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 } : {}) },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
-  brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 26, fontWeight: '900', letterSpacing: 1.5 },
-  headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
-  headerLink: { color: '#C1D0DC', fontSize: 13, fontWeight: '800', paddingVertical: 7, backgroundColor: 'transparent' },
+  brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 22, fontWeight: '900', letterSpacing: 1.5 },
+  headerLinks: { flexDirection: 'row', alignItems: 'center', gap: Platform.OS === 'web' ? 12 : 7, flexShrink: 1 },
+  headerLink: { color: '#C1D0DC', fontSize: Platform.OS === 'web' ? 13 : 10, fontWeight: '800', paddingVertical: 7, backgroundColor: 'transparent' },
   headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#18A999', backgroundColor: 'transparent' },
   headerLive: { color: '#FF5A63', fontSize: 13, fontWeight: '900' },
   headerLiveButton: { paddingVertical: 8, paddingHorizontal: 2 },
@@ -537,7 +566,7 @@ const styles = StyleSheet.create({
   profileTopButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
 
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 44, borderRadius: 10, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: '#385166' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 5, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 36, borderRadius: 12, backgroundColor: '#101827E8', borderWidth: 1, borderColor: '#FFFFFF20' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 7, fontSize: 14 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
@@ -556,22 +585,24 @@ const styles = StyleSheet.create({
   uploadButton: { backgroundColor: '#24445D', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
   uploadButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
   feedScroll: { flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' },
-  feedList: { paddingHorizontal: Platform.OS === 'web' ? 0 : 10, paddingBottom: 0, alignItems: 'stretch', flexGrow: 0 },
-  videoCard: { width: '100%', alignSelf: 'stretch', borderRadius: Platform.OS === 'web' ? 0 : 17, overflow: 'hidden', justifyContent: 'space-between', marginBottom: Platform.OS === 'web' ? 0 : 12, position: 'relative', flexShrink: 0 },
+  feedList: { paddingHorizontal: 0, paddingBottom: 0, alignItems: 'stretch', flexGrow: 0 },
+  videoCard: { width: '100%', alignSelf: 'stretch', borderRadius: 0, overflow: 'hidden', justifyContent: 'space-between', marginBottom: 0, position: 'relative', flexShrink: 0 },
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
   demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
   demoVideoOverlay: { position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'flex-start', pointerEvents: 'none' },
   demoVideoTag: { color: '#FFFFFF', backgroundColor: '#102A43DD', overflow: 'hidden', borderRadius: 6, paddingHorizontal: 9, paddingVertical: 6, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
   demoVideoProduct: { color: '#FFFFFF', fontSize: 17, fontWeight: '900', marginTop: 10, textShadowColor: '#000A', textShadowRadius: 5 },
   demoVideoHint: { color: '#FFFFFF', fontSize: 9, marginTop: 5, textShadowColor: '#000A', textShadowRadius: 5 },
-  productArt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30 },
+  productArt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30, backgroundColor: '#0A101D' },
+  productArtGlow: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: '#14253A', borderWidth: 1, borderColor: '#65D6C833' },
+  nativeVideo: { width: '100%', height: '100%', backgroundColor: '#070B13' },
   productEmoji: { fontSize: 105, textShadowColor: '#0006', textShadowOffset: { width: 0, height: 12 }, textShadowRadius: 18 },
   productArtCaption: { color: '#FFFFFF88', fontSize: 9, fontWeight: '900', letterSpacing: 2, marginTop: 18 },
   videoTopLine: { position: 'absolute', top: 12, left: 12, right: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   demoBadge: { backgroundColor: '#0006', borderRadius: 5, paddingHorizontal: 7, paddingVertical: 5 },
   demoBadgeText: { color: '#FFFFFF', fontSize: 8, fontWeight: '900' },
   videoLocation: { color: '#FFFFFF', fontSize: 10, fontWeight: '700', textShadowColor: '#0008', textShadowRadius: 5 },
-  videoBottom: { flexDirection: 'row', alignItems: 'flex-end', padding: 13, paddingBottom: 16, gap: 10, backgroundColor: '#05070A66' },
+  videoBottom: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 14, paddingTop: 34, paddingBottom: Platform.OS === 'web' ? 16 : 20, gap: 8, backgroundColor: 'transparent' },
   videoDescription: { flex: 1, paddingBottom: 2 },
   sellerLine: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 8 },
   sellerName: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
@@ -581,21 +612,21 @@ const styles = StyleSheet.create({
   videoCaption: { color: '#FFFFFF', fontSize: 11, lineHeight: 16, marginBottom: 10, textShadowColor: '#0008', textShadowRadius: 3 },
   productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 9, paddingHorizontal: 16, paddingVertical: 12, minHeight: 44, justifyContent: 'center', borderWidth: 0 },
   productPriceText: { color: '#102A43', fontSize: 12, fontWeight: '900' },
-  actionsRail: { alignItems: 'center', gap: 10, width: 66, paddingBottom: 4 },
-  actionButton: { alignItems: 'center', justifyContent: 'center', width: 58, minHeight: 58, paddingHorizontal: 4, paddingTop: 6, paddingBottom: 6, borderRadius: 18, backgroundColor: '#071522B8', borderWidth: 1, borderColor: '#FFFFFF30' },
-  actionIcon: { color: '#FFFFFF', fontSize: 29, fontWeight: '800' },
+  actionsRail: { alignItems: 'center', gap: Platform.OS === 'web' ? 10 : 7, width: 56, paddingBottom: 4 },
+  actionButton: { alignItems: 'center', justifyContent: 'center', width: 50, minHeight: 51, paddingHorizontal: 2, paddingTop: 4, paddingBottom: 4, borderRadius: 16, backgroundColor: '#07111FCC', borderWidth: 1, borderColor: '#FFFFFF24' },
+  actionIcon: { color: '#FFFFFF', fontSize: 26, fontWeight: '800' },
   actionIconActive: { color: '#18A999' },
-  actionLabel: { color: '#FFFFFF', fontSize: 10, fontWeight: '900', marginTop: 3, textAlign: 'center', maxWidth: 58 },
+  actionLabel: { color: '#FFFFFF', fontSize: 9, fontWeight: '900', marginTop: 3, textAlign: 'center', maxWidth: 58 },
   endOfFeed: { color: '#B3C5D0', fontSize: 10, textAlign: 'center', paddingHorizontal: 25, paddingVertical: 14, lineHeight: 15 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   emptyEmoji: { fontSize: 38, marginBottom: 12 },
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#081A2B', borderTopWidth: 1, borderTopColor: '#31485B', paddingHorizontal: 4, paddingTop: 8, paddingBottom: Platform.OS === 'web' ? 10 : 8, minHeight: Platform.OS === 'web' ? 84 : 86, flexShrink: 0, zIndex: 5, elevation: 8 },
-  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 58, minHeight: 66, paddingHorizontal: 4, paddingVertical: 5, borderRadius: 18, gap: 3, backgroundColor: 'transparent' },
-  navIcon: { color: '#A9BECC', fontSize: 30, fontWeight: '900', lineHeight: 36 },
-  navIconActive: { color: '#65D6C8', fontSize: 33 },
-  navLabel: { color: '#FFFFFF', fontSize: 12, fontWeight: '900', textAlign: 'center', includeFontPadding: true },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#080D17', borderTopWidth: 1, borderTopColor: '#273447', paddingHorizontal: 4, paddingTop: 3, paddingBottom: Platform.OS === 'web' ? 10 : 3, minHeight: Platform.OS === 'web' ? 84 : 66, flexShrink: 0, zIndex: 25, elevation: 12 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 48, minHeight: 56, paddingHorizontal: 2, paddingVertical: 3, borderRadius: 14, gap: 1, backgroundColor: 'transparent' },
+  navIcon: { color: '#A9BECC', fontSize: 25, fontWeight: '900', lineHeight: 30 },
+  navIconActive: { color: '#65D6C8', fontSize: 27 },
+  navLabel: { color: '#E4EAF2', fontSize: 10, fontWeight: '900', textAlign: 'center', includeFontPadding: true },
   navLabelActive: { color: '#65D6C8', fontWeight: '900' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#000A' },
   commentSheet: { maxHeight: '78%', minHeight: '48%', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 17, paddingTop: 10, paddingBottom: 18 },
