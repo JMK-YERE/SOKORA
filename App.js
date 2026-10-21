@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -17,6 +17,28 @@ import {
 } from 'react-native';
 
 const { height: windowHeight } = Dimensions.get('window');
+const API_BASE_URL = (typeof process !== 'undefined' && process.env && process.env.EXPO_PUBLIC_API_URL)
+  ? process.env.EXPO_PUBLIC_API_URL.replace(/\\/+$/, '')
+  : '';
+
+function normalizeApiVideo(row, index) {
+  const amount = Number(row.price_tzs || 0);
+  return {
+    id: String(row.video_id ?? row.id ?? `video-${index}`),
+    videoUrl: row.video_url || '',
+    seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || 'Muuzaji wa SOKORA'),
+    verified: false,
+    product: row.product_name || row.name || 'Bidhaa ya SOKORA',
+    price: 'TSh ' + amount.toLocaleString('en-TZ'),
+    location: row.location || 'Tanzania',
+    caption: row.caption || row.description || '',
+    emoji: '🛍️',
+    background: '#233C59',
+    likes: Number(row.likes_count || 0),
+    comments: Number(row.comments_count || 0),
+    isDemo: false,
+  };
+}
 const FEED_HEIGHT = Math.max(500, Math.min(windowHeight * 0.69, 700));
 
 const demoVideos = [
@@ -94,19 +116,48 @@ export default function App() {
   });
   const [searchText, setSearchText] = useState('');
   const [activeNav, setActiveNav] = useState('Video');
+  const [feedVideos, setFeedVideos] = useState(demoVideos.map((video) => ({ ...video, isDemo: true })));
+  const [feedMode, setFeedMode] = useState('demo');
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [feedMessage, setFeedMessage] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const feedUrl = API_BASE_URL ? API_BASE_URL + '/api/feed?limit=20' : '/api/feed?limit=20';
+    fetch(feedUrl, { headers: { Accept: 'application/json' } })
+      .then((response) => {
+        if (!response.ok) throw new Error('API status ' + response.status);
+        return response.json();
+      })
+      .then((payload) => {
+        if (!active) return;
+        const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.items) ? payload.items : []);
+        setFeedVideos(rows.map(normalizeApiVideo));
+        setFeedMode('backend');
+        setFeedMessage(rows.length ? '' : 'Bado hakuna video zilizochapishwa. Weka bidhaa na video ili zionekane hapa.');
+      })
+      .catch(() => {
+        if (!active) return;
+        setFeedVideos(demoVideos.map((video) => ({ ...video, isDemo: true })));
+        setFeedMode('demo');
+        setFeedMessage('API haijapatikana; unaona video za majaribio. Weka EXPO_PUBLIC_API_URL ili kuunganisha API ya SOKORA.');
+      })
+      .finally(() => { if (active) setFeedLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const visibleVideos = useMemo(() => {
     const term = searchText.trim().toLocaleLowerCase();
     const base = activeTab === 'Inafuatwa'
-      ? demoVideos.filter((video) => following[video.seller])
-      : demoVideos;
+      ? feedVideos.filter((video) => following[video.seller])
+      : feedVideos;
     if (!term) return base;
     return base.filter((video) =>
       [video.product, video.seller, video.location, video.caption].some((value) =>
         value.toLocaleLowerCase().includes(term),
       ),
     );
-  }, [activeTab, following, searchText]);
+  }, [activeTab, feedVideos, following, searchText]);
 
   const toggleLike = (id) => setLiked((current) => ({ ...current, [id]: !current[id] }));
   const toggleFollow = (seller) => setFollowing((current) => ({ ...current, [seller]: !current[seller] }));
@@ -159,7 +210,7 @@ export default function App() {
   const renderVideo = ({ item }) => (
     <View style={[styles.videoCard, { height: FEED_HEIGHT, backgroundColor: item.background }]}>
       <View style={styles.videoBackdropCircle} />
-      {Platform.OS === 'web' ? (
+      {Platform.OS === 'web' && item.videoUrl ? (
         <View style={styles.demoVideoStage}>
           {React.createElement('video', {
             key: item.videoUrl,
@@ -173,20 +224,20 @@ export default function App() {
             style: { width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#102A43' },
           })}
           <View style={styles.demoVideoOverlay}>
-            <Text style={styles.demoVideoTag}>VIDEO YA MAJARIBIO</Text>
+            <Text style={styles.demoVideoTag}>{item.isDemo ? 'VIDEO YA MAJARIBIO' : 'VIDEO YA BIDHAA'}</Text>
             <Text style={styles.demoVideoProduct}>{item.emoji}  {item.product}</Text>
-            <Text style={styles.demoVideoHint}>Video za mfano kwa kupima feed · si video halisi za bidhaa</Text>
+            {item.isDemo && <Text style={styles.demoVideoHint}>Video za mfano kwa kupima feed · si video halisi za bidhaa</Text>}
           </View>
         </View>
       ) : (
         <View style={styles.productArt}>
           <Text style={styles.productEmoji}>{item.emoji}</Text>
-          <Text style={styles.productArtCaption}>SOKORA · VIDEO ZA MAJARIBIO</Text>
+          <Text style={styles.productArtCaption}>{item.isDemo ? 'SOKORA · VIDEO ZA MAJARIBIO' : 'SOKORA · BIDHAA'}</Text>
         </View>
       )}
 
       <View style={styles.videoTopLine}>
-        <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>VIDEO YA MFANO</Text></View>
+        <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>{item.isDemo ? 'VIDEO YA MFANO' : 'VIDEO YA BIDHAA'}</Text></View>
         <Text style={styles.videoLocation}>⌖ {item.location}</Text>
       </View>
 
@@ -202,7 +253,7 @@ export default function App() {
             </Pressable>
           </View>
           <Text style={styles.videoCaption}>{item.caption}</Text>
-          <Pressable style={styles.productPrice} onPress={() => Alert.alert(item.product, item.price + '\nMuuzaji: ' + item.seller + '\nEneo: ' + item.location + '\n\nTaarifa hizi ni za mfano; mawasiliano ya muuzaji bado hayajaunganishwa.')}>
+          <Pressable style={styles.productPrice} onPress={() => Alert.alert(item.product, item.price + '\nMuuzaji: ' + item.seller + '\nEneo: ' + item.location + (item.isDemo ? '\n\nTaarifa hizi ni za mfano; mawasiliano ya muuzaji bado hayajaunganishwa.' : ''))}>
             <Text style={styles.productPriceText}>{item.price}  ·  Tazama bidhaa</Text>
           </Pressable>
         </View>
@@ -255,11 +306,13 @@ export default function App() {
       </View>
 
       <View style={styles.feedHeader}>
-        <Text style={styles.feedHeaderTitle}>Video za bidhaa</Text>
+        <View><Text style={styles.feedHeaderTitle}>Video za bidhaa</Text>{!!feedMessage && <Text style={styles.feedStatusText}>{feedMessage}</Text>}</View>
         <Pressable onPress={uploadVideo} style={styles.uploadButton}><Text style={styles.uploadButtonText}>＋ Weka video</Text></Pressable>
       </View>
 
-      {visibleVideos.length ? (
+      {feedLoading ? (
+        <View style={styles.emptyState}><Text style={styles.emptyTitle}>Inapakia video…</Text><Text style={styles.emptyText}>Tunasoma video kutoka SOKORA.</Text></View>
+      ) : visibleVideos.length ? (
         <FlatList
           key={activeTab}
           data={visibleVideos}
@@ -271,7 +324,7 @@ export default function App() {
           snapToAlignment="start"
           decelerationRate="fast"
           disableIntervalMomentum
-          ListFooterComponent={<Text style={styles.endOfFeed}>Umefika mwisho wa video za mfano. Video halisi zitaonekana baada ya kuunganisha backend.</Text>}
+          ListFooterComponent={<Text style={styles.endOfFeed}>{feedMode === 'demo' ? 'Umefika mwisho wa video za mfano. ' : 'Umefika mwisho wa video zilizochapishwa. '}{feedMode === 'demo' ? 'Unganisha API ili kuonyesha video halisi.' : 'Rudi baadaye kuona bidhaa mpya.'}</Text>}
         />
       ) : (
         <View style={styles.emptyState}><Text style={styles.emptyEmoji}>🔎</Text><Text style={styles.emptyTitle}>Hakuna video zilizopatikana</Text><Text style={styles.emptyText}>Jaribu kutafuta neno jingine au fuata wauzaji ili kuona video zao kwenye kichupo cha “Inafuatwa”.</Text></View>
@@ -349,6 +402,7 @@ const styles = StyleSheet.create({
   liveViewers: { color: '#7DDED3', fontSize: 8, marginTop: 3 },
   feedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 9 },
   feedHeaderTitle: { color: '#F7F4EA', fontSize: 13, fontWeight: '800' },
+  feedStatusText: { color: '#C3D2DA', fontSize: 10, marginTop: 4, maxWidth: 230 },
   uploadButton: { backgroundColor: '#24445D', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
   uploadButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
   feedList: { paddingHorizontal: 10, paddingBottom: 10 },
