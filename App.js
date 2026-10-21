@@ -16,7 +16,6 @@ import {
   View,
 } from 'react-native';
 
-const { height: windowHeight } = Dimensions.get('window');
 const API_BASE_URL = (typeof process !== 'undefined' && process.env && process.env.EXPO_PUBLIC_API_URL)
   ? process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')
   : '';
@@ -39,10 +38,6 @@ function normalizeApiVideo(row, index) {
     isDemo: false,
   };
 }
-const FEED_HEIGHT = Platform.OS === 'web'
-  ? Math.max(420, windowHeight - 118)
-  : Math.max(420, windowHeight - 245);
-
 const demoVideos = [
   {
     id: 'phone',
@@ -105,6 +100,8 @@ function ActionButton({ icon, label, onPress, active = false }) {
 }
 
 export default function App() {
+  const { height: windowHeight } = useWindowDimensions();
+  const FEED_HEIGHT = Math.max(360, windowHeight - (Platform.OS === 'web' ? 150 : 245));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
   const [following, setFollowing] = useState({});
@@ -383,20 +380,20 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, minHeight: 0, backgroundColor: '#102A43' },
-  header: { backgroundColor: '#102A43', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 3 : 8, paddingBottom: Platform.OS === 'web' ? 0 : 0 },
+  safe: { flex: 1, minHeight: 0, backgroundColor: '#102A43', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 480, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 1, borderRightWidth: 1, borderColor: '#24445D' } : {}) },
+  header: { backgroundColor: '#102A43', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 7 : 8, paddingBottom: 0 },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 19 : 23, fontWeight: '900', letterSpacing: 1.2 },
   brandPlay: { color: '#18A999', fontSize: 15 },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
-  goLiveButton: { backgroundColor: '#E53945', borderRadius: 7, paddingHorizontal: 12, paddingVertical: 8 },
+  goLiveButton: { backgroundColor: '#E53945', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, minHeight: 34, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FF7880', shadowColor: '#000000', shadowOpacity: 0.18, shadowRadius: 5, elevation: 2 },
   goLiveText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 3 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 30 : 39, borderRadius: 10, backgroundColor: '#183A56', borderWidth: 1, borderColor: '#2A4A63' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 7 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 36 : 42, borderRadius: 12, backgroundColor: '#183A56', borderWidth: 1, borderColor: '#2A4A63' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 5, fontSize: 12 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
-  feedTabs: { flexDirection: 'row', justifyContent: 'center', gap: 25, marginTop: Platform.OS === 'web' ? 1 : 10 },
-  feedTab: { paddingHorizontal: 4, paddingBottom: Platform.OS === 'web' ? 3 : 9, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  feedTabs: { flexDirection: 'row', justifyContent: 'center', gap: 25, marginTop: Platform.OS === 'web' ? 5 : 10 },
+  feedTab: { paddingHorizontal: 8, paddingTop: 5, paddingBottom: Platform.OS === 'web' ? 5 : 9, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   feedTabActive: { borderBottomColor: '#18A999' },
   feedTabText: { color: '#B3C5D0', fontSize: 12, fontWeight: '700' },
   feedTabTextActive: { color: '#FFFFFF' },
@@ -432,14 +429,14 @@ const styles = StyleSheet.create({
   videoDescription: { flex: 1, paddingBottom: 2 },
   sellerLine: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 8 },
   sellerName: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
-  followButton: { backgroundColor: '#18A999', borderRadius: 5, paddingHorizontal: 8, paddingVertical: 5 },
+  followButton: { backgroundColor: '#18A999', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7, minHeight: 30, justifyContent: 'center', borderWidth: 1, borderColor: '#70E0D3' },
   followingButton: { backgroundColor: '#2C4A61', borderWidth: 1, borderColor: '#FFFFFF55' },
   followButtonText: { color: '#FFFFFF', fontSize: 9, fontWeight: '900' },
   videoCaption: { color: '#FFFFFF', fontSize: 11, lineHeight: 16, marginBottom: 10, textShadowColor: '#0008', textShadowRadius: 3 },
-  productPrice: { alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderRadius: 7, paddingHorizontal: 10, paddingVertical: 9 },
+  productPrice: { alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, minHeight: 36, justifyContent: 'center', borderWidth: 1, borderColor: '#FFFFFF' },
   productPriceText: { color: '#102A43', fontSize: 10, fontWeight: '900' },
-  actionsRail: { alignItems: 'center', gap: 13, width: 53, paddingBottom: 3 },
-  actionButton: { alignItems: 'center', justifyContent: 'center', minWidth: 48 },
+  actionsRail: { alignItems: 'center', gap: 13, width: 50, paddingBottom: 3 },
+  actionButton: { alignItems: 'center', justifyContent: 'center', minWidth: 46, minHeight: 54, paddingTop: 4, paddingBottom: 4, borderRadius: 24, backgroundColor: '#07142155' },
   actionIcon: { color: '#FFFFFF', fontSize: 25, fontWeight: '700', textShadowColor: '#000A', textShadowRadius: 5 },
   actionIconActive: { color: '#18A999' },
   actionLabel: { color: '#FFFFFF', fontSize: 8, fontWeight: '800', marginTop: 2, textShadowColor: '#000A', textShadowRadius: 5, textAlign: 'center' },
@@ -448,7 +445,7 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 38, marginBottom: 12 },
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0B2239', borderTopWidth: 1, borderTopColor: '#252833', paddingTop: Platform.OS === 'web' ? 4 : 8, paddingBottom: Platform.OS === 'web' ? 4 : 7 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0B2239', borderTopWidth: 1, borderTopColor: '#252833', paddingHorizontal: 8, paddingTop: Platform.OS === 'web' ? 7 : 8, paddingBottom: Platform.OS === 'web' ? 7 : 7, minHeight: Platform.OS === 'web' ? 56 : 60 },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 48, gap: 3 },
   navIcon: { color: '#A9BECC', fontSize: 19, fontWeight: '800' },
   navIconActive: { color: '#18A999' },
