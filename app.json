@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "SOKORA",
+    "slug": "sokora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": {
+      "package": "tz.sokora.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#071B33"
+      }
+    }
+  }
+}
