@@ -39,7 +39,7 @@ function normalizeApiVideo(row, index) {
     isDemo: false,
   };
 }
-const FEED_HEIGHT = Math.max(500, Math.min(windowHeight * 0.69, 700));
+const FEED_HEIGHT = Platform.OS === 'web'\n  ? Math.max(420, windowHeight - 155)\n  : Math.max(420, windowHeight - 245);
 
 const demoVideos = [
   {
@@ -293,7 +293,7 @@ export default function App() {
         </View>
       </View>
 
-      <View style={styles.liveSection}>
+      {Platform.OS !== 'web' && <View style={styles.liveSection}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveList}>
           {liveCreators.map((creator) => (
             <Pressable key={creator.id} style={styles.liveCreator} onPress={() => joinLive(creator)}>
@@ -375,20 +375,20 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#102A43' },
-  header: { backgroundColor: '#102A43', paddingHorizontal: 16, paddingTop: 8 },
+  safe: { flex: 1, minHeight: 0, backgroundColor: '#102A43' },
+  header: { backgroundColor: '#102A43', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 4 : 8, paddingBottom: Platform.OS === 'web' ? 2 : 0 },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { color: '#FFFFFF', fontSize: 23, fontWeight: '900', letterSpacing: 1.5 },
+  brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 19 : 23, fontWeight: '900', letterSpacing: 1.2 },
   brandPlay: { color: '#18A999', fontSize: 15 },
-  tagline: { color: '#C3D2DA', fontSize: 10, marginTop: 3 },
+  tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
   goLiveButton: { backgroundColor: '#18A999', borderRadius: 9, paddingHorizontal: 12, paddingVertical: 9 },
   goLiveText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingHorizontal: 12, height: 39, borderRadius: 10, backgroundColor: '#183A56', borderWidth: 1, borderColor: '#2A4A63' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 5 : 12, paddingHorizontal: 12, height: Platform.OS === 'web' ? 34 : 39, borderRadius: 10, backgroundColor: '#183A56', borderWidth: 1, borderColor: '#2A4A63' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 5, fontSize: 12 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
-  feedTabs: { flexDirection: 'row', justifyContent: 'center', gap: 25, marginTop: 10 },
-  feedTab: { paddingHorizontal: 4, paddingBottom: 9, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  feedTabs: { flexDirection: 'row', justifyContent: 'center', gap: 25, marginTop: Platform.OS === 'web' ? 2 : 10 },
+  feedTab: { paddingHorizontal: 4, paddingBottom: Platform.OS === 'web' ? 4 : 9, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   feedTabActive: { borderBottomColor: '#18A999' },
   feedTabText: { color: '#B3C5D0', fontSize: 12, fontWeight: '700' },
   feedTabTextActive: { color: '#FFFFFF' },
@@ -405,8 +405,8 @@ const styles = StyleSheet.create({
   feedStatusText: { color: '#C3D2DA', fontSize: 10, marginTop: 4, maxWidth: 230 },
   uploadButton: { backgroundColor: '#24445D', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
   uploadButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
-  feedList: { paddingHorizontal: 10, paddingBottom: 10 },
-  videoCard: { borderRadius: 17, overflow: 'hidden', justifyContent: 'space-between', marginBottom: 12, position: 'relative' },
+  feedList: { paddingHorizontal: Platform.OS === 'web' ? 0 : 10, paddingBottom: 0, alignItems: 'stretch' },
+  videoCard: { width: '100%', alignSelf: 'stretch', borderRadius: Platform.OS === 'web' ? 0 : 17, overflow: 'hidden', justifyContent: 'space-between', marginBottom: Platform.OS === 'web' ? 0 : 12, position: 'relative' },
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
   demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
   demoVideoOverlay: { position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'flex-start', pointerEvents: 'none' },
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 38, marginBottom: 12 },
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0B2239', borderTopWidth: 1, borderTopColor: '#252833', paddingTop: 8, paddingBottom: 7 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0B2239', borderTopWidth: 1, borderTopColor: '#252833', paddingTop: Platform.OS === 'web' ? 4 : 8, paddingBottom: Platform.OS === 'web' ? 4 : 7 },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 48, gap: 3 },
   navIcon: { color: '#A9BECC', fontSize: 19, fontWeight: '800' },
   navIconActive: { color: '#18A999' },
