@@ -446,7 +446,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, minHeight: 0, backgroundColor: '#081A2B', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 560, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
-  header: { backgroundColor: 'transparent', paddingHorizontal: 18, paddingTop: Platform.OS === 'web' ? 24 : 10, paddingBottom: 6 },
+  header: { backgroundColor: 'transparent', paddingHorizontal: 18, paddingTop: Platform.OS === 'web' ? 24 : 10, paddingBottom: 6, borderWidth: 0, elevation: 0 },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 26, fontWeight: '900', letterSpacing: 1.5 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
@@ -513,11 +513,11 @@ const styles = StyleSheet.create({
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
   bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#081A2B', borderTopWidth: 1, borderTopColor: '#31485B', paddingHorizontal: 4, paddingTop: 8, paddingBottom: Platform.OS === 'web' ? 10 : 8, minHeight: Platform.OS === 'web' ? 84 : 86, flexShrink: 0, zIndex: 5, elevation: 8 },
-  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 58, minHeight: 66, paddingHorizontal: 4, paddingVertical: 5, borderRadius: 18, gap: 3 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 58, minHeight: 66, paddingHorizontal: 4, paddingVertical: 5, borderRadius: 18, gap: 3, backgroundColor: 'transparent' },
   navIcon: { color: '#A9BECC', fontSize: 30, fontWeight: '900', lineHeight: 36 },
   navIconActive: { color: '#65D6C8', fontSize: 33 },
-  navLabel: { color: '#B3C5D0', fontSize: 12, fontWeight: '800' },
-  navLabelActive: { color: '#FFFFFF' },
+  navLabel: { color: '#FFFFFF', fontSize: 12, fontWeight: '900', textAlign: 'center', includeFontPadding: true },
+  navLabelActive: { color: '#65D6C8', fontWeight: '900' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#000A' },
   commentSheet: { maxHeight: '78%', minHeight: '48%', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 17, paddingTop: 10, paddingBottom: 18 },
   modalHandle: { width: 38, height: 4, borderRadius: 2, backgroundColor: '#6B879B', alignSelf: 'center', marginBottom: 15 },
