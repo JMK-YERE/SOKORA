@@ -125,6 +125,11 @@ function ActionButton({ icon, label, onPress, active = false }) {
 export default function App() {
   const { height: windowHeight } = useWindowDimensions();
   const [feedViewportHeight, setFeedViewportHeight] = useState(0);
+  const [activeVideoId, setActiveVideoId] = useState(null);
+  const viewabilityConfig = useMemo(() => ({ itemVisiblePercentThreshold: 70 }), []);
+  const onViewableItemsChanged = useMemo(() => ({ viewableItems }) => {
+    if (viewableItems && viewableItems.length) setActiveVideoId(viewableItems[0].item.id);
+  }, []);
   const FEED_HEIGHT = feedViewportHeight > 0 ? feedViewportHeight : Math.max(280, windowHeight - (Platform.OS === 'web' ? 220 : 86));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
@@ -304,7 +309,7 @@ export default function App() {
             controls: false,
             playsInline: true,
             muted: true,
-            autoPlay: item.id === visibleVideos[0]?.id,
+            autoPlay: item.id === (activeVideoId || visibleVideos[0]?.id),
             loop: true,
             preload: 'metadata',
             'aria-label': 'Video ya SOKORA: ' + item.product,
@@ -318,7 +323,7 @@ export default function App() {
         </View>
       ) : Platform.OS !== 'web' && item.videoUrl ? (
         <View style={styles.demoVideoStage}>
-          <NativeProductVideo uri={item.videoUrl} active={item.id === visibleVideos[0]?.id} product={item.product} />
+          <NativeProductVideo uri={item.videoUrl} active={item.id === (activeVideoId || visibleVideos[0]?.id)} product={item.product} />
           {item.isDemo && <View style={styles.demoVideoOverlay}><Text style={styles.demoVideoTag}>VIDEO YA MFANO</Text></View>}
         </View>
       ) : (
@@ -419,6 +424,8 @@ export default function App() {
           data={visibleVideos}
           keyExtractor={(item) => item.id}
           renderItem={renderVideo}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
           style={styles.feedScroll}
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={Platform.OS !== 'web'}
