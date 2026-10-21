@@ -101,7 +101,8 @@ function ActionButton({ icon, label, onPress, active = false }) {
 
 export default function App() {
   const { height: windowHeight } = useWindowDimensions();
-  const FEED_HEIGHT = Math.max(320, windowHeight - (Platform.OS === 'web' ? 194 : 300));
+  const [feedViewportHeight, setFeedViewportHeight] = useState(0);
+  const FEED_HEIGHT = feedViewportHeight > 0 ? feedViewportHeight : Math.max(280, windowHeight - (Platform.OS === 'web' ? 220 : 320));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
   const [following, setFollowing] = useState({});
@@ -335,6 +336,10 @@ export default function App() {
         <View style={styles.emptyState}><Text style={styles.emptyTitle}>Inapakia video…</Text><Text style={styles.emptyText}>Tunasoma video kutoka SOKORA.</Text></View>
       ) : visibleVideos.length ? (
         <FlatList
+          onLayout={(event) => {
+            const measured = Math.round(event.nativeEvent.layout.height);
+            setFeedViewportHeight((current) => current === measured ? current : measured);
+          }}
           key={activeTab}
           data={visibleVideos}
           keyExtractor={(item) => item.id}
@@ -471,9 +476,9 @@ const styles = StyleSheet.create({
   feedStatusText: { color: '#C3D2DA', fontSize: 10, marginTop: 4, maxWidth: 230 },
   uploadButton: { backgroundColor: '#24445D', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
   uploadButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
-  feedScroll: { flex: 1, minHeight: 0 },
+  feedScroll: { flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' },
   feedList: { paddingHorizontal: Platform.OS === 'web' ? 0 : 10, paddingBottom: 0, alignItems: 'stretch', flexGrow: 0 },
-  videoCard: { width: '100%', alignSelf: 'stretch', borderRadius: Platform.OS === 'web' ? 0 : 17, overflow: 'hidden', justifyContent: 'space-between', marginBottom: Platform.OS === 'web' ? 0 : 12, position: 'relative' },
+  videoCard: { width: '100%', alignSelf: 'stretch', borderRadius: Platform.OS === 'web' ? 0 : 17, overflow: 'hidden', justifyContent: 'space-between', marginBottom: Platform.OS === 'web' ? 0 : 12, position: 'relative', flexShrink: 0 },
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
   demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
   demoVideoOverlay: { position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'flex-start', pointerEvents: 'none' },
@@ -497,20 +502,20 @@ const styles = StyleSheet.create({
   videoCaption: { color: '#FFFFFF', fontSize: 11, lineHeight: 16, marginBottom: 10, textShadowColor: '#0008', textShadowRadius: 3 },
   productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 9, paddingHorizontal: 16, paddingVertical: 12, minHeight: 44, justifyContent: 'center', borderWidth: 0 },
   productPriceText: { color: '#102A43', fontSize: 12, fontWeight: '900' },
-  actionsRail: { alignItems: 'center', gap: 14, width: 60, paddingBottom: 4 },
-  actionButton: { alignItems: 'center', justifyContent: 'center', minWidth: 56, minHeight: 58, paddingHorizontal: 4, paddingTop: 4, paddingBottom: 4, backgroundColor: 'transparent' },
-  actionIcon: { color: '#FFFFFF', fontSize: 31, fontWeight: '800', textShadowColor: '#000A', textShadowRadius: 5 },
+  actionsRail: { alignItems: 'center', gap: 10, width: 66, paddingBottom: 4 },
+  actionButton: { alignItems: 'center', justifyContent: 'center', width: 58, minHeight: 58, paddingHorizontal: 4, paddingTop: 6, paddingBottom: 6, borderRadius: 18, backgroundColor: '#071522B8', borderWidth: 1, borderColor: '#FFFFFF30' },
+  actionIcon: { color: '#FFFFFF', fontSize: 29, fontWeight: '800' },
   actionIconActive: { color: '#18A999' },
-  actionLabel: { color: '#FFFFFF', fontSize: 10, fontWeight: '900', marginTop: 3, textShadowColor: '#000A', textShadowRadius: 5, textAlign: 'center' },
+  actionLabel: { color: '#FFFFFF', fontSize: 10, fontWeight: '900', marginTop: 3, textAlign: 'center', maxWidth: 58 },
   endOfFeed: { color: '#B3C5D0', fontSize: 10, textAlign: 'center', paddingHorizontal: 25, paddingVertical: 14, lineHeight: 15 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   emptyEmoji: { fontSize: 38, marginBottom: 12 },
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0B2239', borderTopWidth: 1, borderTopColor: '#31485B', paddingHorizontal: 8, paddingTop: 8, paddingBottom: 8, minHeight: Platform.OS === 'web' ? 68 : 70, flexShrink: 0 },
-  navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 48, gap: 3 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#081A2B', borderTopWidth: 1, borderTopColor: '#31485B', paddingHorizontal: 6, paddingTop: 7, paddingBottom: Platform.OS === 'web' ? 10 : 8, minHeight: Platform.OS === 'web' ? 72 : 74, flexShrink: 0, zIndex: 5, elevation: 8 },
+  navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 54, minHeight: 54, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 14, gap: 3 },
   navIcon: { color: '#A9BECC', fontSize: 23, fontWeight: '900' },
-  navIconActive: { color: '#18A999' },
+  navIconActive: { color: '#65D6C8' },
   navLabel: { color: '#B3C5D0', fontSize: 11, fontWeight: '800' },
   navLabelActive: { color: '#FFFFFF' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#000A' },
