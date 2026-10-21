@@ -101,7 +101,7 @@ function ActionButton({ icon, label, onPress, active = false }) {
 
 export default function App() {
   const { height: windowHeight } = useWindowDimensions();
-  const FEED_HEIGHT = Math.max(360, windowHeight - (Platform.OS === 'web' ? 170 : 300));
+  const FEED_HEIGHT = Math.max(320, windowHeight - (Platform.OS === 'web' ? 194 : 300));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
   const [following, setFollowing] = useState({});
@@ -367,7 +367,10 @@ export default function App() {
           <Pressable key={nav.id} style={styles.navItem} onPress={() => {
             setActiveNav(nav.id);
             if (nav.id === 'Weka') uploadVideo();
-            else if (nav.id !== 'Video') Alert.alert(nav.label, 'Sehemu hii itaunganishwa na akaunti, bidhaa na ujumbe katika hatua inayofuata.');
+            else if (nav.id === 'Wasifu') setShowProfile(true);
+            else if (nav.id === 'Inbox') Alert.alert(nav.label, 'Ujumbe utaunganishwa na akaunti katika hatua inayofuata.');
+            else if (nav.id === 'Gundua') { setActiveTab('Kwa ajili yako'); setSearchText(''); }
+            else if (nav.id !== 'Video') Alert.alert(nav.label, 'Sehemu hii itaunganishwa katika hatua inayofuata.');
           }}>
             <Text style={[styles.navIcon, activeNav === nav.id && styles.navIconActive]}>{nav.icon}</Text>
             <Text style={[styles.navLabel, activeNav === nav.id && styles.navLabelActive]}>{nav.label}</Text>
