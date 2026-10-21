@@ -3,6 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { pool, checkDatabase } from './db.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
@@ -22,6 +25,14 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '256kb' }));
 
+const JWT_SECRET = process.env.JWT_SECRET || '';
+const requireAuth = (req, res, next) => {
+  const token = String(req.headers.authorization || '').replace(/^Bearer\\s+/i, '');
+  if (!token || !JWT_SECRET) return res.status(401).json({ error: 'AUTH_REQUIRED' });
+  try { req.auth = jwt.verify(token, JWT_SECRET); return next(); }
+  catch { return res.status(401).json({ error: 'INVALID_SESSION' }); }
+};
+
 app.get('/health', async (_req, res) => {
   let database = 'not_configured';
   try {
@@ -36,6 +47,76 @@ app.get('/health', async (_req, res) => {
     database,
     timestamp: new Date().toISOString(),
   });
+});
+
+app.post('/api/auth/register', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_NOT_CONFIGURED' });
+  if (!JWT_SECRET) return res.status(503).json({ error: 'AUTH_NOT_CONFIGURED' });
+  const email = String(req.body.email || '').trim().toLowerCase() || null;
+  const phone = String(req.body.phone || '').trim() || null;
+  const username = String(req.body.username || '').trim().toLowerCase().replace(/^@/, '');
+  const displayName = String(req.body.displayName || '').trim();
+  const password = String(req.body.password || '');
+  if ((!email && !phone) || !/^[a-z0-9_]{3,30}$/.test(username) || displayName.length < 2 || password.length < 10) {
+    return res.status(400).json({ error: 'INVALID_REGISTRATION', message: 'Weka email au simu, username ya herufi/namba 3–30, jina, na password ya angalau herufi 10.' });
+  }
+  try {
+    const passwordHash = await bcrypt.hash(password, 12);
+    const result = await pool.query(
+      `INSERT INTO users (email, phone, username, display_name, password_hash)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, username, display_name, role`,
+      [email, phone, username, displayName, passwordHash],
+    );
+    const user = result.rows[0];
+    const token = jwt.sign({ sub: String(user.id), username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d', issuer: 'sokora-api', audience: 'sokora-app' });
+    return res.status(201).json({ user, token, tokenType: 'Bearer', expiresIn: 604800 });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ error: 'ACCOUNT_ALREADY_EXISTS' });
+    console.error('POST /api/auth/register failed:', error.message);
+    return res.status(500).json({ error: 'REGISTRATION_FAILED' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_NOT_CONFIGURED' });
+  if (!JWT_SECRET) return res.status(503).json({ error: 'AUTH_NOT_CONFIGURED' });
+  const identity = String(req.body.identity || '').trim().toLowerCase();
+  const password = String(req.body.password || '');
+  if (!identity || !password) return res.status(400).json({ error: 'IDENTITY_AND_PASSWORD_REQUIRED' });
+  try {
+    const result = await pool.query(
+      `SELECT id, username, display_name, role, status, password_hash
+       FROM users WHERE lower(username) = $1 OR lower(coalesce(email, '')) = $1 OR phone = $2
+       LIMIT 1`,
+      [identity.replace(/^@/, ''), identity],
+    );
+    const user = result.rows[0];
+    if (!user || user.status !== 'ACTIVE' || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
+      return res.status(401).json({ error: 'INVALID_CREDENTIALS' });
+    }
+    const token = jwt.sign({ sub: String(user.id), username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d', issuer: 'sokora-api', audience: 'sokora-app' });
+    return res.json({ user: { id: user.id, username: user.username, display_name: user.display_name, role: user.role }, token, tokenType: 'Bearer', expiresIn: 604800 });
+  } catch (error) {
+    console.error('POST /api/auth/login failed:', error.message);
+    return res.status(500).json({ error: 'LOGIN_FAILED' });
+  }
+});
+
+app.get('/api/auth/me', requireAuth, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_NOT_CONFIGURED' });
+  try {
+    const result = await pool.query(
+      'SELECT id, username, display_name, role, status FROM users WHERE id = $1',
+      [req.auth.sub],
+    );
+    if (!result.rowCount || result.rows[0].status !== 'ACTIVE') return res.status(401).json({ error: 'ACCOUNT_INACTIVE' });
+    const { status, ...user } = result.rows[0];
+    return res.json({ user });
+  } catch (error) {
+    console.error('GET /api/auth/me failed:', error.message);
+    return res.status(500).json({ error: 'SESSION_LOOKUP_FAILED' });
+  }
 });
 
 app.get('/api/feed', async (req, res) => {
