@@ -6,6 +6,14 @@ Initial Node.js/Express API for the SOKORA Expo client.
 - `GET /health` — API and database connection status.
 - `GET /api/feed?limit=10&cursor=<timestamp>` — public published video/product feed.
 - `GET /api/products/:id` — active product details.
+- `POST /api/auth/register` — creates an account with a hashed password (requires `JWT_SECRET`).
+- `POST /api/auth/login` — verifies credentials and issues a 7-day bearer token.
+- `GET /api/auth/me` — validates the bearer token and returns the current active account.
+
+## Authentication setup
+1. Set a strong, random `JWT_SECRET` in the API host environment. Do not use the example value in production.
+2. Review and manually apply `migrations/002_auth.sql` to the intended SOKORA Neon database/branch before deploying the API changes.
+3. Keep `DATABASE_URL` private. Use HTTPS and configure exact frontend origins in `CORS_ORIGINS`.
 
 ## Local setup
 1. Install Node.js 20 or newer.
