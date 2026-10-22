@@ -362,7 +362,6 @@ export default function App() {
 
       </View>
 
-      {Platform.OS !== 'web' && (
       <View style={styles.liveSection}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveList}>
           {liveCreators.map((creator) => (
@@ -375,14 +374,10 @@ export default function App() {
         </ScrollView>
       </View>
 
-      )}
-
-      {Platform.OS !== 'web' && (
       <View style={styles.feedHeader}>
         <View><Text style={styles.feedHeaderTitle}>Video za bidhaa</Text>{!!feedMessage && <Text style={styles.feedStatusText}>{feedMessage}</Text>}</View>
         <Pressable onPress={uploadVideo} style={styles.uploadButton}><Text style={styles.uploadButtonText}>＋ Weka video</Text></Pressable>
       </View>
-      )}
 
       {feedLoading ? (
         <View style={styles.emptyState}><Text style={styles.emptyTitle}>Inapakia video…</Text><Text style={styles.emptyText}>Tunasoma video kutoka SOKORA.</Text></View>
@@ -532,48 +527,48 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, minHeight: 0, backgroundColor: '#070B13', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 560, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
-  header: { backgroundColor: Platform.OS === 'web' ? '#0A101D' : '#070B13E8', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 24 : 8, paddingBottom: 8, borderWidth: 0, elevation: 0, ...(Platform.OS !== 'web' ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 } : {}) },
+  safe: { flex: 1, minHeight: 0, backgroundColor: '#070B13', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 900, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
+  header: { backgroundColor: Platform.OS === 'web' ? '#0A101D' : '#070B13E8', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 12 : 8, paddingBottom: 8, borderWidth: 0, elevation: 0, ...(Platform.OS !== 'web' ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 } : {}) },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 22, fontWeight: '900', letterSpacing: 1.5 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: Platform.OS === 'web' ? 12 : 7, flexShrink: 1 },
   headerLink: { color: '#C1D0DC', fontSize: Platform.OS === 'web' ? 13 : 10, fontWeight: '800', paddingVertical: 7, backgroundColor: 'transparent' },
-  headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#18A999', backgroundColor: 'transparent' },
+  headerLinkActive: { color: '#FFFFFF', textDecorationLine: 'underline', textDecorationColor: '#F3B84B', backgroundColor: 'transparent' },
   headerLive: { color: '#FF5A63', fontSize: 13, fontWeight: '900' },
   headerLiveButton: { paddingVertical: 8, paddingHorizontal: 2 },
   profileTopButton: { paddingHorizontal: 6, paddingVertical: 8, borderRadius: 0, backgroundColor: 'transparent' },
   profileTopButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
 
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 5, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 36, borderRadius: 12, backgroundColor: '#101827E8', borderWidth: 1, borderColor: '#FFFFFF20' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 5, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 36, borderRadius: 12, backgroundColor: '#151B24', borderWidth: 1, borderColor: '#FFFFFF20' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 7, fontSize: 14 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
 
-  liveSection: { backgroundColor: '#102A43', borderBottomWidth: 1, borderBottomColor: '#24445D' },
+  liveSection: { backgroundColor: '#0D131C', borderBottomWidth: 1, borderBottomColor: '#29313C' },
   liveList: { paddingHorizontal: 13, paddingVertical: 10, gap: 15 },
   liveCreator: { width: 70, alignItems: 'center' },
-  liveAvatarWrap: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#18A999', alignItems: 'center', justifyContent: 'center', backgroundColor: '#24445D', marginBottom: 5 },
+  liveAvatarWrap: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#F3B84B', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1C2530', marginBottom: 5 },
   liveEmoji: { fontSize: 23 },
-  liveDot: { position: 'absolute', right: -2, bottom: -1, width: 12, height: 12, borderRadius: 6, backgroundColor: '#18A999', borderWidth: 2, borderColor: '#102A43' },
+  liveDot: { position: 'absolute', right: -2, bottom: -1, width: 12, height: 12, borderRadius: 6, backgroundColor: '#E83D4D', borderWidth: 2, borderColor: '#0D131C' },
   liveName: { color: '#F7F4EA', fontSize: 9, fontWeight: '700', maxWidth: 70 },
-  liveViewers: { color: '#7DDED3', fontSize: 8, marginTop: 3 },
+  liveViewers: { color: '#F3B84B', fontSize: 8, marginTop: 3 },
   feedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 9 },
   feedHeaderTitle: { color: '#F7F4EA', fontSize: 13, fontWeight: '800' },
   feedStatusText: { color: '#C3D2DA', fontSize: 10, marginTop: 4, maxWidth: 230 },
-  uploadButton: { backgroundColor: '#24445D', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
-  uploadButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
+  uploadButton: { backgroundColor: '#F3B84B', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
+  uploadButtonText: { color: '#11161D', fontSize: 10, fontWeight: '800' },
   feedScroll: { flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' },
-  feedList: { paddingHorizontal: 0, paddingBottom: 0, alignItems: 'stretch', flexGrow: 0 },
-  videoCard: { width: '100%', alignSelf: 'stretch', borderRadius: 0, overflow: 'hidden', justifyContent: 'space-between', marginBottom: 0, position: 'relative', flexShrink: 0 },
+  feedList: { paddingHorizontal: 0, paddingBottom: 0, alignItems: 'center', flexGrow: 0 },
+  videoCard: { width: '100%', maxWidth: 500, alignSelf: 'center', borderRadius: Platform.OS === 'web' ? 18 : 0, overflow: 'hidden', justifyContent: 'space-between', marginBottom: 0, position: 'relative', flexShrink: 0 },
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
   demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
   demoVideoOverlay: { position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'flex-start', pointerEvents: 'none' },
   demoVideoTag: { color: '#FFFFFF', backgroundColor: '#102A43DD', overflow: 'hidden', borderRadius: 6, paddingHorizontal: 9, paddingVertical: 6, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
   demoVideoProduct: { color: '#FFFFFF', fontSize: 17, fontWeight: '900', marginTop: 10, textShadowColor: '#000A', textShadowRadius: 5 },
   demoVideoHint: { color: '#FFFFFF', fontSize: 9, marginTop: 5, textShadowColor: '#000A', textShadowRadius: 5 },
-  productArt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30, backgroundColor: '#0A101D' },
-  productArtGlow: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: '#14253A', borderWidth: 1, borderColor: '#65D6C833' },
+  productArt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30, backgroundColor: '#0B0F15' },
+  productArtGlow: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: '#1A2029', borderWidth: 1, borderColor: '#F3B84B33' },
   nativeVideo: { width: '100%', height: '100%', backgroundColor: '#070B13' },
   productEmoji: { fontSize: 105, textShadowColor: '#0006', textShadowOffset: { width: 0, height: 12 }, textShadowRadius: 18 },
   productArtCaption: { color: '#FFFFFF88', fontSize: 9, fontWeight: '900', letterSpacing: 2, marginTop: 18 },
@@ -585,16 +580,16 @@ const styles = StyleSheet.create({
   videoDescription: { flex: 1, paddingBottom: 2 },
   sellerLine: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 8 },
   sellerName: { color: '#FFFFFF', fontSize: 14, fontWeight: '900' },
-  followButton: { backgroundColor: '#E53945', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 9, minHeight: 38, justifyContent: 'center' },
+  followButton: { backgroundColor: '#F3B84B', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 9, minHeight: 38, justifyContent: 'center' },
   followingButton: { backgroundColor: '#344B5E' },
-  followButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
+  followButtonText: { color: '#11161D', fontSize: 12, fontWeight: '900' },
   videoCaption: { color: '#FFFFFF', fontSize: 12, lineHeight: 18, marginBottom: 11, textShadowColor: '#000B', textShadowRadius: 5 },
   productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 13, minHeight: 46, justifyContent: 'center', borderWidth: 0, shadowColor: '#000000', shadowOpacity: 0.25, shadowRadius: 8, elevation: 4 },
   productPriceText: { color: '#102A43', fontSize: 12, fontWeight: '900' },
   actionsRail: { alignItems: 'center', gap: Platform.OS === 'web' ? 9 : 7, width: 54, paddingBottom: 4 },
   actionButton: { alignItems: 'center', justifyContent: 'center', width: 48, minHeight: 50, paddingHorizontal: 2, paddingTop: 4, paddingBottom: 4, borderRadius: 16, backgroundColor: '#07111FAD', borderWidth: 1, borderColor: '#FFFFFF24' },
   actionIcon: { color: '#FFFFFF', fontSize: 26, fontWeight: '800' },
-  actionIconActive: { color: '#18A999' },
+  actionIconActive: { color: '#F3B84B' },
   actionLabel: { color: '#FFFFFF', fontSize: 9, fontWeight: '900', marginTop: 3, textAlign: 'center', maxWidth: 58 },
   endOfFeed: { color: '#B3C5D0', fontSize: 10, textAlign: 'center', paddingHorizontal: 25, paddingVertical: 14, lineHeight: 15 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
@@ -604,18 +599,18 @@ const styles = StyleSheet.create({
   bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#070B13', borderTopWidth: 1, borderTopColor: '#273447', paddingHorizontal: 4, paddingTop: 3, paddingBottom: Platform.OS === 'web' ? 10 : 3, minHeight: Platform.OS === 'web' ? 76 : 66, flexShrink: 0, zIndex: 25, elevation: 12 },
   navItem: { alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 48, minHeight: 56, paddingHorizontal: 2, paddingVertical: 3, borderRadius: 14, gap: 1, backgroundColor: 'transparent' },
   navIcon: { color: '#A9BECC', fontSize: 25, fontWeight: '900', lineHeight: 30 },
-  navIconActive: { color: '#65D6C8', fontSize: 27 },
+  navIconActive: { color: '#F3B84B', fontSize: 27 },
   navLabel: { color: '#E4EAF2', fontSize: 10, fontWeight: '900', textAlign: 'center', includeFontPadding: true },
-  navLabelActive: { color: '#65D6C8', fontWeight: '900' },
+  navLabelActive: { color: '#F3B84B', fontWeight: '900' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#000A' },
-  commentSheet: { maxHeight: '78%', minHeight: '48%', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 17, paddingTop: 10, paddingBottom: 18 },
-  uploadSheet: { maxHeight: '88%', minHeight: '55%', width: '100%', maxWidth: 520, alignSelf: 'center', backgroundColor: '#102A43', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 20 },
+  commentSheet: { maxHeight: '78%', minHeight: '48%', backgroundColor: '#111720', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 17, paddingTop: 10, paddingBottom: 18 },
+  uploadSheet: { maxHeight: '88%', minHeight: '55%', width: '100%', maxWidth: 520, alignSelf: 'center', backgroundColor: '#111720', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 20 },
   uploadIntro: { color: '#C3D2DA', fontSize: 13, lineHeight: 19, marginTop: 12 },
-  uploadFileName: { color: '#65D6C8', fontSize: 12, fontWeight: '800', marginVertical: 8 },
+  uploadFileName: { color: '#F3B84B', fontSize: 12, fontWeight: '800', marginVertical: 8 },
   uploadFieldLabel: { color: '#D4E0E8', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 6 },
   uploadInput: { backgroundColor: '#081A2B', color: '#FFFFFF', borderWidth: 1, borderColor: '#35536A', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 12, fontSize: 14 },
-  publishButton: { backgroundColor: '#18A999', borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 18 },
-  publishButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '900' },
+  publishButton: { backgroundColor: '#F3B84B', borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 18 },
+  publishButtonText: { color: '#11161D', fontSize: 15, fontWeight: '900' },
   uploadFootnote: { color: '#9FB4C5', fontSize: 10, lineHeight: 15, marginTop: 10, textAlign: 'center' },
   modalHandle: { width: 38, height: 4, borderRadius: 2, backgroundColor: '#6B879B', alignSelf: 'center', marginBottom: 15 },
   modalTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#2C4A61' },
@@ -627,18 +622,18 @@ const styles = StyleSheet.create({
   commentText: { color: '#E9EBF0', fontSize: 12, flex: 1 },
   commentComposer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderTopWidth: 1, borderTopColor: '#2C4A61', paddingTop: 10 },
   commentInput: { flex: 1, minHeight: 40, maxHeight: 95, backgroundColor: '#1A3A54', color: '#FFFFFF', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 12 },
-  sendComment: { backgroundColor: '#18A999', paddingHorizontal: 13, paddingVertical: 11, borderRadius: 9 },
+  sendComment: { backgroundColor: '#F3B84B', paddingHorizontal: 13, paddingVertical: 11, borderRadius: 9 },
   sendCommentText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
   modalFootnote: { color: '#B3C5D0', fontSize: 9, marginTop: 9, textAlign: 'center' },
 
-  profileScreen: { flex: 1, backgroundColor: '#081A2B' },
+  profileScreen: { flex: 1, backgroundColor: '#0B0F15' },
   profileHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#233D52' },
   profileBack: { minWidth: 54, paddingVertical: 8 },
-  profileBackText: { color: '#65D6C8', fontSize: 14, fontWeight: '800' },
+  profileBackText: { color: '#F3B84B', fontSize: 14, fontWeight: '800' },
   profileScreenTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: '900' },
   profileContent: { padding: 20, paddingBottom: 36 },
   profileIdentity: { alignItems: 'center', paddingVertical: 18 },
-  profileAvatar: { width: 92, height: 92, borderRadius: 46, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1D4A60', borderWidth: 3, borderColor: '#65D6C8', marginBottom: 12 },
+  profileAvatar: { width: 92, height: 92, borderRadius: 46, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1C2530', borderWidth: 3, borderColor: '#F3B84B', marginBottom: 12 },
   profileAvatarText: { color: '#FFFFFF', fontSize: 36, fontWeight: '900' },
   profileName: { color: '#FFFFFF', fontSize: 22, fontWeight: '900' },
   profileHandle: { color: '#9FB4C5', fontSize: 14, marginTop: 4 },
@@ -654,7 +649,7 @@ const styles = StyleSheet.create({
   profileQuickStats: { backgroundColor: '#102A43', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 4, marginTop: 14 },
   profileQuickRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#29465D' },
   profileQuickLabel: { color: '#D4E0E8', fontSize: 13, fontWeight: '700' },
-  profileQuickValue: { color: '#65D6C8', fontSize: 14, fontWeight: '900' },
+  profileQuickValue: { color: '#F3B84B', fontSize: 14, fontWeight: '900' },
   profileNote: { color: '#91A9BA', fontSize: 11, lineHeight: 17, marginTop: 14 },
 
 });
