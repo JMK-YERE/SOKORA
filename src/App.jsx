@@ -33,25 +33,19 @@ export default function App() {
 
   useEffect(() => {
     let alive = true;
-    fetch((API || '') + '/api/feed?limit=30', { headers: { Accept: 'application/json' } })
-      .then((r) => { if (!r.ok) throw new Error('feed unavailable'); return r.json(); })
+    fetch((API || '') + '/api/products?limit=30', { headers: { Accept: 'application/json' } })
+      .then((r) => { if (!r.ok) throw new Error('products unavailable'); return r.json(); })
       .then((data) => {
         if (!alive) return;
         const rows = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
-        const seen = new Set();
-        const normalized = rows.filter((row) => {
-          const id = String(row.video_id ?? row.id ?? '');
-          if (!id || seen.has(id)) return false;
-          seen.add(id);
-          return true;
-        }).map((row, i) => ({
-          id: String(row.video_id ?? row.id ?? 'video-' + i),
+        const normalized = rows.map((row, i) => ({
+          id: String(row.id ?? row.product_id ?? 'product-' + i),
           seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || '@sokora_seller'),
-          product: row.product_name || row.name || 'Bidhaa ya SOKORA',
+          product: row.name || row.product_name || 'Bidhaa ya SOKORA',
           price: Number(row.price_tzs || 0),
           location: row.location || 'Tanzania',
           category: row.category || 'Biashara',
-          caption: row.caption || row.description || '',
+          caption: row.description || '',
           emoji: '🛍️',
           image: row.product_image_url || row.image_url || row.thumbnail_url || '',
           video: row.video_url || '',
