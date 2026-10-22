@@ -6,6 +6,7 @@ Initial Node.js/Express API for the SOKORA Expo client.
 - `GET /health` — API and database connection status.
 - `GET /api/feed?limit=10&cursor=<timestamp>` — public published video/product feed.
 - `GET /api/products/:id` — active product details.
+- `GET /api/search?q=<term>&location=<region>&limit=20` — searches published products/videos by product name, description, caption, seller, or location; results are capped at 30.
 - `POST /api/auth/register` — creates an account with a hashed password (requires `JWT_SECRET`).
 - `POST /api/auth/login` — verifies credentials and issues a 7-day bearer token.
 - `GET /api/auth/me` — validates the bearer token and returns the current active account.
