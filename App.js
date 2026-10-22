@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Image,
   Platform,
   FlatList,
   Modal,
@@ -31,7 +32,8 @@ function normalizeApiVideo(row, index) {
     price: 'TSh ' + amount.toLocaleString('en-TZ'),
     location: row.location || 'Tanzania',
     caption: row.caption || row.description || '',
-    emoji: '🛍️',
+    emoji: '',
+    imageUrl: row.product_image_url || row.image_url || row.thumbnail_url || '',
     background: '#233C59',
     likes: Number(row.likes_count || 0),
     comments: Number(row.comments_count || 0),
@@ -41,7 +43,8 @@ function normalizeApiVideo(row, index) {
 const demoVideos = [
   {
     id: 'phone',
-    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    videoUrl: '',
+    imageUrl: 'https://images.unsplash.com/photo-1511705921023-4e9a1c3b6b4d?auto=format&fit=crop&w=1000&q=85',
     seller: '@jiji_gadgets_tz',
     verified: true,
     product: 'Simu janja ya kisasa',
@@ -55,7 +58,8 @@ const demoVideos = [
   },
   {
     id: 'fashion',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    videoUrl: '',
+    imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1000&q=85',
     seller: '@mariam_fashion',
     verified: true,
     product: 'Viatu vya mtindo',
@@ -69,7 +73,8 @@ const demoVideos = [
   },
   {
     id: 'home',
-    videoUrl: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
+    videoUrl: '',
+    imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1000&q=85',
     seller: '@mama_neema_home',
     verified: false,
     product: 'Kiti cha sebuleni',
@@ -84,10 +89,10 @@ const demoVideos = [
 ];
 
 const liveCreators = [
-  { id: 'live-fashion', name: 'Mariam Fashion', emoji: '👗', viewers: '128' },
-  { id: 'live-gadgets', name: 'Dodoma Gadgets', emoji: '📱', viewers: '76' },
-  { id: 'live-home', name: 'Mama Neema', emoji: '🪑', viewers: '54' },
-  { id: 'live-tech', name: 'JMK Tech', emoji: '💻', viewers: '31' },
+  { id: 'live-fashion', name: 'Mariam Fashion', avatar: 'MF', viewers: '128' },
+  { id: 'live-gadgets', name: 'Dodoma Gadgets', avatar: 'DG', viewers: '76' },
+  { id: 'live-home', name: 'Mama Neema', avatar: 'MN', viewers: '54' },
+  { id: 'live-tech', name: 'JMK Tech', avatar: 'JT', viewers: '31' },
 ];
 
 function ActionButton({ icon, label, onPress, active = false }) {
@@ -278,7 +283,7 @@ export default function App() {
   const renderVideo = ({ item }) => (
     <View style={[styles.videoCard, { height: FEED_HEIGHT, backgroundColor: item.background }]}>
       <View style={styles.videoBackdropCircle} />
-      {Platform.OS === 'web' && item.videoUrl ? (
+      {Platform.OS === 'web' && item.videoUrl && !item.isDemo ? (
         <View style={styles.demoVideoStage}>
           {React.createElement('video', {
             key: item.videoUrl,
@@ -294,15 +299,19 @@ export default function App() {
           })}
           <View style={styles.demoVideoOverlay}>
             <Text style={styles.demoVideoTag}>{item.isDemo ? 'DEMO' : 'VIDEO YA BIDHAA'}</Text>
-            <Text style={styles.demoVideoProduct}>{item.emoji}  {item.product}</Text>
+            <Text style={styles.demoVideoProduct}>{item.product}</Text>
             {item.isDemo && <Text style={styles.demoVideoHint}>Video ya mfano · si tangazo halisi</Text>}
           </View>
         </View>
       ) : (
         <View style={styles.productArt}>
-          <View style={styles.productArtGlow} />
-          <Text style={styles.productEmoji}>{item.emoji}</Text>
-          <Text style={styles.productArtCaption}>{item.isDemo ? 'SOKORA · DEMO' : 'SOKORA · BIDHAA'}</Text>
+          {item.imageUrl ? (
+            <Image source={{ uri: item.imageUrl }} style={styles.productImage} resizeMode="cover" accessibilityLabel={'Picha ya ' + item.product} />
+          ) : (
+            <View style={styles.imageMissing}><Text style={styles.imageMissingText}>Picha ya bidhaa haijawekwa</Text></View>
+          )}
+          <View style={styles.productImageShade} />
+          <Text style={styles.productArtCaption}>{item.isDemo ? 'SOKORA · MFANO' : 'SOKORA · BIDHAA'}</Text>
         </View>
       )}
 
@@ -366,7 +375,7 @@ export default function App() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveList}>
           {liveCreators.map((creator) => (
             <Pressable key={creator.id} style={styles.liveCreator} onPress={() => joinLive(creator)}>
-              <View style={styles.liveAvatarWrap}><Text style={styles.liveEmoji}>{creator.emoji}</Text><View style={styles.liveDot} /></View>
+              <View style={styles.liveAvatarWrap}><Text style={styles.liveAvatarInitials}>{creator.avatar}</Text><View style={styles.liveDot} /></View>
               <Text numberOfLines={1} style={styles.liveName}>{creator.name}</Text>
               <Text style={styles.liveViewers}>● LIVE · {creator.viewers}</Text>
             </Pressable>
@@ -528,7 +537,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, minHeight: 0, backgroundColor: '#070B13', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 900, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
-  header: { backgroundColor: Platform.OS === 'web' ? '#0A101D' : '#070B13E8', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 12 : 8, paddingBottom: 8, borderWidth: 0, elevation: 0, ...(Platform.OS !== 'web' ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 } : {}) },
+  header: { backgroundColor: 'transparent', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 12 : 8, paddingBottom: 8, borderWidth: 0, elevation: 0, ...(Platform.OS !== 'web' ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 } : {}) },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 22, fontWeight: '900', letterSpacing: 1.5 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: Platform.OS === 'web' ? 12 : 7, flexShrink: 1 },
@@ -540,20 +549,21 @@ const styles = StyleSheet.create({
   profileTopButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
 
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 5, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 36, borderRadius: 12, backgroundColor: '#151B24', borderWidth: 1, borderColor: '#FFFFFF20' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 5, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 36, borderRadius: 0, backgroundColor: 'transparent', borderWidth: 0, borderColor: 'transparent' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 7, fontSize: 14 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
 
-  liveSection: { backgroundColor: '#0D131C', borderBottomWidth: 1, borderBottomColor: '#29313C' },
+  liveSection: { backgroundColor: 'transparent', borderBottomWidth: 0, borderBottomColor: 'transparent' },
   liveList: { paddingHorizontal: 13, paddingVertical: 10, gap: 15 },
   liveCreator: { width: 70, alignItems: 'center' },
-  liveAvatarWrap: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#F3B84B', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1C2530', marginBottom: 5 },
+  liveAvatarWrap: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#E83D4D', alignItems: 'center', justifyContent: 'center', backgroundColor: '#151B24', marginBottom: 5 },
+  liveAvatarInitials: { color: '#FFFFFF', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
   liveEmoji: { fontSize: 23 },
-  liveDot: { position: 'absolute', right: -2, bottom: -1, width: 12, height: 12, borderRadius: 6, backgroundColor: '#E83D4D', borderWidth: 2, borderColor: '#0D131C' },
+  liveDot: { position: 'absolute', right: -2, bottom: -1, width: 12, height: 12, borderRadius: 6, backgroundColor: '#E83D4D', borderWidth: 2, borderColor: '#070B13' },
   liveName: { color: '#F7F4EA', fontSize: 9, fontWeight: '700', maxWidth: 70 },
   liveViewers: { color: '#F3B84B', fontSize: 8, marginTop: 3 },
-  feedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 9 },
+  feedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 9, backgroundColor: 'transparent' },
   feedHeaderTitle: { color: '#F7F4EA', fontSize: 13, fontWeight: '800' },
   feedStatusText: { color: '#C3D2DA', fontSize: 10, marginTop: 4, maxWidth: 230 },
   uploadButton: { backgroundColor: '#F3B84B', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
@@ -564,16 +574,19 @@ const styles = StyleSheet.create({
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
   demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
   demoVideoOverlay: { position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'flex-start', pointerEvents: 'none' },
-  demoVideoTag: { color: '#FFFFFF', backgroundColor: '#102A43DD', overflow: 'hidden', borderRadius: 6, paddingHorizontal: 9, paddingVertical: 6, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
+  demoVideoTag: { color: '#FFFFFF', backgroundColor: 'transparent', overflow: 'hidden', borderRadius: 0, paddingHorizontal: 0, paddingVertical: 0, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
   demoVideoProduct: { color: '#FFFFFF', fontSize: 17, fontWeight: '900', marginTop: 10, textShadowColor: '#000A', textShadowRadius: 5 },
   demoVideoHint: { color: '#FFFFFF', fontSize: 9, marginTop: 5, textShadowColor: '#000A', textShadowRadius: 5 },
-  productArt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30, backgroundColor: '#0B0F15' },
+  productArt: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', paddingBottom: 30, backgroundColor: '#0B0F15' },
+  productImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  productImageShade: { ...StyleSheet.absoluteFillObject, backgroundColor: '#05070A30' },
+  imageMissing: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', backgroundColor: '#141B24' },
+  imageMissingText: { color: '#C7D0DA', fontSize: 13, fontWeight: '700' },
   productArtGlow: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: '#1A2029', borderWidth: 1, borderColor: '#F3B84B33' },
   nativeVideo: { width: '100%', height: '100%', backgroundColor: '#070B13' },
-  productEmoji: { fontSize: 105, textShadowColor: '#0006', textShadowOffset: { width: 0, height: 12 }, textShadowRadius: 18 },
   productArtCaption: { color: '#FFFFFF88', fontSize: 9, fontWeight: '900', letterSpacing: 2, marginTop: 18 },
   videoTopLine: { position: 'absolute', top: Platform.OS === 'web' ? 112 : 100, left: 14, right: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  demoBadge: { backgroundColor: '#0006', borderRadius: 5, paddingHorizontal: 7, paddingVertical: 5 },
+  demoBadge: { backgroundColor: 'transparent', borderRadius: 0, paddingHorizontal: 0, paddingVertical: 0 },
   demoBadgeText: { color: '#FFFFFF', fontSize: 8, fontWeight: '900' },
   videoLocation: { color: '#FFFFFF', fontSize: 10, fontWeight: '700', textShadowColor: '#0008', textShadowRadius: 5 },
   videoBottom: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 14, paddingTop: 34, paddingBottom: Platform.OS === 'web' ? 20 : 24, gap: 6, backgroundColor: 'transparent' },
