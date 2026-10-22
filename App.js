@@ -26,6 +26,7 @@ function normalizeApiVideo(row, index) {
     id: String(row.video_id ?? row.id ?? `video-${index}`),
     videoUrl: row.video_url || '',
     seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || 'Muuzaji wa SOKORA'),
+    sellerId: row.seller_id == null ? null : String(row.seller_id),
     verified: false,
     product: row.product_name || row.name || 'Bidhaa ya SOKORA',
     price: 'TSh ' + amount.toLocaleString('en-TZ'),
@@ -120,6 +121,7 @@ export default function App() {
     home: ['Peter: Mnafanya delivery Mwanza?'],
   });
   const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
   const [activeNav, setActiveNav] = useState('Video');
   const [showProfile, setShowProfile] = useState(false);
   const [accountName, setAccountName] = useState('Mtumiaji wa SOKORA');
@@ -135,6 +137,59 @@ export default function App() {
   const [uploadLocation, setUploadLocation] = useState('Dodoma');
   const [uploadCaption, setUploadCaption] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [authIdentity, setAuthIdentity] = useState('');
+  const [authUsername, setAuthUsername] = useState('');
+  const [authDisplayName, setAuthDisplayName] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authToken, setAuthToken] = useState('');
+  const [authUser, setAuthUser] = useState(null);
+
+  const submitAuth = async () => {
+    if (!API_BASE_URL) {
+      Alert.alert('API haijaunganishwa', 'Weka EXPO_PUBLIC_API_URL yenye anwani ya backend ya SOKORA kabla ya kuingia au kujisajili.');
+      return;
+    }
+    const path = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const payload = authMode === 'register'
+      ? { email: authIdentity.includes('@') ? authIdentity.trim() : undefined, phone: authIdentity.includes('@') ? undefined : authIdentity.trim(), username: authUsername.trim(), displayName: authDisplayName.trim(), password: authPassword }
+      : { identity: authIdentity.trim(), password: authPassword };
+    if (!authIdentity.trim() || !authPassword || (authMode === 'register' && (!authUsername.trim() || !authDisplayName.trim()))) {
+      Alert.alert('Jaza taarifa', 'Jaza sehemu zote zinazohitajika.');
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      const response = await fetch(API_BASE_URL + path, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || data.error || ('HTTP ' + response.status));
+      setAuthToken(data.token);
+      setAuthUser(data.user);
+      setAccountName(data.user.display_name || data.user.displayName || data.user.username || 'Mtumiaji wa SOKORA');
+      setAccountHandle('@' + String(data.user.username || '').replace(/^@/, ''));
+      setShowAuth(false);
+      setAuthPassword('');
+      Alert.alert(authMode === 'register' ? 'Akaunti imetengenezwa' : 'Umeingia', 'Umeunganishwa na akaunti ya SOKORA.');
+    } catch (error) {
+      Alert.alert('Imeshindikana', 'Akaunti haikuweza kuthibitishwa: ' + String(error.message || error));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const signOut = () => {
+    setAuthToken('');
+    setAuthUser(null);
+    setAccountName('Mtumiaji wa SOKORA');
+    setAccountHandle('@sokora_user');
+    Alert.alert('Umetoka', 'Umetoka kwenye akaunti kwenye kifaa hiki.');
+  };
 
   useEffect(() => {
     let active = true;
@@ -172,22 +227,94 @@ export default function App() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const term = searchText.trim();
+    if (term.length < 2 || !API_BASE_URL || feedMode !== 'backend') {
+      setSearchResults(null);
+      return undefined;
+    }
+
+    let active = true;
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          API_BASE_URL + '/api/search?q=' + encodeURIComponent(term) + '&limit=20',
+          { headers: { Accept: 'application/json' } },
+        );
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || ('HTTP ' + response.status));
+        if (active) {
+          const rows = Array.isArray(payload.items) ? payload.items : [];
+          setSearchResults(rows.map(normalizeApiVideo));
+        }
+      } catch {
+        if (active) setSearchResults(null);
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, [searchText, feedMode]);
+
   const visibleVideos = useMemo(() => {
     const term = searchText.trim().toLocaleLowerCase();
+    const sourceVideos = searchResults === null ? feedVideos : searchResults;
     const base = activeTab === 'Inafuatwa'
-      ? feedVideos.filter((video) => following[video.seller])
-      : feedVideos;
+      ? sourceVideos.filter((video) => following[video.seller])
+      : sourceVideos;
     if (!term) return base;
     return base.filter((video) =>
       [video.product, video.seller, video.location, video.caption].some((value) =>
         value.toLocaleLowerCase().includes(term),
       ),
     );
-  }, [activeTab, feedVideos, following, searchText]);
+  }, [activeTab, feedVideos, following, searchResults, searchText]);
 
-  const toggleLike = (id) => setLiked((current) => ({ ...current, [id]: !current[id] }));
-  const toggleFollow = (seller) => setFollowing((current) => ({ ...current, [seller]: !current[seller] }));
-  const toggleSave = (id) => setSaved((current) => ({ ...current, [id]: !current[id] }));
+  const toggleLike = async (id) => {
+    const video = feedVideos.find((item) => item.id === id);
+    if (feedMode === 'backend' && video && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(id) + '/like', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken, Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setLiked((current) => ({ ...current, [id]: !!data.liked }));
+        setFeedVideos((current) => current.map((item) => item.id === id ? { ...item, likes: Number(data.likesCount || 0) } : item));
+      } catch (error) { Alert.alert('Like haikuhifadhiwa', String(error.message || error)); }
+      return;
+    }
+    setLiked((current) => ({ ...current, [id]: !current[id] }));
+  };
+  const toggleFollow = async (seller) => {
+    const video = feedVideos.find((item) => item.seller === seller);
+    if (feedMode === 'backend' && video && video.sellerId && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/sellers/' + encodeURIComponent(video.sellerId) + '/follow', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken, Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setFollowing((current) => ({ ...current, [seller]: !!data.following }));
+      } catch (error) { Alert.alert('Kufuatilia hakukuhifadhiwa', String(error.message || error)); }
+      return;
+    }
+    setFollowing((current) => ({ ...current, [seller]: !current[seller] }));
+  };
+  const toggleSave = async (id) => {
+    const video = feedVideos.find((item) => item.id === id);
+    if (feedMode === 'backend' && video && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(id) + '/save', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken, Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setSaved((current) => ({ ...current, [id]: !!data.saved }));
+      } catch (error) { Alert.alert('Hifadhi haikufaulu', String(error.message || error)); }
+      return;
+    }
+    setSaved((current) => ({ ...current, [id]: !current[id] }));
+  };
   const myFollowingCount = Object.values(following).filter(Boolean).length;
   const myLikedCount = Object.values(liked).filter(Boolean).length;
   const mySavedCount = Object.values(saved).filter(Boolean).length;
@@ -203,21 +330,40 @@ export default function App() {
     }
   };
 
-  const openComments = (video) => {
+  const openComments = async (video) => {
     setCommentText('');
     setSelectedVideo(video);
+    if (feedMode === 'backend' && API_BASE_URL) {
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(video.id) + '/comments', { headers: { Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setComments((current) => ({ ...current, [video.id]: (data.items || []).map((item) => (item.display_name || item.username || 'Mtumiaji') + ': ' + item.body) }));
+      } catch (error) { Alert.alert('Maoni hayajapakiwa', String(error.message || error)); }
+    }
   };
 
-  const submitComment = () => {
+  const submitComment = async () => {
     const text = commentText.trim();
     if (!text || !selectedVideo) return;
-    setComments((current) => ({
-      ...current,
-      [selectedVideo.id]: [...(current[selectedVideo.id] || []), 'Wewe: ' + text],
-    }));
+    if (feedMode === 'backend' && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(selectedVideo.id) + '/comments', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + authToken, 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ body: text }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setComments((current) => ({ ...current, [selectedVideo.id]: [...(current[selectedVideo.id] || []), (authUser?.display_name || authUser?.username || 'Wewe') + ': ' + text] }));
+        setCommentText('');
+      } catch (error) { Alert.alert('Maoni hayakutumika', String(error.message || error)); }
+      return;
+    }
+    setComments((current) => ({ ...current, [selectedVideo.id]: [...(current[selectedVideo.id] || []), 'Wewe: ' + text] }));
     setCommentText('');
-    setSelectedVideo(null);
-    Alert.alert('Maoni yameongezwa', 'Maoni haya yamehifadhiwa kwenye mfano wa app kwenye kifaa hiki pekee. Backend itahitajika kuyafanya yaonekane kwa watu wote.');
+    Alert.alert('Maoni ya mfano', 'Maoni haya yako kwenye mfano wa app kwenye kifaa hiki pekee.');
   };
 
   const uploadVideo = () => {
@@ -229,6 +375,11 @@ export default function App() {
   };
 
   const publishProduct = async () => {
+    if (!authToken) {
+      setShowUpload(false);
+      setShowAuth(true);
+      return;
+    }
     if (!uploadFile || !uploadTitle.trim() || !uploadPrice.trim()) {
       Alert.alert('Taarifa hazijakamilika', 'Chagua video au picha, andika jina la bidhaa na bei.');
       return;
@@ -245,7 +396,7 @@ export default function App() {
     body.append('caption', uploadCaption.trim());
     setUploading(true);
     try {
-      const response = await fetch(API_BASE_URL + '/api/videos', { method: 'POST', body });
+      const response = await fetch(API_BASE_URL + '/api/videos', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken }, body });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       setShowUpload(false);
       setFeedMessage('Bidhaa imetumwa. Inapakia upya feed…');
@@ -351,7 +502,7 @@ export default function App() {
             <Pressable onPress={() => setActiveTab('Kwa ajili yako')}><Text style={[styles.headerLink, activeTab === 'Kwa ajili yako' && styles.headerLinkActive]}>For you</Text></Pressable>
             <Pressable onPress={() => setActiveTab('Inafuatwa')}><Text style={[styles.headerLink, activeTab === 'Inafuatwa' && styles.headerLinkActive]}>Discover</Text></Pressable>
             <Pressable onPress={startLive} style={styles.headerLiveButton}><Text style={styles.headerLive}>● LIVE</Text></Pressable>
-            <Pressable onPress={() => { setShowProfile(true); setActiveNav('Wasifu'); }} style={styles.profileTopButton}><Text style={styles.profileTopButtonText}>Wasifu</Text></Pressable>
+            <Pressable onPress={() => { if (authUser) { setShowProfile(true); setActiveNav('Wasifu'); } else setShowAuth(true); }} style={styles.profileTopButton}><Text style={styles.profileTopButtonText}>{authUser ? 'Wasifu' : 'Ingia'}</Text></Pressable>
           </View>
         </View>
         <View style={styles.searchBox}>
@@ -425,8 +576,8 @@ export default function App() {
         ].map((nav) => (
           <Pressable key={nav.id} style={styles.navItem} onPress={() => {
             setActiveNav(nav.id);
-            if (nav.id === 'Weka') uploadVideo();
-            else if (nav.id === 'Wasifu') setShowProfile(true);
+            if (nav.id === 'Weka') { if (authToken) uploadVideo(); else setShowAuth(true); }
+            else if (nav.id === 'Wasifu') { if (authUser) setShowProfile(true); else setShowAuth(true); }
             else if (nav.id === 'Inbox') Alert.alert(nav.label, 'Ujumbe utaunganishwa na akaunti katika hatua inayofuata.');
             else if (nav.id === 'Gundua') { setActiveTab('Kwa ajili yako'); setSearchText(''); }
             else if (nav.id !== 'Video') Alert.alert(nav.label, 'Sehemu hii itaunganishwa katika hatua inayofuata.');
@@ -436,6 +587,37 @@ export default function App() {
           </Pressable>
         ))}
       </View>
+
+      <Modal visible={showAuth} animationType="slide" transparent onRequestClose={() => setShowAuth(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.uploadSheet}>
+            <View style={styles.modalTitleRow}>
+              <Text style={styles.modalTitle}>{authMode === 'register' ? 'Tengeneza akaunti' : 'Ingia SOKORA'}</Text>
+              <Pressable onPress={() => setShowAuth(false)}><Text style={styles.closeModal}>✕</Text></Pressable>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 18 }}>
+              <Text style={styles.uploadIntro}>Tumia akaunti yako kuingiliana na wauzaji na kuchapisha bidhaa. Akaunti inahitaji backend iliyounganishwa.</Text>
+              {authMode === 'register' && <>
+                <Text style={styles.uploadFieldLabel}>Jina lako *</Text>
+                <TextInput value={authDisplayName} onChangeText={setAuthDisplayName} style={styles.uploadInput} placeholder="Jina kamili" placeholderTextColor="#9FB4C5" />
+                <Text style={styles.uploadFieldLabel}>Username *</Text>
+                <TextInput value={authUsername} onChangeText={setAuthUsername} autoCapitalize="none" style={styles.uploadInput} placeholder="mfano_jina" placeholderTextColor="#9FB4C5" />
+              </>}
+              <Text style={styles.uploadFieldLabel}>{authMode === 'register' ? 'Email au namba ya simu *' : 'Username, email au simu *'}</Text>
+              <TextInput value={authIdentity} onChangeText={setAuthIdentity} autoCapitalize="none" keyboardType={authMode === 'register' ? 'email-address' : 'default'} style={styles.uploadInput} placeholder={authMode === 'register' ? 'email au +255...' : 'username / email / simu'} placeholderTextColor="#9FB4C5" />
+              <Text style={styles.uploadFieldLabel}>Password (angalau herufi 10) *</Text>
+              <TextInput value={authPassword} onChangeText={setAuthPassword} secureTextEntry style={styles.uploadInput} placeholder="Password" placeholderTextColor="#9FB4C5" />
+              <Pressable disabled={authBusy} onPress={submitAuth} style={[styles.publishButton, authBusy && { opacity: 0.6 }]}>
+                <Text style={styles.publishButtonText}>{authBusy ? 'Inathibitisha…' : authMode === 'register' ? 'Jisajili' : 'Ingia'}</Text>
+              </Pressable>
+              <Pressable onPress={() => setAuthMode((mode) => mode === 'login' ? 'register' : 'login')} style={{ paddingVertical: 14 }}>
+                <Text style={{ color: '#65D6C8', textAlign: 'center', fontWeight: '800' }}>{authMode === 'login' ? 'Huna akaunti? Jisajili' : 'Tayari una akaunti? Ingia'}</Text>
+              </Pressable>
+              {!!authUser && <Pressable onPress={signOut} style={{ paddingVertical: 10 }}><Text style={{ color: '#FCA5A5', textAlign: 'center' }}>Toka kwenye akaunti</Text></Pressable>}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={showUpload} animationType="slide" transparent onRequestClose={() => setShowUpload(false)}>
         <View style={styles.modalOverlay}>
