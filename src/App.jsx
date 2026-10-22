@@ -30,6 +30,24 @@ export default function App() {
   const [uploadPrice, setUploadPrice] = useState('');
   const [uploadLocation, setUploadLocation] = useState('Dodoma');
   const [mobileTab, setMobileTab] = useState('Nyumbani');
+  const [authMode, setAuthMode] = useState('login');
+  const [authIdentity, setAuthIdentity] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authUsername, setAuthUsername] = useState('');
+  const [authDisplayName, setAuthDisplayName] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPhone, setAuthPhone] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+
+  useEffect(() => {
+    const token = window.localStorage.getItem('sokora_token');
+    if (!token) return;
+    fetch((API || '') + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' } })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Session expired')))
+      .then((data) => setAuthUser(data.user || null))
+      .catch(() => window.localStorage.removeItem('sokora_token'));
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -92,9 +110,62 @@ export default function App() {
     return results;
   }, [videos, category, query, sortBy]);
 
-  const closeModal = () => { setModal(''); setSelected(null); setCommentText(''); };
+  const closeModal = () => { setModal(''); setSelected(null); setCommentText(''); setAuthPassword(''); };
   const notify = (message) => setToast(message);
   const askDemo = (feature) => { setModal(feature); };
+  async function submitAuth(event) {
+    event?.preventDefault();
+    if (authBusy) return;
+    setAuthBusy(true);
+    try {
+      const registering = authMode === 'register';
+      const payload = registering
+        ? { email: authEmail.trim(), phone: authPhone.trim(), username: authUsername.trim(), displayName: authDisplayName.trim(), password: authPassword }
+        : { identity: authIdentity.trim(), password: authPassword };
+      const response = await fetch((API || '') + (registering ? '/api/auth/register' : '/api/auth/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const messages = {
+          AUTH_NOT_CONFIGURED: 'Mfumo wa akaunti bado haujawezeshwa kwenye Cloudflare.',
+          DATABASE_NOT_CONFIGURED: 'Database haijaunganishwa bado.',
+          INVALID_REGISTRATION: data.message || 'Angalia taarifa za usajili; password iwe na herufi angalau 10.',
+          ACCOUNT_ALREADY_EXISTS: 'Username, email au simu hiyo tayari imesajiliwa.',
+          INVALID_CREDENTIALS: 'Taarifa za kuingia si sahihi au akaunti haijawashwa.',
+          INVALID_SESSION: 'Session imeisha. Ingia tena.',
+        };
+        throw new Error(messages[data.error] || 'Imeshindikana. Jaribu tena baada ya muda.');
+      }
+      window.localStorage.setItem('sokora_token', data.token);
+      setAuthUser(data.user);
+      closeModal();
+      setAuthIdentity('');
+      setAuthPassword('');
+      setAuthUsername('');
+      setAuthDisplayName('');
+      setAuthEmail('');
+      setAuthPhone('');
+      notify(registering ? 'Akaunti ya SOKORA imefunguliwa.' : 'Umeingia SOKORA kikamilifu.');
+    } catch (error) {
+      notify(error.message || 'Hitilafu ya mtandao. Jaribu tena.');
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+  function openAuth(mode = 'login') {
+    setAuthMode(mode);
+    setAuthIdentity('');
+    setAuthPassword('');
+    setModal('login');
+  }
+  function logout() {
+    window.localStorage.removeItem('sokora_token');
+    setAuthUser(null);
+    notify('Umetoka kwenye akaunti yako.');
+  }
   const current = selected || videos[0];
 
   async function shareVideo(video) {
@@ -149,7 +220,7 @@ export default function App() {
       <header className="site-header">
         <a className="brand" href="#home" aria-label="SOKORA nyumbani"><span className="brand-mark">S</span><span><strong>SOKORA</strong><small>TAZAMA · GUNDUA · NUNUA</small></span></a>
         <label className="search-box"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta bidhaa, biashara, eneo..." aria-label="Tafuta SOKORA" /><kbd>Enter</kbd></label>
-        <div className="header-actions"><button className="ghost-btn" onClick={() => askDemo('login')}>Ingia</button><button className="gold-btn" onClick={() => askDemo('upload')}>＋ Weka bidhaa</button></div>
+        <div className="header-actions"><button className="ghost-btn" onClick={() => authUser ? logout() : openAuth('login')}>{authUser ? 'Toka' : 'Ingia'}</button><button className="gold-btn" onClick={() => authUser ? askDemo('upload') : openAuth('login')}>＋ Weka bidhaa</button></div>
       </header>
 
       <main id="home">
@@ -183,13 +254,18 @@ export default function App() {
         <p className="disclaimer">SOKORA Web · Taarifa zilizoandikwa “mfano” ni za kuonyesha muonekano tu. Likes, follows na matangazo ya kifaa hiki hazijahifadhiwa kwenye akaunti au database ya umma.</p>
       </main>
 
-      <nav className="mobile-nav" aria-label="Urambazaji wa SOKORA">{[['⌂','Nyumbani'],['⌕','Gundua'],['＋','Weka'],['●','LIVE'],['◉','Wasifu']].map(([icon, label]) => <button key={label} className={mobileTab === label ? 'active' : ''} onClick={() => { setMobileTab(label); if (label === 'Weka') askDemo('upload'); else if (label === 'LIVE') askDemo('live'); else if (label === 'Wasifu') askDemo('login'); else window.scrollTo({ top: label === 'Gundua' ? 420 : 0, behavior: 'smooth' }); }}><span>{icon}</span>{label}</button>)}</nav>
+      <nav className="mobile-nav" aria-label="Urambazaji wa SOKORA">{[['⌂','Nyumbani'],['⌕','Gundua'],['＋','Weka'],['●','LIVE'],['◉','Wasifu']].map(([icon, label]) => <button key={label} className={mobileTab === label ? 'active' : ''} onClick={() => { setMobileTab(label); if (label === 'Weka') askDemo('upload'); else if (label === 'LIVE') askDemo('live'); else if (label === 'Wasifu') authUser ? notify('Umeingia kama @' + authUser.username + '.') : openAuth('login'); else window.scrollTo({ top: label === 'Gundua' ? 420 : 0, behavior: 'smooth' }); }}><span>{icon}</span>{label}</button>)}</nav>
 
       {toast && <div className="toast" role="status">{toast}</div>}
       {modal && <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}><section className="modal-card" role="dialog" aria-modal="true">
         <button className="modal-close" onClick={closeModal} aria-label="Funga">×</button>
         {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2><p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><div className="modal-actions"><button className="gold-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
-        {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>Karibu SOKORA</h2><p>Usajili na kuingia salama vitafunguliwa baada ya kuunganishwa kwa mfumo wa akaunti wa backend. Hatuombi nenosiri kwenye skrini hii ya mfano.</p><button className="gold-btn" onClick={closeModal}>Nimeelewa</button></>}
+        {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>{authMode === 'register' ? 'Fungua akaunti' : 'Karibu SOKORA'}</h2><p>{authMode === 'register' ? 'Jisajili ili uweze kuanza kuweka biashara na kufuatilia wauzaji.' : 'Ingia kwa username, email au namba ya simu.'}</p><form className="auth-form" onSubmit={submitAuth}>
+          {authMode === 'register' ? <><label className="field-label">Jina kamili<input autoComplete="name" value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)} required minLength={2} maxLength={80} /></label><label className="field-label">Username<input autoComplete="username" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} placeholder="mfano_joseph" required minLength={3} maxLength={30} pattern="[A-Za-z0-9_]+" /></label><label className="field-label">Email (si lazima ikiwa una simu)<input type="email" autoComplete="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} /></label><label className="field-label">Namba ya simu (si lazima ikiwa una email)<input type="tel" autoComplete="tel" value={authPhone} onChange={(e) => setAuthPhone(e.target.value)} placeholder="+255..." /></label></> : <label className="field-label">Username, email au simu<input autoComplete="username" value={authIdentity} onChange={(e) => setAuthIdentity(e.target.value)} required /></label>}
+          <label className="field-label">Password<input type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required minLength={authMode === 'register' ? 10 : 1} maxLength={128} /></label>
+          {authMode === 'register' && <p className="modal-muted">Tumia password ya angalau herufi 10. Hifadhi kwa usalama; usimpe mtu mwingine.</p>}
+          <button className="gold-btn" type="submit" disabled={authBusy}>{authBusy ? 'Inashughulikia...' : authMode === 'register' ? 'Fungua akaunti' : 'Ingia'}</button>
+        </form><p className="auth-switch">{authMode === 'register' ? 'Tayari una akaunti?' : 'Bado huna akaunti?'} <button type="button" className="text-link" onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}>{authMode === 'register' ? 'Ingia' : 'Jisajili'}</button></p></>}
         {modal === 'live' && <><p className="eyebrow"><span className="live-dot"></span> LIVE</p><h2>Maonyesho ya moja kwa moja</h2><p>LIVE halisi haijaunganishwa bado. Inahitaji huduma ya streaming, akaunti ya muuzaji na udhibiti wa usalama. Hatuonyeshi video ya moja kwa moja ya kubuni.</p><button className="gold-btn" onClick={closeModal}>Sawa</button></>}
         {modal === 'comments' && current && <><p className="eyebrow">MAONI</p><h2>{current.product}</h2><div className="comment-list">{(comments[current.id] || []).map((comment, i) => <p key={i}><b>{comment.name}</b><br />{comment.text}</p>)}{!(comments[current.id] || []).length && <p className="modal-muted">Bado hakuna maoni yaliyowekwa kwenye kivinjari hiki.</p>}</div><textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Andika maoni..." rows="3" /><button className="gold-btn" onClick={() => { if (!commentText.trim()) return; setComments((old) => ({ ...old, [current.id]: [...(old[current.id] || []), { name: 'Wewe (kifaa hiki)', text: commentText.trim() }] })); setCommentText(''); notify('Maoni yameongezwa kwenye kifaa hiki tu.'); }}>Ongeza maoni</button></>}
         {modal === 'upload' && <><p className="eyebrow">TANGAZO JIPYA</p><h2>Weka bidhaa au video</h2><p>Hili ni tangazo la ndani ya kivinjari kwa sasa. Halitapakiwa kwa umma hadi upload API na storage salama viunganishwe.</p><label className="field-label">Picha au video<input type="file" accept="image/*,video/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} /></label><label className="field-label">Jina/maelezo ya bidhaa<input value={uploadCaption} onChange={(e) => setUploadCaption(e.target.value)} placeholder="Mf. Simu Samsung..." /></label><label className="field-label">Bei kwa TSh<input inputMode="numeric" value={uploadPrice} onChange={(e) => setUploadPrice(e.target.value)} placeholder="25000" /></label><label className="field-label">Eneo<input value={uploadLocation} onChange={(e) => setUploadLocation(e.target.value)} /></label>{uploadFile && <p className="modal-muted">Faili: {uploadFile.name} · {(uploadFile.size / 1048576).toFixed(1)} MB</p>}<div className="modal-actions"><button className="gold-btn" onClick={saveLocalListing}>Ongeza kwenye kifaa hiki</button><button className="ghost-btn" onClick={closeModal}>Ghairi</button></div></>}
