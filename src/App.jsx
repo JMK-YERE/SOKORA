@@ -11,6 +11,31 @@ const seedVideos = [
 
 const money = (value) => 'TSh ' + Number(value || 0).toLocaleString('en-TZ');
 
+function LiveViewer({ playback }) {
+  const [videoElement, setVideoElement] = useState(null);
+  const [status, setStatus] = useState('Inaunganisha player...');
+  useEffect(() => {
+    if (!videoElement || !playback) return undefined;
+    let active = true; let peer;
+    async function connect() {
+      try {
+        if (!/^https:\/\//i.test(playback)) throw new Error('Anwani ya playback si salama.');
+        peer = new RTCPeerConnection();
+        peer.addTransceiver('video', { direction: 'recvonly' });
+        peer.addTransceiver('audio', { direction: 'recvonly' });
+        peer.ontrack = (event) => { if (active) { videoElement.srcObject = event.streams[0]; setStatus('LIVE inaonyeshwa'); } };
+        const offer = await peer.createOffer(); await peer.setLocalDescription(offer);
+        const response = await fetch(playback, { method: 'POST', headers: { 'Content-Type': 'application/sdp' }, body: offer.sdp });
+        if (!response.ok) throw new Error('Player imeshindwa kuunganishwa (' + response.status + ').');
+        await peer.setRemoteDescription({ type: 'answer', sdp: await response.text() });
+      } catch (error) { if (active) setStatus(error.message || 'LIVE haipatikani kwa sasa.'); }
+    }
+    connect();
+    return () => { active = false; if (peer) peer.close(); videoElement.srcObject = null; };
+  }, [playback, videoElement]);
+  return <div className="live-player-wrap"><video ref={setVideoElement} autoPlay playsInline controls className="live-player" /><p className="modal-muted">{status}</p></div>;
+}
+
 export default function App() {
   const [videos, setVideos] = useState(seedVideos);
   const [mode, setMode] = useState('demo');
@@ -30,6 +55,24 @@ export default function App() {
   const [uploadPrice, setUploadPrice] = useState('');
   const [uploadLocation, setUploadLocation] = useState('Dodoma');
   const [mobileTab, setMobileTab] = useState('Nyumbani');
+  const [liveItems, setLiveItems] = useState([]);
+  const [liveConfigured, setLiveConfigured] = useState(false);
+  const [liveTitle, setLiveTitle] = useState('');
+  const [liveBusy, setLiveBusy] = useState(false);
+  const [liveError, setLiveError] = useState('');
+  const [liveStream, setLiveStream] = useState(null);
+  const [authToken, setAuthToken] = useState(() => window.localStorage.getItem('sokora_token') || '');
+  const [authUser, setAuthUser] = useState(null);
+  const [authMode, setAuthMode] = useState('login');
+  const [authIdentity, setAuthIdentity] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authUsername, setAuthUsername] = useState('');
+  const [authDisplayName, setAuthDisplayName] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPhone, setAuthPhone] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [viewerStream, setViewerStream] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -66,6 +109,27 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    let alive = true;
+    const loadLive = () => fetch((API || '') + '/api/live', { headers: { Accept: 'application/json' } })
+      .then((r) => { if (!r.ok) throw new Error('LIVE unavailable'); return r.json(); })
+      .then((data) => { if (alive) { setLiveItems(Array.isArray(data.items) ? data.items : []); setLiveConfigured(Boolean(data.configured)); } })
+      .catch(() => { if (alive) { setLiveItems([]); setLiveConfigured(false); } });
+    loadLive();
+    const timer = window.setInterval(loadLive, 20000);
+    return () => { alive = false; window.clearInterval(timer); };
+  }, []);
+
+  useEffect(() => {
+    if (!authToken) { setAuthUser(null); return undefined; }
+    let alive = true;
+    fetch((API || '') + '/api/auth/me', { headers: { Authorization: 'Bearer ' + authToken, Accept: 'application/json' } })
+      .then((r) => { if (!r.ok) throw new Error('Session expired'); return r.json(); })
+      .then((data) => { if (alive) setAuthUser(data.user || null); })
+      .catch(() => { if (alive) { window.localStorage.removeItem('sokora_token'); setAuthToken(''); setAuthUser(null); } });
+    return () => { alive = false; };
+  }, [authToken]);
+
+  useEffect(() => {
     if (!toast) return undefined;
     const id = window.setTimeout(() => setToast(''), 2800);
     return () => window.clearTimeout(id);
@@ -82,7 +146,50 @@ export default function App() {
     return matching;
   }, [videos, category, query, sortOrder]);
 
-  const closeModal = () => { setModal(''); setSelected(null); setCommentText(''); };
+  const closeModal = () => { setModal(''); setSelected(null); setCommentText(''); setLiveError(''); };
+  async function submitAuth() {
+    setAuthBusy(true); setAuthError('');
+    try {
+      const registering = authMode === 'register';
+      const payload = registering ? { email: authEmail, phone: authPhone, username: authUsername, displayName: authDisplayName, password: authPassword } : { identity: authIdentity, password: authPassword };
+      const response = await fetch((API || '') + '/api/auth/' + (registering ? 'register' : 'login'), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(payload) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.token) throw new Error(data.message || ({ AUTH_NOT_CONFIGURED: 'Mfumo wa akaunti bado haujawekwa kwenye server.', DATABASE_NOT_CONFIGURED: 'Database haijaunganishwa na API.', INVALID_CREDENTIALS: 'Taarifa za kuingia si sahihi.', ACCOUNT_ALREADY_EXISTS: 'Akaunti hii tayari ipo.' }[data.error] || 'Imeshindikana kuingia. Hakiki taarifa na API.'));
+      window.localStorage.setItem('sokora_token', data.token); setAuthToken(data.token); setAuthUser(data.user || null); setAuthPassword(''); setModal(''); notify('Umeingia SOKORA salama.');
+    } catch (error) { setAuthError(error.message || 'Hitilafu ya kuingia.'); } finally { setAuthBusy(false); }
+  }
+  function signOut() { window.localStorage.removeItem('sokora_token'); setAuthToken(''); setAuthUser(null); setAuthPassword(''); notify('Umetoka kwenye akaunti.'); }
+  async function startLive() {
+    setLiveBusy(true); setLiveError(''); let stream; let pc;
+    try {
+      if (!authToken || !authUser) throw new Error('Ingia kwanza kwenye akaunti ya muuzaji ili kuanza LIVE.');
+      if (!['SELLER', 'BUSINESS', 'ADMIN'].includes(String(authUser.role || '').toUpperCase())) throw new Error('Akaunti hii haina ruhusa ya muuzaji. Role ya SELLER/BUSINESS inahitajika.');
+      if (!liveTitle.trim()) throw new Error('Andika kichwa cha LIVE kwanza.');
+      if (!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) throw new Error('Kivinjari hiki hakitumii kamera/microphone kwa WebRTC.');
+      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const response = await fetch((API || '') + '/api/live/start', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken }, body: JSON.stringify({ title: liveTitle.trim() }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.id || !data.publish) throw new Error(({ AUTH_REQUIRED: 'Session imeisha. Ingia tena.', SELLER_ACCOUNT_REQUIRED: 'Akaunti ya muuzaji inahitajika.', LIVE_NOT_CONFIGURED: 'Cloudflare Stream bado haijawekwa kwenye Worker.' }[data.error] || 'Server haijatoa anwani ya WebRTC ya LIVE.'));
+      pc = new RTCPeerConnection(); stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
+      const publishResponse = await fetch(data.publish, { method: 'POST', headers: { 'Content-Type': 'application/sdp' }, body: offer.sdp });
+      if (!publishResponse.ok) throw new Error('Cloudflare Stream imekataa kuanzisha broadcast (' + publishResponse.status + ').');
+      await pc.setRemoteDescription({ type: 'answer', sdp: await publishResponse.text() });
+      setLiveStream({ id: data.id, pc, media: stream });
+      setLiveItems((old) => [{ id: data.id, title: liveTitle.trim(), creator: authUser.username ? '@' + authUser.username : 'Muuzaji', status: 'connected', playback: data.playback || null }, ...old.filter((item) => item.id !== data.id)]);
+      notify('LIVE imeanzishwa. Usifunge ukurasa wakati unaendelea kutangaza.');
+    } catch (error) { if (pc) pc.close(); if (stream) stream.getTracks().forEach((track) => track.stop()); setLiveError(error.message || 'Imeshindikana kuanza LIVE.'); } finally { setLiveBusy(false); }
+  }
+  async function stopLive() {
+    if (!liveStream) return; setLiveBusy(true); setLiveError('');
+    try {
+      const response = await fetch((API || '') + '/api/live/' + encodeURIComponent(liveStream.id) + '/stop', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken } });
+      if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || 'Server haikuweza kusimamisha LIVE.'); }
+      notify('LIVE imesimamishwa.');
+    } catch (error) { setLiveError(error.message || 'Imeshindikana kusimamisha LIVE.'); }
+    finally { liveStream.pc.close(); liveStream.media.getTracks().forEach((track) => track.stop()); setLiveStream(null); setLiveBusy(false); fetch((API || '') + '/api/live').then((r) => r.json()).then((data) => setLiveItems(Array.isArray(data.items) ? data.items : [])).catch(() => {}); }
+  }
+  async function joinLive(item) { setViewerStream(item); setLiveError(''); setModal('live'); }
   const notify = (message) => setToast(message);
   const askDemo = (feature) => { setModal(feature); };
   const current = selected || videos[0];
@@ -139,7 +246,7 @@ export default function App() {
       <header className="site-header">
         <a className="brand" href="#home" aria-label="SOKORA nyumbani"><span className="brand-mark">S</span><span><strong>SOKORA</strong><small>TAZAMA · GUNDUA · NUNUA</small></span></a>
         <label className="search-box"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta bidhaa, biashara, eneo..." aria-label="Tafuta SOKORA" /><kbd>Enter</kbd></label>
-        <div className="header-actions"><button className="ghost-btn" onClick={() => askDemo('login')}>Ingia</button><button className="gold-btn" onClick={() => askDemo('upload')}>＋ Weka bidhaa</button></div>
+        <div className="header-actions">{authUser ? <><button className="ghost-btn" onClick={() => notify('@' + (authUser.username || 'mtumiaji') + ' · ' + (authUser.role || 'USER'))}>@{authUser.username}</button><button className="gold-btn" onClick={signOut}>Toka</button></> : <button className="ghost-btn" onClick={() => { setAuthMode('login'); setAuthError(''); askDemo('login'); }}>Ingia</button>}<button className="gold-btn" onClick={() => askDemo('upload')}>＋ Weka bidhaa</button></div>
       </header>
 
       <main id="home">
@@ -151,9 +258,9 @@ export default function App() {
         <section className="live-row" aria-label="LIVE">
           <div className="section-label"><span className="live-dot"></span><div><b>LIVE sasa</b><small>Maonyesho ya wafanyabiashara</small></div></div>
           <div className="live-creators">
-            {['Mariam Fashion', 'Dodoma Gadgets', 'Mama Neema', 'JMK Tech'].map((name, i) => <button key={name} className="live-person" onClick={() => { setSelected({ product: name, seller: name }); askDemo('live'); }}><span className={'live-avatar avatar-' + i}>{['MF', 'DG', 'MN', 'JT'][i]}</span><span>{name}</span></button>)}
+            {liveItems.length ? liveItems.map((item, i) => <button key={item.id} className="live-person" onClick={() => joinLive(item)}><span className={'live-avatar avatar-' + (i % 4)}>LIVE</span><span>{item.creator || item.title || 'Muuzaji'}</span></button>) : <p className="modal-muted">{liveConfigured ? 'Hakuna matangazo ya LIVE kwa sasa.' : 'LIVE itajitokeza hapa baada ya kuunganisha Cloudflare Stream.'}</p>}
           </div>
-          <button className="live-outline" onClick={() => askDemo('live')}>● Anza LIVE</button>
+          <button className="live-outline" onClick={() => { setViewerStream(null); setLiveTitle(''); setLiveError(''); askDemo('live'); }}>● Anza LIVE</button>
         </section>
 
         <section className="market-section">
@@ -179,8 +286,8 @@ export default function App() {
       {modal && <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}><section className="modal-card" role="dialog" aria-modal="true">
         <button className="modal-close" onClick={closeModal} aria-label="Funga">×</button>
         {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2><p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><div className="modal-actions"><button className="gold-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
-        {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>Karibu SOKORA</h2><p>Usajili na kuingia salama vitafunguliwa baada ya kuunganishwa kwa mfumo wa akaunti wa backend. Hatuombi nenosiri kwenye skrini hii ya mfano.</p><button className="gold-btn" onClick={closeModal}>Nimeelewa</button></>}
-        {modal === 'live' && <><p className="eyebrow"><span className="live-dot"></span> LIVE</p><h2>Maonyesho ya moja kwa moja</h2><p>LIVE halisi haijaunganishwa bado. Inahitaji huduma ya streaming, akaunti ya muuzaji na udhibiti wa usalama. Hatuonyeshi video ya moja kwa moja ya kubuni.</p><button className="gold-btn" onClick={closeModal}>Sawa</button></>}
+        {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>{authMode === 'register' ? 'Fungua akaunti' : 'Karibu SOKORA'}</h2><div className="modal-actions"><button className={authMode === 'login' ? 'gold-btn' : 'ghost-btn'} onClick={() => { setAuthMode('login'); setAuthError(''); }}>Ingia</button><button className={authMode === 'register' ? 'gold-btn' : 'ghost-btn'} onClick={() => { setAuthMode('register'); setAuthError(''); }}>Jisajili</button></div>{authMode === 'register' && <><label className="field-label">Jina linaloonekana<input value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)} autoComplete="name" /></label><label className="field-label">Username<input value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} autoComplete="username" placeholder="mfano jmk_shop" /></label><label className="field-label">Email (hiari ikiwa unaweka simu)<input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} autoComplete="email" /></label><label className="field-label">Namba ya simu (hiari ikiwa unaweka email)<input value={authPhone} onChange={(e) => setAuthPhone(e.target.value)} autoComplete="tel" /></label></>}{authMode === 'login' && <label className="field-label">Username, email au simu<input value={authIdentity} onChange={(e) => setAuthIdentity(e.target.value)} autoComplete="username" /></label>}<label className="field-label">Nenosiri (angalau herufi 10 wakati wa usajili)<input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} /></label>{authError && <p role="alert" className="auth-error">{authError}</p>}<div className="modal-actions"><button className="gold-btn" disabled={authBusy} onClick={submitAuth}>{authBusy ? 'Subiri...' : authMode === 'register' ? 'Jisajili' : 'Ingia'}</button><button className="ghost-btn" onClick={closeModal}>Ghairi</button></div></>}
+        {modal === 'live' && <><p className="eyebrow"><span className="live-dot"></span> LIVE</p>{viewerStream ? <><h2>{viewerStream.title || viewerStream.creator || 'SOKORA LIVE'}</h2><p>{viewerStream.creator || 'Muuzaji wa SOKORA'} · {viewerStream.status || 'LIVE'}</p>{viewerStream.playback ? <LiveViewer playback={viewerStream.playback} /> : <p className="modal-muted">Stream hii haina anwani ya playback inayoweza kufunguliwa na player hii.</p>}<button className="gold-btn" onClick={closeModal}>Funga player</button></> : <><h2>{liveStream ? 'Una LIVE inayoendelea' : 'Anza LIVE'}</h2><p>Ruhusu kamera na microphone baada ya kubonyeza Anza LIVE. Akaunti lazima iwe na role ya muuzaji.</p>{!authUser && <button className="ghost-btn" onClick={() => { setModal('login'); setAuthMode('login'); }}>Ingia kwanza</button>}{liveStream ? <p>LIVE yako inaendelea. Usifunge ukurasa hadi umalize kutangaza.</p> : <label className="field-label">Kichwa cha LIVE<input value={liveTitle} onChange={(e) => setLiveTitle(e.target.value)} placeholder="Mf. Onyesho la bidhaa mpya" maxLength={100} /></label>}{liveError && <p className="auth-error" role="alert">{liveError}</p>}<div className="modal-actions">{liveStream ? <button className="gold-btn" disabled={liveBusy} onClick={stopLive}>{liveBusy ? 'Inasimamisha...' : '■ Simamisha LIVE'}</button> : <button className="gold-btn" disabled={liveBusy} onClick={startLive}>{liveBusy ? 'Inaunganisha...' : '● Anza LIVE'}</button>}<button className="ghost-btn" onClick={closeModal}>Funga</button></div></>}</>}
         {modal === 'comments' && current && <><p className="eyebrow">MAONI</p><h2>{current.product}</h2><div className="comment-list">{(comments[current.id] || []).map((comment, i) => <p key={i}><b>{comment.name}</b><br />{comment.text}</p>)}{!(comments[current.id] || []).length && <p className="modal-muted">Bado hakuna maoni yaliyowekwa kwenye kivinjari hiki.</p>}</div><textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Andika maoni..." rows="3" /><button className="gold-btn" onClick={() => { if (!commentText.trim()) return; setComments((old) => ({ ...old, [current.id]: [...(old[current.id] || []), { name: 'Wewe (kifaa hiki)', text: commentText.trim() }] })); setCommentText(''); notify('Maoni yameongezwa kwenye kifaa hiki tu.'); }}>Ongeza maoni</button></>}
         {modal === 'upload' && <><p className="eyebrow">TANGAZO JIPYA</p><h2>Weka bidhaa au video</h2><p>Hili ni tangazo la ndani ya kivinjari kwa sasa. Halitapakiwa kwa umma hadi upload API na storage salama viunganishwe.</p><label className="field-label">Picha au video<input type="file" accept="image/*,video/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} /></label><label className="field-label">Jina/maelezo ya bidhaa<input value={uploadCaption} onChange={(e) => setUploadCaption(e.target.value)} placeholder="Mf. Simu Samsung..." /></label><label className="field-label">Bei kwa TSh<input inputMode="numeric" value={uploadPrice} onChange={(e) => setUploadPrice(e.target.value)} placeholder="25000" /></label><label className="field-label">Eneo<input value={uploadLocation} onChange={(e) => setUploadLocation(e.target.value)} /></label>{uploadFile && <p className="modal-muted">Faili: {uploadFile.name} · {(uploadFile.size / 1048576).toFixed(1)} MB</p>}<div className="modal-actions"><button className="gold-btn" onClick={saveLocalListing}>Ongeza kwenye kifaa hiki</button><button className="ghost-btn" onClick={closeModal}>Ghairi</button></div></>}
       </section></div>}
