@@ -167,7 +167,7 @@ export default function App() {
         </section>
 
         <section className="market-section">
-          <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'api' ? 'Imeunganishwa na API' : 'Data za mfano'}</span></div>
+          <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'video-api' ? 'Video halisi kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : 'Data za mfano'}</span></div>
           <div className="category-row" aria-label="Makundi ya bidhaa">{categories.map((name) => <button key={name} className={'category-chip ' + (category === name ? 'active' : '')} onClick={() => setCategory(name)}>{name}</button>)}</div>
           <div className="result-line"><span>{filtered.length} matokeo</span><label className="sort-label">Panga kwa <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}><option value="recommended">Vinavyopendekezwa</option><option value="price-low">Bei: chini kwenda juu</option><option value="price-high">Bei: juu kwenda chini</option></select></label></div>
           {filtered.length ? <div className="product-grid">{filtered.map((video) => <article className="product-card" key={video.id}>
