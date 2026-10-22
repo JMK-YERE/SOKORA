@@ -1,14 +1,14 @@
 {
   "id": "/",
-  "name": "SOKORA — Soko la Tanzania",
-  "short_name": "SOKORA",
-  "description": "Gundua bidhaa, biashara na video fupi kutoka Tanzania.",
+  "name": "ElimuSmartSystem — Usimamizi wa Shule",
+  "short_name": "ElimuSmart",
+  "description": "Mfumo wa usimamizi wa shule za Tanzania.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#080B10",
-  "theme_color": "#080B10",
+  "background_color": "#F4F6FA",
+  "theme_color": "#174F8D",
   "lang": "sw-TZ",
   "icons": [
     {
