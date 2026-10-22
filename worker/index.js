@@ -139,11 +139,11 @@ export default {
       try {
         const db = getDatabase(env);
         const passwordHash = await bcrypt.hash(password, 12);
-        const rows = await db\`
+        const rows = await db`
           INSERT INTO users (email, phone, username, display_name, password_hash)
-          VALUES (\${email}, \${phone}, \${username}, \${displayName}, \${passwordHash})
+          VALUES (${email}, ${phone}, ${username}, ${displayName}, ${passwordHash})
           RETURNING id, username, display_name, role
-        \`;
+        `;
         const user = rows[0];
         const token = await signUserToken(user, env);
         return json({ user, token, tokenType: 'Bearer', expiresIn: 604800 }, 201);
@@ -167,14 +167,14 @@ export default {
       if (!identity || !password) return json({ error: 'IDENTITY_AND_PASSWORD_REQUIRED' }, 400);
       try {
         const db = getDatabase(env);
-        const rows = await db\`
+        const rows = await db`
           SELECT id, username, display_name, role, status, password_hash
           FROM users
-          WHERE lower(username) = \${identity.replace(/^@/, '')}
-             OR lower(coalesce(email, '')) = \${identity}
-             OR phone = \${identity}
+          WHERE lower(username) = ${identity.replace(/^@/, '')}
+             OR lower(coalesce(email, '')) = ${identity}
+             OR phone = ${identity}
           LIMIT 1
-        \`;
+        `;
         const user = rows[0];
         if (!user || user.status !== 'ACTIVE' || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
           return json({ error: 'INVALID_CREDENTIALS' }, 401);
@@ -192,7 +192,7 @@ export default {
       if (!session) return json({ error: 'AUTH_REQUIRED' }, 401);
       try {
         const db = getDatabase(env);
-        const rows = await db\`SELECT id, username, display_name, role, status FROM users WHERE id::text = \${session.id} LIMIT 1\`;
+        const rows = await db`SELECT id, username, display_name, role, status FROM users WHERE id::text = ${session.id} LIMIT 1`;
         if (!rows.length || rows[0].status !== 'ACTIVE') return json({ error: 'ACCOUNT_INACTIVE' }, 401);
         const { status, ...user } = rows[0];
         return json({ user });
