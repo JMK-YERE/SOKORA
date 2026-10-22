@@ -533,7 +533,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, minHeight: 0, backgroundColor: '#070B13', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 560, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
-  header: { backgroundColor: '#070B13C9', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 14 : 8, paddingBottom: 10, borderWidth: 0, elevation: 0, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 },
+  header: { backgroundColor: 'transparent', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 14 : 8, paddingBottom: 10, borderWidth: 0, elevation: 0, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 22, fontWeight: '900', letterSpacing: 1.5 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: Platform.OS === 'web' ? 12 : 7, flexShrink: 1 },
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
   profileTopButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   tagline: { color: '#C3D2DA', fontSize: Platform.OS === 'web' ? 9 : 10, marginTop: 1 },
 
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 5, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 36, borderRadius: 12, backgroundColor: '#101827E8', borderWidth: 1, borderColor: '#FFFFFF20' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', marginTop: Platform.OS === 'web' ? 8 : 5, paddingHorizontal: 12, height: Platform.OS === 'web' ? 40 : 36, borderRadius: 12, backgroundColor: 'transparent', borderWidth: 0, borderColor: 'transparent' },
   searchIcon: { color: '#C3D2DA', fontSize: 22, marginRight: 8 },
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 7, fontSize: 14 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   videoBackdropCircle: { position: 'absolute', width: 310, height: 310, borderRadius: 155, borderWidth: 40, borderColor: '#FFFFFF0D', top: '12%', alignSelf: 'center' },
   demoVideoStage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: '#102A43' },
   demoVideoOverlay: { position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'flex-start', pointerEvents: 'none' },
-  demoVideoTag: { color: '#FFFFFF', backgroundColor: '#102A43DD', overflow: 'hidden', borderRadius: 6, paddingHorizontal: 9, paddingVertical: 6, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
+  demoVideoTag: { color: '#FFFFFF', backgroundColor: 'transparent', overflow: 'hidden', borderRadius: 0, paddingHorizontal: 0, paddingVertical: 2, fontSize: 9, fontWeight: '900', letterSpacing: 0.6, textShadowColor: '#000B', textShadowRadius: 5 },
   demoVideoProduct: { color: '#FFFFFF', fontSize: 17, fontWeight: '900', marginTop: 10, textShadowColor: '#000A', textShadowRadius: 5 },
   demoVideoHint: { color: '#FFFFFF', fontSize: 9, marginTop: 5, textShadowColor: '#000A', textShadowRadius: 5 },
   productArt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30, backgroundColor: '#0A101D' },
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   productEmoji: { fontSize: 105, textShadowColor: '#0006', textShadowOffset: { width: 0, height: 12 }, textShadowRadius: 18 },
   productArtCaption: { color: '#FFFFFF88', fontSize: 9, fontWeight: '900', letterSpacing: 2, marginTop: 18 },
   videoTopLine: { position: 'absolute', top: Platform.OS === 'web' ? 112 : 100, left: 14, right: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  demoBadge: { backgroundColor: '#0006', borderRadius: 5, paddingHorizontal: 7, paddingVertical: 5 },
+  demoBadge: { backgroundColor: 'transparent', borderRadius: 0, paddingHorizontal: 0, paddingVertical: 2 },
   demoBadgeText: { color: '#FFFFFF', fontSize: 8, fontWeight: '900' },
   videoLocation: { color: '#FFFFFF', fontSize: 10, fontWeight: '700', textShadowColor: '#0008', textShadowRadius: 5 },
   videoBottom: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 14, paddingTop: 34, paddingBottom: Platform.OS === 'web' ? 20 : 24, gap: 6, backgroundColor: 'transparent' },
