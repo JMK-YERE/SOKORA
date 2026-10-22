@@ -135,6 +135,59 @@ export default function App() {
   const [uploadLocation, setUploadLocation] = useState('Dodoma');
   const [uploadCaption, setUploadCaption] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [authIdentity, setAuthIdentity] = useState('');
+  const [authUsername, setAuthUsername] = useState('');
+  const [authDisplayName, setAuthDisplayName] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authToken, setAuthToken] = useState('');
+  const [authUser, setAuthUser] = useState(null);
+
+  const submitAuth = async () => {
+    if (!API_BASE_URL) {
+      Alert.alert('API haijaunganishwa', 'Weka EXPO_PUBLIC_API_URL yenye anwani ya backend ya SOKORA kabla ya kuingia au kujisajili.');
+      return;
+    }
+    const path = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const payload = authMode === 'register'
+      ? { email: authIdentity.includes('@') ? authIdentity.trim() : undefined, phone: authIdentity.includes('@') ? undefined : authIdentity.trim(), username: authUsername.trim(), displayName: authDisplayName.trim(), password: authPassword }
+      : { identity: authIdentity.trim(), password: authPassword };
+    if (!authIdentity.trim() || !authPassword || (authMode === 'register' && (!authUsername.trim() || !authDisplayName.trim()))) {
+      Alert.alert('Jaza taarifa', 'Jaza sehemu zote zinazohitajika.');
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      const response = await fetch(API_BASE_URL + path, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || data.error || ('HTTP ' + response.status));
+      setAuthToken(data.token);
+      setAuthUser(data.user);
+      setAccountName(data.user.display_name || data.user.displayName || data.user.username || 'Mtumiaji wa SOKORA');
+      setAccountHandle('@' + String(data.user.username || '').replace(/^@/, ''));
+      setShowAuth(false);
+      setAuthPassword('');
+      Alert.alert(authMode === 'register' ? 'Akaunti imetengenezwa' : 'Umeingia', 'Umeunganishwa na akaunti ya SOKORA.');
+    } catch (error) {
+      Alert.alert('Imeshindikana', 'Akaunti haikuweza kuthibitishwa: ' + String(error.message || error));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const signOut = () => {
+    setAuthToken('');
+    setAuthUser(null);
+    setAccountName('Mtumiaji wa SOKORA');
+    setAccountHandle('@sokora_user');
+    Alert.alert('Umetoka', 'Umetoka kwenye akaunti kwenye kifaa hiki.');
+  };
 
   useEffect(() => {
     let active = true;
@@ -229,6 +282,11 @@ export default function App() {
   };
 
   const publishProduct = async () => {
+    if (!authToken) {
+      setShowUpload(false);
+      setShowAuth(true);
+      return;
+    }
     if (!uploadFile || !uploadTitle.trim() || !uploadPrice.trim()) {
       Alert.alert('Taarifa hazijakamilika', 'Chagua video au picha, andika jina la bidhaa na bei.');
       return;
@@ -245,7 +303,7 @@ export default function App() {
     body.append('caption', uploadCaption.trim());
     setUploading(true);
     try {
-      const response = await fetch(API_BASE_URL + '/api/videos', { method: 'POST', body });
+      const response = await fetch(API_BASE_URL + '/api/videos', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken }, body });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       setShowUpload(false);
       setFeedMessage('Bidhaa imetumwa. Inapakia upya feed…');
@@ -351,7 +409,7 @@ export default function App() {
             <Pressable onPress={() => setActiveTab('Kwa ajili yako')}><Text style={[styles.headerLink, activeTab === 'Kwa ajili yako' && styles.headerLinkActive]}>For you</Text></Pressable>
             <Pressable onPress={() => setActiveTab('Inafuatwa')}><Text style={[styles.headerLink, activeTab === 'Inafuatwa' && styles.headerLinkActive]}>Discover</Text></Pressable>
             <Pressable onPress={startLive} style={styles.headerLiveButton}><Text style={styles.headerLive}>● LIVE</Text></Pressable>
-            <Pressable onPress={() => { setShowProfile(true); setActiveNav('Wasifu'); }} style={styles.profileTopButton}><Text style={styles.profileTopButtonText}>Wasifu</Text></Pressable>
+            <Pressable onPress={() => { if (authUser) { setShowProfile(true); setActiveNav('Wasifu'); } else setShowAuth(true); }} style={styles.profileTopButton}><Text style={styles.profileTopButtonText}>{authUser ? 'Wasifu' : 'Ingia'}</Text></Pressable>
           </View>
         </View>
         <View style={styles.searchBox}>
@@ -425,8 +483,8 @@ export default function App() {
         ].map((nav) => (
           <Pressable key={nav.id} style={styles.navItem} onPress={() => {
             setActiveNav(nav.id);
-            if (nav.id === 'Weka') uploadVideo();
-            else if (nav.id === 'Wasifu') setShowProfile(true);
+            if (nav.id === 'Weka') { if (authToken) uploadVideo(); else setShowAuth(true); }
+            else if (nav.id === 'Wasifu') { if (authUser) setShowProfile(true); else setShowAuth(true); }
             else if (nav.id === 'Inbox') Alert.alert(nav.label, 'Ujumbe utaunganishwa na akaunti katika hatua inayofuata.');
             else if (nav.id === 'Gundua') { setActiveTab('Kwa ajili yako'); setSearchText(''); }
             else if (nav.id !== 'Video') Alert.alert(nav.label, 'Sehemu hii itaunganishwa katika hatua inayofuata.');
@@ -436,6 +494,37 @@ export default function App() {
           </Pressable>
         ))}
       </View>
+
+      <Modal visible={showAuth} animationType="slide" transparent onRequestClose={() => setShowAuth(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.uploadSheet}>
+            <View style={styles.modalTitleRow}>
+              <Text style={styles.modalTitle}>{authMode === 'register' ? 'Tengeneza akaunti' : 'Ingia SOKORA'}</Text>
+              <Pressable onPress={() => setShowAuth(false)}><Text style={styles.closeModal}>✕</Text></Pressable>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 18 }}>
+              <Text style={styles.uploadIntro}>Tumia akaunti yako kuingiliana na wauzaji na kuchapisha bidhaa. Akaunti inahitaji backend iliyounganishwa.</Text>
+              {authMode === 'register' && <>
+                <Text style={styles.uploadFieldLabel}>Jina lako *</Text>
+                <TextInput value={authDisplayName} onChangeText={setAuthDisplayName} style={styles.uploadInput} placeholder="Jina kamili" placeholderTextColor="#9FB4C5" />
+                <Text style={styles.uploadFieldLabel}>Username *</Text>
+                <TextInput value={authUsername} onChangeText={setAuthUsername} autoCapitalize="none" style={styles.uploadInput} placeholder="mfano_jina" placeholderTextColor="#9FB4C5" />
+              </>}
+              <Text style={styles.uploadFieldLabel}>{authMode === 'register' ? 'Email au namba ya simu *' : 'Username, email au simu *'}</Text>
+              <TextInput value={authIdentity} onChangeText={setAuthIdentity} autoCapitalize="none" keyboardType={authMode === 'register' ? 'email-address' : 'default'} style={styles.uploadInput} placeholder={authMode === 'register' ? 'email au +255...' : 'username / email / simu'} placeholderTextColor="#9FB4C5" />
+              <Text style={styles.uploadFieldLabel}>Password (angalau herufi 10) *</Text>
+              <TextInput value={authPassword} onChangeText={setAuthPassword} secureTextEntry style={styles.uploadInput} placeholder="Password" placeholderTextColor="#9FB4C5" />
+              <Pressable disabled={authBusy} onPress={submitAuth} style={[styles.publishButton, authBusy && { opacity: 0.6 }]}>
+                <Text style={styles.publishButtonText}>{authBusy ? 'Inathibitisha…' : authMode === 'register' ? 'Jisajili' : 'Ingia'}</Text>
+              </Pressable>
+              <Pressable onPress={() => setAuthMode((mode) => mode === 'login' ? 'register' : 'login')} style={{ paddingVertical: 14 }}>
+                <Text style={{ color: '#65D6C8', textAlign: 'center', fontWeight: '800' }}>{authMode === 'login' ? 'Huna akaunti? Jisajili' : 'Tayari una akaunti? Ingia'}</Text>
+              </Pressable>
+              {!!authUser && <Pressable onPress={signOut} style={{ paddingVertical: 10 }}><Text style={{ color: '#FCA5A5', textAlign: 'center' }}>Toka kwenye akaunti</Text></Pressable>}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={showUpload} animationType="slide" transparent onRequestClose={() => setShowUpload(false)}>
         <View style={styles.modalOverlay}>
