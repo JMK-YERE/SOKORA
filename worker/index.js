@@ -85,7 +85,7 @@ export default {
       }
     }
 
-    const productMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)$/);
+    const productMatch = url.pathname.match(/^\/api\/products\/([^/]+)$/);
     if (productMatch) {
       let productId;
       try {
@@ -93,7 +93,7 @@ export default {
       } catch {
         return json({ error: 'INVALID_PRODUCT_ID' }, 400);
       }
-      if (!productId || productId.length > 80 || /[\\u0000-\\u001f]/.test(productId)) {
+      if (!productId || productId.length > 80 || /[\u0000-\u001f]/.test(productId)) {
         return json({ error: 'INVALID_PRODUCT_ID' }, 400);
       }
       try {
