@@ -6,6 +6,13 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "web": {
+      "name": "SOKORA — Soko la Tanzania",
+      "shortName": "SOKORA",
+      "description": "Gundua bidhaa, biashara na video fupi kutoka Tanzania.",
+      "themeColor": "#080B10",
+      "backgroundColor": "#080B10"
+    },
     "android": {
       "package": "tz.sokora.app",
       "adaptiveIcon": {
