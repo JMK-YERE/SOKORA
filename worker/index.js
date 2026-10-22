@@ -133,6 +133,7 @@ export default {
       const username = String(body.username || '').trim().toLowerCase().replace(/^@/, '');
       const displayName = String(body.displayName || '').trim();
       const password = String(body.password || '');
+      const role = body.accountType === 'seller' ? 'SELLER' : 'CUSTOMER';
       if ((!email && !phone) || !/^[a-z0-9_]{3,30}$/.test(username) || displayName.length < 2 || password.length < 10) {
         return json({ error: 'INVALID_REGISTRATION', message: 'Weka email au simu, username ya herufi/namba 3–30, jina, na password ya angalau herufi 10.' }, 400);
       }
@@ -140,8 +141,8 @@ export default {
         const db = getDatabase(env);
         const passwordHash = await bcrypt.hash(password, 12);
         const rows = await db`
-          INSERT INTO users (email, phone, username, display_name, password_hash)
-          VALUES (${email}, ${phone}, ${username}, ${displayName}, ${passwordHash})
+          INSERT INTO users (email, phone, username, display_name, password_hash, role)
+          VALUES (${email}, ${phone}, ${username}, ${displayName}, ${passwordHash}, ${role})
           RETURNING id, username, display_name, role
         `;
         const user = rows[0];
