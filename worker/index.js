@@ -61,7 +61,7 @@ export default {
         const rows = await db`
           SELECT
             v.id AS video_id, v.caption, v.video_url, v.thumbnail_url, v.created_at,
-            p.id AS product_id, p.name AS product_name, p.price_tzs, p.currency, p.location,
+            p.id AS product_id, p.name AS product_name, p.price_tzs, p.currency, p.location, p.category,
             u.id AS seller_id, u.display_name AS seller_name, u.username AS seller_username
           FROM videos v
           JOIN products p ON p.id = v.product_id
