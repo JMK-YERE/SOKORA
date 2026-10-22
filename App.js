@@ -174,6 +174,24 @@ export default function App() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const manifestLink = document.querySelector('link[rel="manifest"]') || document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = '/manifest.json';
+    if (!manifestLink.parentNode) document.head.appendChild(manifestLink);
+
+    const themeMeta = document.querySelector('meta[name="theme-color"]') || document.createElement('meta');
+    themeMeta.name = 'theme-color';
+    themeMeta.content = '#080B10';
+    if (!themeMeta.parentNode) document.head.appendChild(themeMeta);
+
+    const descriptionMeta = document.querySelector('meta[name="description"]') || document.createElement('meta');
+    descriptionMeta.name = 'description';
+    descriptionMeta.content = 'Gundua bidhaa, biashara na video fupi kutoka Tanzania kwenye SOKORA.';
+    if (!descriptionMeta.parentNode) document.head.appendChild(descriptionMeta);
+  }, []);
+
   const visibleVideos = useMemo(() => {
     const term = searchText.trim().toLocaleLowerCase();
     const base = activeTab === 'Inafuatwa'

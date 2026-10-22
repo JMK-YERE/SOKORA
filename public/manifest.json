@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "SOKORA — Soko la Tanzania",
+  "short_name": "SOKORA",
+  "description": "Gundua bidhaa, biashara na video fupi kutoka Tanzania.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080B10",
+  "theme_color": "#080B10",
+  "lang": "sw-TZ",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
