@@ -90,7 +90,7 @@ export default {
       const query = (url.searchParams.get('q') || '').trim().slice(0, 120);
       const sort = url.searchParams.get('sort') || 'newest';
       const orderBy = sort === 'price-asc'
-        ? sqlClient ? 'price_asc' : 'price_asc'
+        ? 'price_asc'
         : sort === 'price-desc' ? 'price_desc' : 'newest';
 
       try {
