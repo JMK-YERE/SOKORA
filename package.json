@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "postgres": "^3.4.7",
+    "bcryptjs": "^2.4.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
