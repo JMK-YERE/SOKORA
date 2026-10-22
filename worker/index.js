@@ -88,8 +88,88 @@ function validCursor(value) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname.startsWith('/api/') && request.method !== 'GET') {
+    const isAuthPost = request.method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname);
+    if (url.pathname.startsWith('/api/') && request.method !== 'GET' && !isAuthPost) {
       return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
+    }
+
+    if (url.pathname === '/api/auth/register' && request.method === 'POST') {
+      if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const email = String(body.email || '').trim().toLowerCase() || null;
+      const phone = String(body.phone || '').trim() || null;
+      const username = String(body.username || '').trim().toLowerCase().replace(/^@/, '');
+      const displayName = String(body.displayName || '').trim();
+      const password = String(body.password || '');
+      if ((!email && !phone) || !/^[a-z0-9_]{3,30}$/.test(username) || displayName.length < 2 || displayName.length > 80 || password.length < 10 || password.length > 128) {
+        return json({ error: 'INVALID_REGISTRATION', message: 'Weka email au simu, username ya herufi/namba 3–30, jina, na password ya angalau herufi 10.' }, 400);
+      }
+      try {
+        const db = getDatabase(env);
+        const hash = await passwordHash(password);
+        const rows = await db`
+          INSERT INTO users (email, phone, username, display_name, password_hash)
+          VALUES (${email}, ${phone}, ${username}, ${displayName}, ${hash})
+          RETURNING id, username, display_name, role
+        `;
+        const user = rows[0];
+        const now = Math.floor(Date.now() / 1000);
+        const token = await signToken({ sub: String(user.id), username: user.username, role: user.role, iss: 'sokora-api', aud: 'sokora-app', iat: now, exp: now + 604800 }, env.JWT_SECRET);
+        return json({ user, token, tokenType: 'Bearer', expiresIn: 604800 }, 201);
+      } catch (error) {
+        if (error?.code === '23505') return json({ error: 'ACCOUNT_ALREADY_EXISTS' }, 409);
+        console.error('SOKORA registration failed:', error?.message || 'unknown error');
+        return json({ error: 'REGISTRATION_FAILED' }, 500);
+      }
+    }
+
+    if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+      if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const identity = String(body.identity || '').trim().toLowerCase();
+      const password = String(body.password || '');
+      if (!identity || !password || password.length > 128) return json({ error: 'IDENTITY_AND_PASSWORD_REQUIRED' }, 400);
+      try {
+        const db = getDatabase(env);
+        const rows = await db`
+          SELECT id, username, display_name, role, status, password_hash
+          FROM users
+          WHERE lower(username) = ${identity.replace(/^@/, '')}
+             OR lower(coalesce(email, '')) = ${identity}
+             OR phone = ${identity}
+          LIMIT 1
+        `;
+        const user = rows[0];
+        if (!user || user.status !== 'ACTIVE' || !(await verifyPassword(password, user.password_hash))) {
+          return json({ error: 'INVALID_CREDENTIALS' }, 401);
+        }
+        const now = Math.floor(Date.now() / 1000);
+        const token = await signToken({ sub: String(user.id), username: user.username, role: user.role, iss: 'sokora-api', aud: 'sokora-app', iat: now, exp: now + 604800 }, env.JWT_SECRET);
+        return json({ user: { id: user.id, username: user.username, display_name: user.display_name, role: user.role }, token, tokenType: 'Bearer', expiresIn: 604800 });
+      } catch (error) {
+        console.error('SOKORA login failed:', error?.message || 'unknown error');
+        return json({ error: 'LOGIN_FAILED' }, 500);
+      }
+    }
+
+    if (url.pathname === '/api/auth/me' && request.method === 'GET') {
+      if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      const authorization = request.headers.get('authorization') || '';
+      const token = authorization.replace(/^Bearer\s+/i, '');
+      const payload = await readToken(token, env.JWT_SECRET);
+      if (!payload) return json({ error: 'INVALID_SESSION' }, 401);
+      try {
+        const db = getDatabase(env);
+        const rows = await db`SELECT id, username, display_name, role, status FROM users WHERE id = ${payload.sub} LIMIT 1`;
+        const user = rows[0];
+        if (!user || user.status !== 'ACTIVE') return json({ error: 'ACCOUNT_INACTIVE' }, 401);
+        return json({ user: { id: user.id, username: user.username, display_name: user.display_name, role: user.role } });
+      } catch (error) {
+        console.error('SOKORA session lookup failed:', error?.message || 'unknown error');
+        return json({ error: 'SESSION_LOOKUP_FAILED' }, 500);
+      }
     }
 
     if (url.pathname === '/api/health') {
