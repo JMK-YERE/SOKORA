@@ -27,7 +27,7 @@ app.use(express.json({ limit: '256kb' }));
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const requireAuth = (req, res, next) => {
-  const token = String(req.headers.authorization || '').replace(/^Bearer\\s+/i, '');
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token || !JWT_SECRET) return res.status(401).json({ error: 'AUTH_REQUIRED' });
   try { req.auth = jwt.verify(token, JWT_SECRET); return next(); }
   catch { return res.status(401).json({ error: 'INVALID_SESSION' }); }
