@@ -217,7 +217,7 @@ export default {
             title: typeof input.meta?.name === 'string' ? input.meta.name : 'SOKORA LIVE',
             creator: typeof input.meta?.creatorName === 'string' ? input.meta.creatorName : 'Muuzaji wa SOKORA',
             status: input.status,
-            playback: input.webRTCPlayback?.url || input.playback?.hls || null,
+            playback: input.webRTCPlayback?.url || null,
             startedAt: input.modified || input.created || null,
           }))
           .filter((input) => input.playback);
@@ -261,7 +261,7 @@ export default {
           title,
           status: input.status || 'waiting_for_broadcast',
           publish: input.webRTC?.url || null,
-          playback: input.webRTCPlayback?.url || input.playback?.hls || null,
+          playback: input.webRTCPlayback?.url || null,
           ingest: input.rtmps?.url || null,
           streamKey: input.rtmps?.streamKey || null,
         }, 201);
