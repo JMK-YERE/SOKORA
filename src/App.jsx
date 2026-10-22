@@ -33,29 +33,45 @@ export default function App() {
 
   useEffect(() => {
     let alive = true;
-    fetch((API || '') + '/api/products?limit=30', { headers: { Accept: 'application/json' } })
-      .then((r) => { if (!r.ok) throw new Error('products unavailable'); return r.json(); })
-      .then((data) => {
-        if (!alive) return;
-        const rows = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
-        const normalized = rows.map((row, i) => ({
-          id: String(row.id ?? row.product_id ?? 'product-' + i),
-          seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || '@sokora_seller'),
-          product: row.name || row.product_name || 'Bidhaa ya SOKORA',
-          price: Number(row.price_tzs || 0),
-          location: row.location || 'Tanzania',
-          category: row.category || 'Biashara',
-          caption: row.description || '',
-          emoji: '🛍️',
-          image: row.product_image_url || row.image_url || row.thumbnail_url || '',
-          video: row.video_url || '',
-          likes: Number(row.likes_count || 0),
-          demo: false,
-        }));
+    const loadJson = async (path) => {
+      const response = await fetch((API || '') + path, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error(path + ' unavailable');
+      return response.json();
+    };
+    Promise.all([
+      loadJson('/api/feed?limit=30').catch(() => ({ items: [] })),
+      loadJson('/api/products?limit=30').catch(() => ({ items: [] })),
+    ]).then(([feedData, productData]) => {
+      if (!alive) return;
+      const feedRows = Array.isArray(feedData) ? feedData : (Array.isArray(feedData.items) ? feedData.items : []);
+      const productRows = Array.isArray(productData) ? productData : (Array.isArray(productData.items) ? productData.items : []);
+      const normalizeProduct = (row, i, isVideo) => ({
+        id: String(isVideo ? (row.video_id ?? row.id ?? 'video-' + i) : (row.id ?? row.product_id ?? 'product-' + i)),
+        seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || '@sokora_seller'),
+        product: row.product_name || row.name || 'Bidhaa ya SOKORA',
+        price: Number(row.price_tzs || 0),
+        location: row.location || 'Tanzania',
+        category: row.category || 'Biashara',
+        caption: row.caption || row.description || '',
+        emoji: '🛍️',
+        image: row.thumbnail_url || row.product_image_url || row.image_url || '',
+        video: row.video_url || '',
+        likes: Number(row.likes_count || 0),
+        demo: false,
+      });
+      const normalizedVideos = feedRows.map((row, i) => normalizeProduct(row, i, true));
+      const normalizedProducts = productRows.map((row, i) => normalizeProduct(row, i, false));
+      const normalized = normalizedVideos.length ? normalizedVideos : normalizedProducts;
+      if (normalized.length) {
         setVideos(normalized);
-        setMode('api');
-      })
-      .catch(() => { if (alive) { setVideos(seedVideos); setMode('demo'); } });
+        setMode(normalizedVideos.length ? 'video-api' : 'api');
+      } else {
+        setVideos(seedVideos);
+        setMode('demo');
+      }
+    }).catch(() => {
+      if (alive) { setVideos(seedVideos); setMode('demo'); }
+    });
     return () => { alive = false; };
   }, []);
 
