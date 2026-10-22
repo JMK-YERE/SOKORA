@@ -26,6 +26,7 @@ function normalizeApiVideo(row, index) {
     id: String(row.video_id ?? row.id ?? `video-${index}`),
     videoUrl: row.video_url || '',
     seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || 'Muuzaji wa SOKORA'),
+    sellerId: row.seller_id == null ? null : String(row.seller_id),
     verified: false,
     product: row.product_name || row.name || 'Bidhaa ya SOKORA',
     price: 'TSh ' + amount.toLocaleString('en-TZ'),
@@ -238,9 +239,49 @@ export default function App() {
     );
   }, [activeTab, feedVideos, following, searchText]);
 
-  const toggleLike = (id) => setLiked((current) => ({ ...current, [id]: !current[id] }));
-  const toggleFollow = (seller) => setFollowing((current) => ({ ...current, [seller]: !current[seller] }));
-  const toggleSave = (id) => setSaved((current) => ({ ...current, [id]: !current[id] }));
+  const toggleLike = async (id) => {
+    const video = feedVideos.find((item) => item.id === id);
+    if (feedMode === 'backend' && video && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(id) + '/like', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken, Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setLiked((current) => ({ ...current, [id]: !!data.liked }));
+        setFeedVideos((current) => current.map((item) => item.id === id ? { ...item, likes: Number(data.likesCount || 0) } : item));
+      } catch (error) { Alert.alert('Like haikuhifadhiwa', String(error.message || error)); }
+      return;
+    }
+    setLiked((current) => ({ ...current, [id]: !current[id] }));
+  };
+  const toggleFollow = async (seller) => {
+    const video = feedVideos.find((item) => item.seller === seller);
+    if (feedMode === 'backend' && video && video.sellerId && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/sellers/' + encodeURIComponent(video.sellerId) + '/follow', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken, Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setFollowing((current) => ({ ...current, [seller]: !!data.following }));
+      } catch (error) { Alert.alert('Kufuatilia hakukuhifadhiwa', String(error.message || error)); }
+      return;
+    }
+    setFollowing((current) => ({ ...current, [seller]: !current[seller] }));
+  };
+  const toggleSave = async (id) => {
+    const video = feedVideos.find((item) => item.id === id);
+    if (feedMode === 'backend' && video && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(id) + '/save', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken, Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setSaved((current) => ({ ...current, [id]: !!data.saved }));
+      } catch (error) { Alert.alert('Hifadhi haikufaulu', String(error.message || error)); }
+      return;
+    }
+    setSaved((current) => ({ ...current, [id]: !current[id] }));
+  };
   const myFollowingCount = Object.values(following).filter(Boolean).length;
   const myLikedCount = Object.values(liked).filter(Boolean).length;
   const mySavedCount = Object.values(saved).filter(Boolean).length;
@@ -256,21 +297,40 @@ export default function App() {
     }
   };
 
-  const openComments = (video) => {
+  const openComments = async (video) => {
     setCommentText('');
     setSelectedVideo(video);
+    if (feedMode === 'backend' && API_BASE_URL) {
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(video.id) + '/comments', { headers: { Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setComments((current) => ({ ...current, [video.id]: (data.items || []).map((item) => (item.display_name || item.username || 'Mtumiaji') + ': ' + item.body) }));
+      } catch (error) { Alert.alert('Maoni hayajapakiwa', String(error.message || error)); }
+    }
   };
 
-  const submitComment = () => {
+  const submitComment = async () => {
     const text = commentText.trim();
     if (!text || !selectedVideo) return;
-    setComments((current) => ({
-      ...current,
-      [selectedVideo.id]: [...(current[selectedVideo.id] || []), 'Wewe: ' + text],
-    }));
+    if (feedMode === 'backend' && API_BASE_URL) {
+      if (!authToken) { setShowAuth(true); return; }
+      try {
+        const response = await fetch(API_BASE_URL + '/api/videos/' + encodeURIComponent(selectedVideo.id) + '/comments', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + authToken, 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ body: text }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+        setComments((current) => ({ ...current, [selectedVideo.id]: [...(current[selectedVideo.id] || []), (authUser?.display_name || authUser?.username || 'Wewe') + ': ' + text] }));
+        setCommentText('');
+      } catch (error) { Alert.alert('Maoni hayakutumika', String(error.message || error)); }
+      return;
+    }
+    setComments((current) => ({ ...current, [selectedVideo.id]: [...(current[selectedVideo.id] || []), 'Wewe: ' + text] }));
     setCommentText('');
-    setSelectedVideo(null);
-    Alert.alert('Maoni yameongezwa', 'Maoni haya yamehifadhiwa kwenye mfano wa app kwenye kifaa hiki pekee. Backend itahitajika kuyafanya yaonekane kwa watu wote.');
+    Alert.alert('Maoni ya mfano', 'Maoni haya yako kwenye mfano wa app kwenye kifaa hiki pekee.');
   };
 
   const uploadVideo = () => {
