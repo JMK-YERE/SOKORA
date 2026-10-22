@@ -208,7 +208,7 @@ export default {
       if (!config) return json({ items: [], configured: false });
       try {
         const result = await streamRequest(config, '/live_inputs?per_page=100');
-        const inputs = Array.isArray(result) ? result : (result?.data || []);
+        const inputs = Array.isArray(result) ? result : (result?.liveInputs || result?.data || []);
         const items = inputs
           .filter((input) => input.enabled !== false &&
             ['connected', 'reconnected', 'reconnecting'].includes(input.status))
@@ -262,8 +262,6 @@ export default {
           status: input.status || 'waiting_for_broadcast',
           publish: input.webRTC?.url || null,
           playback: input.webRTCPlayback?.url || null,
-          ingest: input.rtmps?.url || null,
-          streamKey: input.rtmps?.streamKey || null,
         }, 201);
       } catch {
         return json({ error: 'LIVE_START_FAILED' }, 503);
