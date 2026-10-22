@@ -7,7 +7,27 @@ const seedVideos = [
   { id: 'demo-shoes', seller: '@mariam_fashion', product: 'Viatu vya mtindo', price: 65000, location: 'Arusha', category: 'Mitindo', caption: 'Mitindo mipya imefika. Uliza kuhusu rangi na size zinazopatikana.', emoji: '👟', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80', likes: 846, demo: true },
   { id: 'demo-sofa', seller: '@mama_neema_home', product: 'Kiti cha sebuleni', price: 220000, location: 'Mwanza', category: 'Nyumba', caption: 'Boresha nyumba yako kwa samani zilizotengenezwa kwa umakini.', emoji: '🪑', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80', likes: 532, demo: true },
   { id: 'demo-laptop', seller: '@jmk_tech', product: 'Laptop kwa kazi na masomo', price: 780000, location: 'Dodoma', category: 'Elektroniki', caption: 'Laptop kwa kazi, biashara na masomo. Wasiliana kwa maelezo.', emoji: '💻', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80', likes: 319, demo: true },
+  { id: 'demo-watch', seller: '@smart_zone_tz', product: 'Smartwatch ya michezo', price: 85000, location: 'Dar es Salaam', category: 'Elektroniki', caption: 'Smartwatch yenye muonekano wa kisasa. Uliza kuhusu dhamana na delivery.', emoji: '⌚', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1000&q=85', likes: 284, demo: true },
+  { id: 'demo-camera', seller: '@pixel_hub', product: 'Kamera kwa content creators', price: 540000, location: 'Dodoma', category: 'Elektroniki', caption: 'Kwa picha na video za biashara yako. Wasiliana kuthibitisha stock.', emoji: '📷', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=85', likes: 192, demo: true },
+  { id: 'demo-chair', seller: '@mwanza_furniture', product: 'Samani za nyumbani', price: 180000, location: 'Mwanza', category: 'Nyumba', caption: 'Samani za nyumba na ofisi. Uliza vipimo na gharama ya usafirishaji.', emoji: '🪑', image: 'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1000&q=85', likes: 177, demo: true },
+  { id: 'demo-bag', seller: '@urban_style_tz', product: 'Mkoba wa kila siku', price: 42000, location: 'Arusha', category: 'Mitindo', caption: 'Muonekano safi kwa matumizi ya kila siku. Uliza rangi zinazopatikana.', emoji: '👜', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1000&q=85', likes: 231, demo: true },
+  { id: 'demo-headphones', seller: '@jmk_tech', product: 'Headphones za wireless', price: 68000, location: 'Dodoma', category: 'Elektroniki', caption: 'Sikiliza muziki na hudhuria mikutano. Hakiki stock kabla ya kulipa.', emoji: '🎧', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=85', likes: 356, demo: true },
+  { id: 'demo-sneakers', seller: '@mariam_fashion', product: 'Sneakers za mitaani', price: 55000, location: 'Arusha', category: 'Mitindo', caption: 'Viatu vya mtindo mbalimbali. Uliza size na rangi zilizopo.', emoji: '👟', image: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1000&q=85', likes: 411, demo: true },
+  { id: 'demo-car', seller: '@motor_hub_tz', product: 'Gari na huduma za magari', price: 18500000, location: 'Dar es Salaam', category: 'Magari', caption: 'Mfano wa tangazo la magari. Hakiki nyaraka na hali ya gari ana kwa ana.', emoji: '🚙', image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=85', likes: 128, demo: true },
+  { id: 'demo-house', seller: '@makazi_tanzania', product: 'Nyumba na vyumba vya kupanga', price: 250000, location: 'Dodoma', category: 'Vyumba vya kupanga', caption: 'Mfano wa tangazo la makazi. Tembelea eneo na thibitisha mwenye nyumba kabla ya malipo.', emoji: '🏠', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=85', likes: 96, demo: true },
+  { id: 'demo-video-one', seller: '@sokora_video_demo', product: 'Video ya bidhaa — onyesho', price: 32000, location: 'Tanzania', category: 'Elektroniki', caption: 'Mfano wa video ya bidhaa. Bei na maelezo ni ya kuonyesha mtiririko wa mfumo tu.', emoji: '🎬', video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1000&q=85', likes: 63, demo: true },
+  { id: 'demo-video-two', seller: '@sokora_demo_shop', product: 'Video ya duka — onyesho', price: 75000, location: 'Tanzania', category: 'Biashara', caption: 'Mfano wa video kwa duka. Maudhui haya si tangazo la muuzaji halisi.', emoji: '🛍️', video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=85', likes: 41, demo: true },
 ];
+
+function openSokoraListingsDB() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) { reject(new Error('IndexedDB haipatikani')); return; }
+    const request = indexedDB.open('sokora-listings-v1', 1);
+    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('listings')) request.result.createObjectStore('listings', { keyPath: 'id' }); };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('Database ya kifaa haikufunguka'));
+  });
+}
 
 const money = (value) => 'TSh ' + Number(value || 0).toLocaleString('en-TZ');
 
@@ -29,6 +49,7 @@ export default function App() {
   const [uploadCaption, setUploadCaption] = useState('');
   const [uploadPrice, setUploadPrice] = useState('');
   const [uploadLocation, setUploadLocation] = useState('Dodoma');
+  const [uploadPhone, setUploadPhone] = useState('');
   const [mobileTab, setMobileTab] = useState('Nyumbani');
   const [authMode, setAuthMode] = useState('login');
   const [authIdentity, setAuthIdentity] = useState('');
@@ -39,6 +60,25 @@ export default function App() {
   const [authPhone, setAuthPhone] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
   const [authUser, setAuthUser] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    openSokoraListingsDB().then((db) => new Promise((resolve) => {
+      const request = db.transaction('listings', 'readonly').objectStore('listings').getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => resolve([]);
+    })).then((items) => {
+      if (!alive || !items.length) return;
+      const restored = items.map(({ mediaBlob, mediaType, ...item }) => ({
+        ...item,
+        image: mediaType.startsWith('image/') ? URL.createObjectURL(mediaBlob) : item.image,
+        video: mediaType.startsWith('video/') ? URL.createObjectURL(mediaBlob) : item.video,
+        local: true,
+      }));
+      setVideos((old) => [...restored, ...old.filter((v) => !restored.some((savedItem) => savedItem.id === v.id))]);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     const token = window.localStorage.getItem('sokora_token');
@@ -195,24 +235,40 @@ export default function App() {
     a.href = current.video; a.download = 'sokora-video'; a.rel = 'noopener'; a.click();
   }
 
+  function contactSeller(video) {
+    const phone = String(video?.sellerPhone || '').replace(/[^0-9]/g, '');
+    if (!phone || phone.length < 9) {
+      notify('Muuzaji hajaweka namba ya WhatsApp. Kagua maelezo ya tangazo kabla ya kuwasiliana.');
+      return;
+    }
+    const message = 'Habari, nimeona tangazo la ' + video.product + ' kwenye SOKORA. Bei: ' + money(video.price) + '. Je, bado linapatikana?';
+    window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(message), '_blank', 'noopener,noreferrer');
+  }
+
   function saveLocalListing() {
     if (!uploadFile || !uploadCaption.trim() || !uploadPrice.trim()) {
       notify('Jaza maelezo, bei na uchague picha/video kwanza.'); return;
     }
     const localUrl = URL.createObjectURL(uploadFile);
     const localItem = {
-      id: 'local-' + Date.now(), seller: '@wewe', product: uploadCaption.trim(),
+      id: 'local-' + Date.now(), seller: authUser?.username ? '@' + authUser.username : '@wewe', sellerPhone: uploadPhone.trim(), product: uploadCaption.trim(),
       price: Number(uploadPrice.replace(/[^0-9]/g, '')) || 0, location: uploadLocation,
       category: 'Biashara', caption: uploadCaption.trim(), emoji: '🛍️',
       image: uploadFile.type.startsWith('image/') ? localUrl : '', video: uploadFile.type.startsWith('video/') ? localUrl : '',
       likes: 0, demo: true, local: true,
     };
+    openSokoraListingsDB().then((db) => new Promise((resolve, reject) => {
+      const tx = db.transaction('listings', 'readwrite');
+      tx.objectStore('listings').put({ ...localItem, mediaBlob: uploadFile, mediaType: uploadFile.type, image: '', video: '' });
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    })).then(() => notify('Tangazo limehifadhiwa kwenye kifaa hiki; bado halionekani kwa watumiaji wengine.'))
+      .catch(() => notify('Tangazo limeongezwa kwa muda, lakini kifaa hakikuruhusu kulihifadhi kabisa.'));
     setVideos((old) => [localItem, ...old]);
     setQuery('');
     setCategory('Zote');
     closeModal();
-    setUploadFile(null); setUploadCaption(''); setUploadPrice('');
-    notify('Tangazo limeongezwa kwenye kivinjari hiki tu; halijapakiwa kwa umma.');
+    setUploadFile(null); setUploadCaption(''); setUploadPrice(''); setUploadPhone('');
   }
 
   return (
@@ -259,7 +315,7 @@ export default function App() {
       {toast && <div className="toast" role="status">{toast}</div>}
       {modal && <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}><section className="modal-card" role="dialog" aria-modal="true">
         <button className="modal-close" onClick={closeModal} aria-label="Funga">×</button>
-        {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2><p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><div className="modal-actions"><button className="gold-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
+        {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2><p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><p className="modal-muted">Usitume malipo kabla ya kuthibitisha bidhaa na muuzaji. Kagua bidhaa na tumia njia salama ya malipo.</p><div className="modal-actions"><button className="gold-btn" onClick={() => contactSeller(current)}>Wasiliana WhatsApp</button><button className="ghost-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
         {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>{authMode === 'register' ? 'Fungua akaunti' : 'Karibu SOKORA'}</h2><p>{authMode === 'register' ? 'Jisajili ili uweze kuanza kuweka biashara na kufuatilia wauzaji.' : 'Ingia kwa username, email au namba ya simu.'}</p><form className="auth-form" onSubmit={submitAuth}>
           {authMode === 'register' ? <><label className="field-label">Jina kamili<input autoComplete="name" value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)} required minLength={2} maxLength={80} /></label><label className="field-label">Username<input autoComplete="username" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} placeholder="mfano_joseph" required minLength={3} maxLength={30} pattern="[A-Za-z0-9_]+" /></label><label className="field-label">Email (si lazima ikiwa una simu)<input type="email" autoComplete="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} /></label><label className="field-label">Namba ya simu (si lazima ikiwa una email)<input type="tel" autoComplete="tel" value={authPhone} onChange={(e) => setAuthPhone(e.target.value)} placeholder="+255..." /></label></> : <label className="field-label">Username, email au simu<input autoComplete="username" value={authIdentity} onChange={(e) => setAuthIdentity(e.target.value)} required /></label>}
           <label className="field-label">Password<input type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required minLength={authMode === 'register' ? 10 : 1} maxLength={128} /></label>
@@ -268,7 +324,7 @@ export default function App() {
         </form><p className="auth-switch">{authMode === 'register' ? 'Tayari una akaunti?' : 'Bado huna akaunti?'} <button type="button" className="text-link" onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}>{authMode === 'register' ? 'Ingia' : 'Jisajili'}</button></p></>}
         {modal === 'live' && <><p className="eyebrow"><span className="live-dot"></span> LIVE</p><h2>Maonyesho ya moja kwa moja</h2><p>LIVE halisi haijaunganishwa bado. Inahitaji huduma ya streaming, akaunti ya muuzaji na udhibiti wa usalama. Hatuonyeshi video ya moja kwa moja ya kubuni.</p><button className="gold-btn" onClick={closeModal}>Sawa</button></>}
         {modal === 'comments' && current && <><p className="eyebrow">MAONI</p><h2>{current.product}</h2><div className="comment-list">{(comments[current.id] || []).map((comment, i) => <p key={i}><b>{comment.name}</b><br />{comment.text}</p>)}{!(comments[current.id] || []).length && <p className="modal-muted">Bado hakuna maoni yaliyowekwa kwenye kivinjari hiki.</p>}</div><textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Andika maoni..." rows="3" /><button className="gold-btn" onClick={() => { if (!commentText.trim()) return; setComments((old) => ({ ...old, [current.id]: [...(old[current.id] || []), { name: 'Wewe (kifaa hiki)', text: commentText.trim() }] })); setCommentText(''); notify('Maoni yameongezwa kwenye kifaa hiki tu.'); }}>Ongeza maoni</button></>}
-        {modal === 'upload' && <><p className="eyebrow">TANGAZO JIPYA</p><h2>Weka bidhaa au video</h2><p>Hili ni tangazo la ndani ya kivinjari kwa sasa. Halitapakiwa kwa umma hadi upload API na storage salama viunganishwe.</p><label className="field-label">Picha au video<input type="file" accept="image/*,video/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} /></label><label className="field-label">Jina/maelezo ya bidhaa<input value={uploadCaption} onChange={(e) => setUploadCaption(e.target.value)} placeholder="Mf. Simu Samsung..." /></label><label className="field-label">Bei kwa TSh<input inputMode="numeric" value={uploadPrice} onChange={(e) => setUploadPrice(e.target.value)} placeholder="25000" /></label><label className="field-label">Eneo<input value={uploadLocation} onChange={(e) => setUploadLocation(e.target.value)} /></label>{uploadFile && <p className="modal-muted">Faili: {uploadFile.name} · {(uploadFile.size / 1048576).toFixed(1)} MB</p>}<div className="modal-actions"><button className="gold-btn" onClick={saveLocalListing}>Ongeza kwenye kifaa hiki</button><button className="ghost-btn" onClick={closeModal}>Ghairi</button></div></>}
+        {modal === 'upload' && <><p className="eyebrow">TANGAZO JIPYA</p><h2>Weka bidhaa au video</h2><p>Hili ni tangazo la ndani ya kivinjari kwa sasa. Halitapakiwa kwa umma hadi upload API na storage salama viunganishwe.</p><label className="field-label">Picha au video<input type="file" accept="image/*,video/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} /></label><label className="field-label">Jina/maelezo ya bidhaa<input value={uploadCaption} onChange={(e) => setUploadCaption(e.target.value)} placeholder="Mf. Simu Samsung..." /></label><label className="field-label">Bei kwa TSh<input inputMode="numeric" value={uploadPrice} onChange={(e) => setUploadPrice(e.target.value)} placeholder="25000" /></label><label className="field-label">Eneo<input value={uploadLocation} onChange={(e) => setUploadLocation(e.target.value)} required /></label><label className="field-label">Namba ya WhatsApp ya biashara (hiari)<input type="tel" value={uploadPhone} onChange={(e) => setUploadPhone(e.target.value)} placeholder="2557XXXXXXXX" /></label>{uploadFile && <p className="modal-muted">Faili: {uploadFile.name} · {(uploadFile.size / 1048576).toFixed(1)} MB</p>}<div className="modal-actions"><button className="gold-btn" onClick={saveLocalListing}>Ongeza kwenye kifaa hiki</button><button className="ghost-btn" onClick={closeModal}>Ghairi</button></div></>}
       </section></div>}
     </div>
   );
