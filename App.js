@@ -121,6 +121,7 @@ export default function App() {
     home: ['Peter: Mnafanya delivery Mwanza?'],
   });
   const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
   const [activeNav, setActiveNav] = useState('Video');
   const [showProfile, setShowProfile] = useState(false);
   const [accountName, setAccountName] = useState('Mtumiaji wa SOKORA');
@@ -226,18 +227,50 @@ export default function App() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const term = searchText.trim();
+    if (term.length < 2 || !API_BASE_URL || feedMode !== 'backend') {
+      setSearchResults(null);
+      return undefined;
+    }
+
+    let active = true;
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          API_BASE_URL + '/api/search?q=' + encodeURIComponent(term) + '&limit=20',
+          { headers: { Accept: 'application/json' } },
+        );
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || ('HTTP ' + response.status));
+        if (active) {
+          const rows = Array.isArray(payload.items) ? payload.items : [];
+          setSearchResults(rows.map(normalizeApiVideo));
+        }
+      } catch {
+        if (active) setSearchResults(null);
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, [searchText, feedMode]);
+
   const visibleVideos = useMemo(() => {
     const term = searchText.trim().toLocaleLowerCase();
+    const sourceVideos = searchResults === null ? feedVideos : searchResults;
     const base = activeTab === 'Inafuatwa'
-      ? feedVideos.filter((video) => following[video.seller])
-      : feedVideos;
+      ? sourceVideos.filter((video) => following[video.seller])
+      : sourceVideos;
     if (!term) return base;
     return base.filter((video) =>
       [video.product, video.seller, video.location, video.caption].some((value) =>
         value.toLocaleLowerCase().includes(term),
       ),
     );
-  }, [activeTab, feedVideos, following, searchText]);
+  }, [activeTab, feedVideos, following, searchResults, searchText]);
 
   const toggleLike = async (id) => {
     const video = feedVideos.find((item) => item.id === id);
