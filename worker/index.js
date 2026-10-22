@@ -16,13 +16,26 @@ function getDatabase(env) {
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
+    },
   });
+}
+
+function validCursor(value) {
+  if (value === null || value === '') return null;
+  if (value.length > 80 || !Number.isFinite(Date.parse(value))) return undefined;
+  return value;
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/') && request.method !== 'GET') {
+      return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
+    }
 
     if (url.pathname === '/api/health') {
       try {
@@ -38,11 +51,13 @@ export default {
     }
 
     if (url.pathname === '/api/feed') {
+      const cursor = validCursor(url.searchParams.get('cursor'));
+      if (cursor === undefined) return json({ error: 'INVALID_CURSOR' }, 400);
+
       try {
         const db = getDatabase(env);
         const parsedLimit = Number.parseInt(url.searchParams.get('limit') || '10', 10);
         const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 30) : 10;
-        const cursor = url.searchParams.get('cursor');
         const rows = await db`
           SELECT
             v.id AS video_id, v.caption, v.video_url, v.thumbnail_url, v.created_at,
@@ -65,6 +80,35 @@ export default {
       } catch (error) {
         console.error('SOKORA feed query failed:', error?.message || 'unknown error');
         return json({ error: 'FEED_UNAVAILABLE' }, 503);
+      }
+    }
+
+    const productMatch = url.pathname.match(/^\/api\/products\/([^/]+)$/);
+    if (productMatch) {
+      const productId = decodeURIComponent(productMatch[1]);
+      if (!productId || productId.length > 80 || /[\u0000-\u001f]/.test(productId)) {
+        return json({ error: 'INVALID_PRODUCT_ID' }, 400);
+      }
+      try {
+        const db = getDatabase(env);
+        const rows = await db`
+          SELECT
+            p.id, p.name, p.description, p.price_tzs, p.currency,
+            p.location, p.created_at,
+            u.id AS seller_id, u.display_name AS seller_name,
+            u.username AS seller_username
+          FROM products p
+          JOIN users u ON u.id = p.seller_id
+          WHERE p.id::text = ${productId}
+            AND p.status = 'ACTIVE'
+            AND u.status = 'ACTIVE'
+          LIMIT 1
+        `;
+        if (!rows.length) return json({ error: 'PRODUCT_NOT_FOUND' }, 404);
+        return json({ product: rows[0] });
+      } catch (error) {
+        console.error('SOKORA product lookup failed:', error?.message || 'unknown error');
+        return json({ error: 'PRODUCT_UNAVAILABLE' }, 503);
       }
     }
 
