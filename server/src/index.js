@@ -166,6 +166,66 @@ app.get('/api/feed', async (req, res) => {
   }
 });
 
+app.get('/api/search', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_NOT_CONFIGURED' });
+
+  const query = String(req.query.q || '').trim().slice(0, 100);
+  const location = String(req.query.location || '').trim().slice(0, 80);
+  const rawLimit = Number.parseInt(String(req.query.limit || '20'), 10);
+  const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 30) : 20;
+
+  if (query.length < 2 && location.length < 2) {
+    return res.status(400).json({
+      error: 'SEARCH_TERM_REQUIRED',
+      message: 'Andika angalau herufi 2 za bidhaa, maelezo au eneo.',
+    });
+  }
+
+  const searchTerm = query ? '%' + query.replace(/[\\%_]/g, '\\app.get('/api/products/:id', async (req, res) => {') + '%' : null;
+  const locationTerm = location ? '%' + location.replace(/[\\%_]/g, '\\app.get('/api/products/:id', async (req, res) => {') + '%' : null;
+
+  try {
+    const result = await pool.query(
+      `SELECT
+         v.id AS video_id,
+         v.caption,
+         v.video_url,
+         v.thumbnail_url,
+         v.created_at,
+         p.id AS product_id,
+         p.name AS product_name,
+         p.price_tzs,
+         p.currency,
+         p.location,
+         u.id AS seller_id,
+         u.display_name AS seller_name,
+         u.username AS seller_username
+       FROM videos v
+       JOIN products p ON p.id = v.product_id
+       JOIN users u ON u.id = v.seller_id
+       WHERE v.status = 'PUBLISHED'
+         AND p.status = 'ACTIVE'
+         AND u.status = 'ACTIVE'
+         AND (
+           $1::text IS NULL
+           OR p.name ILIKE $1 ESCAPE '\\'
+           OR coalesce(p.description, '') ILIKE $1 ESCAPE '\\'
+           OR coalesce(v.caption, '') ILIKE $1 ESCAPE '\\'
+           OR u.username ILIKE $1 ESCAPE '\\'
+           OR u.display_name ILIKE $1 ESCAPE '\\'
+         )
+         AND ($2::text IS NULL OR coalesce(p.location, '') ILIKE $2 ESCAPE '\\')
+       ORDER BY v.created_at DESC, v.id DESC
+       LIMIT $3`,
+      [searchTerm, locationTerm, limit],
+    );
+    return res.json({ items: result.rows, count: result.rowCount });
+  } catch (error) {
+    console.error('GET /api/search failed:', error.message);
+    return res.status(500).json({ error: 'SEARCH_QUERY_FAILED' });
+  }
+});
+
 app.get('/api/products/:id', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_NOT_CONFIGURED' });
   try {
