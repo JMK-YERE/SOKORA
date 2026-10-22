@@ -23,7 +23,7 @@ function decodeBase64Url(value) {
 async function verifySellerToken(request, env) {
   const secret = env.JWT_SECRET;
   const authorization = request.headers.get('authorization') || '';
-  const token = authorization.replace(/^Bearer\\s+/i, '');
+  const token = authorization.replace(/^Bearer\s+/i, '');
   if (!secret || !token) return null;
   const parts = token.split('.');
   if (parts.length !== 3) return null;
@@ -92,7 +92,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const liveStartPath = url.pathname === '/api/live/start' && request.method === 'POST';
-    const liveStopMatch = url.pathname.match(/^\\/api\\/live\\/([^/]+)\\/stop$/);
+    const liveStopMatch = url.pathname.match(/^\/api\/live\/([^/]+)\/stop$/);
     if (url.pathname.startsWith('/api/') && request.method !== 'GET' &&
         !(liveStartPath || (liveStopMatch && request.method === 'POST'))) {
       return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
