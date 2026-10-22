@@ -1,4 +1,5 @@
 import postgres from 'postgres';
+import bcrypt from 'bcryptjs';
 
 let sqlClient;
 let sqlConnectionString;
@@ -13,6 +14,26 @@ function getDatabase(env) {
   return sqlClient;
 }
 
+
+function encodeBase64Url(value) {
+  const bytes = typeof value === 'string' ? new TextEncoder().encode(value) : value;
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+async function signUserToken(user, env) {
+  if (!env.JWT_SECRET) throw new Error('AUTH_NOT_CONFIGURED');
+  const header = encodeBase64Url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const payload = encodeBase64Url(JSON.stringify({
+    sub: String(user.id), username: user.username, role: user.role,
+    iss: 'sokora-api', aud: 'sokora-app',
+    iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 604800,
+  }));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(env.JWT_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(header + '.' + payload));
+  return header + '.' + payload + '.' + encodeBase64Url(new Uint8Array(signature));
+}
 
 function decodeBase64Url(value) {
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
@@ -93,9 +114,92 @@ export default {
     const url = new URL(request.url);
     const liveStartPath = url.pathname === '/api/live/start' && request.method === 'POST';
     const liveStopMatch = url.pathname.match(/^\/api\/live\/([^/]+)\/stop$/);
+    const authWritePath = ['/api/auth/register', '/api/auth/login'].includes(url.pathname) && request.method === 'POST';
     if (url.pathname.startsWith('/api/') && request.method !== 'GET' &&
-        !(liveStartPath || (liveStopMatch && request.method === 'POST'))) {
+        !(liveStartPath || authWritePath || (liveStopMatch && request.method === 'POST'))) {
       return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
+    }
+
+    if (url.pathname === '/api/auth/register' && request.method === 'POST') {
+      if (!env.JWT_SECRET) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      let body;
+      try {
+        const raw = await request.text();
+        if (raw.length > 12000) return json({ error: 'REQUEST_TOO_LARGE' }, 413);
+        body = JSON.parse(raw || '{}');
+      } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const email = String(body.email || '').trim().toLowerCase() || null;
+      const phone = String(body.phone || '').trim() || null;
+      const username = String(body.username || '').trim().toLowerCase().replace(/^@/, '');
+      const displayName = String(body.displayName || '').trim();
+      const password = String(body.password || '');
+      if ((!email && !phone) || !/^[a-z0-9_]{3,30}$/.test(username) || displayName.length < 2 || password.length < 10) {
+        return json({ error: 'INVALID_REGISTRATION', message: 'Weka email au simu, username ya herufi/namba 3–30, jina, na password ya angalau herufi 10.' }, 400);
+      }
+      try {
+        const db = getDatabase(env);
+        const passwordHash = await bcrypt.hash(password, 12);
+        const rows = await db\`
+          INSERT INTO users (email, phone, username, display_name, password_hash)
+          VALUES (\${email}, \${phone}, \${username}, \${displayName}, \${passwordHash})
+          RETURNING id, username, display_name, role
+        \`;
+        const user = rows[0];
+        const token = await signUserToken(user, env);
+        return json({ user, token, tokenType: 'Bearer', expiresIn: 604800 }, 201);
+      } catch (error) {
+        if (error?.code === '23505') return json({ error: 'ACCOUNT_ALREADY_EXISTS' }, 409);
+        console.error('SOKORA registration failed:', error?.message || 'unknown error');
+        return json({ error: 'REGISTRATION_FAILED' }, 500);
+      }
+    }
+
+    if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+      if (!env.JWT_SECRET) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      let body;
+      try {
+        const raw = await request.text();
+        if (raw.length > 12000) return json({ error: 'REQUEST_TOO_LARGE' }, 413);
+        body = JSON.parse(raw || '{}');
+      } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const identity = String(body.identity || '').trim().toLowerCase();
+      const password = String(body.password || '');
+      if (!identity || !password) return json({ error: 'IDENTITY_AND_PASSWORD_REQUIRED' }, 400);
+      try {
+        const db = getDatabase(env);
+        const rows = await db\`
+          SELECT id, username, display_name, role, status, password_hash
+          FROM users
+          WHERE lower(username) = \${identity.replace(/^@/, '')}
+             OR lower(coalesce(email, '')) = \${identity}
+             OR phone = \${identity}
+          LIMIT 1
+        \`;
+        const user = rows[0];
+        if (!user || user.status !== 'ACTIVE' || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
+          return json({ error: 'INVALID_CREDENTIALS' }, 401);
+        }
+        const token = await signUserToken(user, env);
+        return json({ user: { id: user.id, username: user.username, display_name: user.display_name, role: user.role }, token, tokenType: 'Bearer', expiresIn: 604800 });
+      } catch (error) {
+        console.error('SOKORA login failed:', error?.message || 'unknown error');
+        return json({ error: 'LOGIN_FAILED' }, 500);
+      }
+    }
+
+    if (url.pathname === '/api/auth/me' && request.method === 'GET') {
+      const session = await verifySellerToken(request, env);
+      if (!session) return json({ error: 'AUTH_REQUIRED' }, 401);
+      try {
+        const db = getDatabase(env);
+        const rows = await db\`SELECT id, username, display_name, role, status FROM users WHERE id::text = \${session.id} LIMIT 1\`;
+        if (!rows.length || rows[0].status !== 'ACTIVE') return json({ error: 'ACCOUNT_INACTIVE' }, 401);
+        const { status, ...user } = rows[0];
+        return json({ user });
+      } catch (error) {
+        console.error('SOKORA session lookup failed:', error?.message || 'unknown error');
+        return json({ error: 'SESSION_LOOKUP_FAILED' }, 503);
+      }
     }
 
     if (url.pathname === '/api/live') {
