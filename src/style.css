@@ -14,3 +14,12 @@
 .auth-form .gold-btn:disabled{opacity:.65;cursor:wait}
 .auth-switch{font-size:12px;color:#a5b0bf;margin-top:16px}
 .text-link{border:0;background:transparent;color:var(--gold);font:inherit;font-weight:800;padding:4px 6px}
+
+
+/* Media and buyer-to-seller flow improvements */
+.product-media{height:280px;background:#090d13}
+.product-media img,.product-media video{object-fit:contain;background:#090d13}
+.product-card .product-media:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
+@media(max-width:1050px){.product-media{height:250px}}
+@media(max-width:760px){.product-media{height:230px}.product-content{padding:12px}}
+@media(max-width:390px){.product-media{height:190px}}
