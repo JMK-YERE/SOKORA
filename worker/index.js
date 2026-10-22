@@ -83,6 +83,51 @@ export default {
       }
     }
 
+    if (url.pathname === '/api/products') {
+      const rawLimit = Number.parseInt(url.searchParams.get('limit') || '20', 10);
+      const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 50) : 20;
+      const category = (url.searchParams.get('category') || '').trim().slice(0, 80);
+      const query = (url.searchParams.get('q') || '').trim().slice(0, 120);
+      const sort = url.searchParams.get('sort') || 'newest';
+      const orderBy = sort === 'price-asc'
+        ? sqlClient ? 'price_asc' : 'price_asc'
+        : sort === 'price-desc' ? 'price_desc' : 'newest';
+
+      try {
+        const db = getDatabase(env);
+        const rows = await db`
+          SELECT
+            p.id, p.name, p.description, p.price_tzs, p.currency,
+            p.category, p.location, p.created_at,
+            u.id AS seller_id, u.display_name AS seller_name,
+            u.username AS seller_username
+          FROM products p
+          JOIN users u ON u.id = p.seller_id
+          WHERE p.status = 'ACTIVE'
+            AND u.status = 'ACTIVE'
+            AND (${category} = '' OR p.category ILIKE ${'%' + category + '%'})
+            AND (
+              ${query} = ''
+              OR p.name ILIKE ${'%' + query + '%'}
+              OR COALESCE(p.description, '') ILIKE ${'%' + query + '%'}
+              OR COALESCE(p.location, '') ILIKE ${'%' + query + '%'}
+              OR COALESCE(p.category, '') ILIKE ${'%' + query + '%'}
+              OR u.username ILIKE ${'%' + query + '%'}
+              OR u.display_name ILIKE ${'%' + query + '%'}
+            )
+          ORDER BY
+            CASE WHEN ${orderBy} = 'price_asc' THEN p.price_tzs END ASC,
+            CASE WHEN ${orderBy} = 'price_desc' THEN p.price_tzs END DESC,
+            p.created_at DESC, p.id DESC
+          LIMIT ${limit}
+        `;
+        return json({ items: rows, count: rows.length, limit });
+      } catch (error) {
+        console.error('SOKORA products list failed:', error?.message || 'unknown error');
+        return json({ error: 'PRODUCTS_UNAVAILABLE' }, 503);
+      }
+    }
+
     const productMatch = url.pathname.match(/^\/api\/products\/([^/]+)$/);
     if (productMatch) {
       let productId;
