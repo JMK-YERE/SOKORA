@@ -181,8 +181,8 @@ app.get('/api/search', async (req, res) => {
     });
   }
 
-  const searchTerm = query ? '%' + query.replace(/[\\%_]/g, '\\app.get('/api/products/:id', async (req, res) => {') + '%' : null;
-  const locationTerm = location ? '%' + location.replace(/[\\%_]/g, '\\app.get('/api/products/:id', async (req, res) => {') + '%' : null;
+  const searchTerm = query ? '%' + query + '%' : null;
+  const locationTerm = location ? '%' + location + '%' : null;
 
   try {
     const result = await pool.query(
