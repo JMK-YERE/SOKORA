@@ -107,7 +107,7 @@ export default function App() {
   const onViewableItemsChanged = useMemo(() => ({ viewableItems }) => {
     if (viewableItems && viewableItems.length) setActiveVideoId(viewableItems[0].item.id);
   }, []);
-  const FEED_HEIGHT = feedViewportHeight > 0 ? feedViewportHeight : Math.max(280, windowHeight - (Platform.OS === 'web' ? 220 : 86));
+  const FEED_HEIGHT = feedViewportHeight > 0 ? feedViewportHeight : Math.max(280, windowHeight - (Platform.OS === 'web' ? 84 : 66));
   const [activeTab, setActiveTab] = useState('Kwa ajili yako');
   const [liked, setLiked] = useState({});
   const [following, setFollowing] = useState({});
@@ -533,7 +533,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, minHeight: 0, backgroundColor: '#070B13', ...(Platform.OS === 'web' ? { width: '100%', maxWidth: 560, height: '100vh', alignSelf: 'center', overflow: 'hidden', borderLeftWidth: 0, borderRightWidth: 0, borderColor: 'transparent' } : {}) },
-  header: { backgroundColor: Platform.OS === 'web' ? '#0A101D' : '#070B13E8', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 24 : 8, paddingBottom: 8, borderWidth: 0, elevation: 0, ...(Platform.OS !== 'web' ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 } : {}) },
+  header: { backgroundColor: '#070B13C9', paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 14 : 8, paddingBottom: 10, borderWidth: 0, elevation: 0, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 },
   headerBrandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 42, gap: 10 },
   brand: { color: '#FFFFFF', fontSize: Platform.OS === 'web' ? 23 : 22, fontWeight: '900', letterSpacing: 1.5 },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: Platform.OS === 'web' ? 12 : 7, flexShrink: 1 },
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, color: '#FFFFFF', paddingVertical: 7, fontSize: 14 },
   clearSearch: { color: '#FFFFFF', fontSize: 15, paddingHorizontal: 4 },
 
-  liveSection: { backgroundColor: '#102A43', borderBottomWidth: 1, borderBottomColor: '#24445D' },
+  liveSection: { display: 'none', backgroundColor: '#070B13', borderBottomWidth: 1, borderBottomColor: '#24445D' },
   liveList: { paddingHorizontal: 13, paddingVertical: 10, gap: 15 },
   liveCreator: { width: 70, alignItems: 'center' },
   liveAvatarWrap: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#18A999', alignItems: 'center', justifyContent: 'center', backgroundColor: '#24445D', marginBottom: 5 },
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
   liveDot: { position: 'absolute', right: -2, bottom: -1, width: 12, height: 12, borderRadius: 6, backgroundColor: '#18A999', borderWidth: 2, borderColor: '#102A43' },
   liveName: { color: '#F7F4EA', fontSize: 9, fontWeight: '700', maxWidth: 70 },
   liveViewers: { color: '#7DDED3', fontSize: 8, marginTop: 3 },
-  feedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 9 },
+  feedHeader: { display: 'none', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 9 },
   feedHeaderTitle: { color: '#F7F4EA', fontSize: 13, fontWeight: '800' },
   feedStatusText: { color: '#C3D2DA', fontSize: 10, marginTop: 4, maxWidth: 230 },
   uploadButton: { backgroundColor: '#24445D', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
@@ -577,22 +577,22 @@ const styles = StyleSheet.create({
   nativeVideo: { width: '100%', height: '100%', backgroundColor: '#070B13' },
   productEmoji: { fontSize: 105, textShadowColor: '#0006', textShadowOffset: { width: 0, height: 12 }, textShadowRadius: 18 },
   productArtCaption: { color: '#FFFFFF88', fontSize: 9, fontWeight: '900', letterSpacing: 2, marginTop: 18 },
-  videoTopLine: { position: 'absolute', top: 12, left: 12, right: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  videoTopLine: { position: 'absolute', top: Platform.OS === 'web' ? 112 : 100, left: 14, right: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   demoBadge: { backgroundColor: '#0006', borderRadius: 5, paddingHorizontal: 7, paddingVertical: 5 },
   demoBadgeText: { color: '#FFFFFF', fontSize: 8, fontWeight: '900' },
   videoLocation: { color: '#FFFFFF', fontSize: 10, fontWeight: '700', textShadowColor: '#0008', textShadowRadius: 5 },
-  videoBottom: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 14, paddingTop: 34, paddingBottom: Platform.OS === 'web' ? 16 : 20, gap: 8, backgroundColor: 'transparent' },
+  videoBottom: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 14, paddingTop: 34, paddingBottom: Platform.OS === 'web' ? 20 : 24, gap: 6, backgroundColor: 'transparent' },
   videoDescription: { flex: 1, paddingBottom: 2 },
   sellerLine: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 8 },
-  sellerName: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
+  sellerName: { color: '#FFFFFF', fontSize: 14, fontWeight: '900' },
   followButton: { backgroundColor: '#E53945', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 9, minHeight: 38, justifyContent: 'center' },
   followingButton: { backgroundColor: '#344B5E' },
   followButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
-  videoCaption: { color: '#FFFFFF', fontSize: 11, lineHeight: 16, marginBottom: 10, textShadowColor: '#0008', textShadowRadius: 3 },
-  productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 9, paddingHorizontal: 16, paddingVertical: 12, minHeight: 44, justifyContent: 'center', borderWidth: 0 },
+  videoCaption: { color: '#FFFFFF', fontSize: 12, lineHeight: 18, marginBottom: 11, textShadowColor: '#000B', textShadowRadius: 5 },
+  productPrice: { alignSelf: 'flex-start', backgroundColor: '#F5C451', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 13, minHeight: 46, justifyContent: 'center', borderWidth: 0, shadowColor: '#000000', shadowOpacity: 0.25, shadowRadius: 8, elevation: 4 },
   productPriceText: { color: '#102A43', fontSize: 12, fontWeight: '900' },
-  actionsRail: { alignItems: 'center', gap: Platform.OS === 'web' ? 10 : 7, width: 56, paddingBottom: 4 },
-  actionButton: { alignItems: 'center', justifyContent: 'center', width: 50, minHeight: 51, paddingHorizontal: 2, paddingTop: 4, paddingBottom: 4, borderRadius: 16, backgroundColor: '#07111FCC', borderWidth: 1, borderColor: '#FFFFFF24' },
+  actionsRail: { alignItems: 'center', gap: Platform.OS === 'web' ? 9 : 7, width: 54, paddingBottom: 4 },
+  actionButton: { alignItems: 'center', justifyContent: 'center', width: 48, minHeight: 50, paddingHorizontal: 2, paddingTop: 4, paddingBottom: 4, borderRadius: 16, backgroundColor: '#07111FAD', borderWidth: 1, borderColor: '#FFFFFF24' },
   actionIcon: { color: '#FFFFFF', fontSize: 26, fontWeight: '800' },
   actionIconActive: { color: '#18A999' },
   actionLabel: { color: '#FFFFFF', fontSize: 9, fontWeight: '900', marginTop: 3, textAlign: 'center', maxWidth: 58 },
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 38, marginBottom: 12 },
   emptyTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', textAlign: 'center' },
   emptyText: { color: '#C3D2DA', fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 8 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#080D17', borderTopWidth: 1, borderTopColor: '#273447', paddingHorizontal: 4, paddingTop: 3, paddingBottom: Platform.OS === 'web' ? 10 : 3, minHeight: Platform.OS === 'web' ? 84 : 66, flexShrink: 0, zIndex: 25, elevation: 12 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#070B13', borderTopWidth: 1, borderTopColor: '#273447', paddingHorizontal: 4, paddingTop: 3, paddingBottom: Platform.OS === 'web' ? 10 : 3, minHeight: Platform.OS === 'web' ? 76 : 66, flexShrink: 0, zIndex: 25, elevation: 12 },
   navItem: { alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 48, minHeight: 56, paddingHorizontal: 2, paddingVertical: 3, borderRadius: 14, gap: 1, backgroundColor: 'transparent' },
   navIcon: { color: '#A9BECC', fontSize: 25, fontWeight: '900', lineHeight: 30 },
   navIconActive: { color: '#65D6C8', fontSize: 27 },
