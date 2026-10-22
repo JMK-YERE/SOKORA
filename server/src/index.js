@@ -208,13 +208,13 @@ app.get('/api/search', async (req, res) => {
          AND u.status = 'ACTIVE'
          AND (
            $1::text IS NULL
-           OR p.name ILIKE $1 ESCAPE '\\'
-           OR coalesce(p.description, '') ILIKE $1 ESCAPE '\\'
-           OR coalesce(v.caption, '') ILIKE $1 ESCAPE '\\'
-           OR u.username ILIKE $1 ESCAPE '\\'
-           OR u.display_name ILIKE $1 ESCAPE '\\'
+           OR p.name ILIKE $1
+           OR coalesce(p.description, '') ILIKE $1
+           OR coalesce(v.caption, '') ILIKE $1
+           OR u.username ILIKE $1
+           OR u.display_name ILIKE $1
          )
-         AND ($2::text IS NULL OR coalesce(p.location, '') ILIKE $2 ESCAPE '\\')
+         AND ($2::text IS NULL OR coalesce(p.location, '') ILIKE $2)
        ORDER BY v.created_at DESC, v.id DESC
        LIMIT $3`,
       [searchTerm, locationTerm, limit],
