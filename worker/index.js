@@ -85,7 +85,12 @@ export default {
 
     const productMatch = url.pathname.match(/^\/api\/products\/([^/]+)$/);
     if (productMatch) {
-      const productId = decodeURIComponent(productMatch[1]);
+      let productId;
+      try {
+        productId = decodeURIComponent(productMatch[1]);
+      } catch {
+        return json({ error: 'INVALID_PRODUCT_ID' }, 400);
+      }
       if (!productId || productId.length > 80 || /[\u0000-\u001f]/.test(productId)) {
         return json({ error: 'INVALID_PRODUCT_ID' }, 400);
       }
