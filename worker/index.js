@@ -61,8 +61,10 @@ export default {
         const rows = await db`
           SELECT
             v.id AS video_id, v.caption, v.video_url, v.thumbnail_url, v.created_at,
-            p.id AS product_id, p.name AS product_name, p.price_tzs, p.currency, p.location,
-            u.id AS seller_id, u.display_name AS seller_name, u.username AS seller_username
+            p.id AS product_id, p.name AS product_name, p.price_tzs, p.currency,
+            p.location, p.category,
+            u.id AS seller_id, u.display_name AS seller_name, u.username AS seller_username,
+            (SELECT COUNT(*)::int FROM video_likes vl WHERE vl.video_id = v.id) AS likes_count
           FROM videos v
           JOIN products p ON p.id = v.product_id
           JOIN users u ON u.id = v.seller_id
@@ -83,7 +85,7 @@ export default {
       }
     }
 
-    const productMatch = url.pathname.match(/^\/api\/products\/([^/]+)$/);
+    const productMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)$/);
     if (productMatch) {
       let productId;
       try {
@@ -91,7 +93,7 @@ export default {
       } catch {
         return json({ error: 'INVALID_PRODUCT_ID' }, 400);
       }
-      if (!productId || productId.length > 80 || /[\u0000-\u001f]/.test(productId)) {
+      if (!productId || productId.length > 80 || /[\\u0000-\\u001f]/.test(productId)) {
         return json({ error: 'INVALID_PRODUCT_ID' }, 400);
       }
       try {
