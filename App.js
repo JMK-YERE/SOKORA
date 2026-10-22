@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import NativeProductVideo from './NativeProductVideo';
 import {
   Alert,
   Platform,
@@ -298,11 +297,6 @@ export default function App() {
             <Text style={styles.demoVideoProduct}>{item.emoji}  {item.product}</Text>
             {item.isDemo && <Text style={styles.demoVideoHint}>Video ya mfano · si tangazo halisi</Text>}
           </View>
-        </View>
-      ) : Platform.OS !== 'web' && item.videoUrl ? (
-        <View style={styles.demoVideoStage}>
-          <NativeProductVideo uri={item.videoUrl} active={item.id === (activeVideoId || visibleVideos[0]?.id)} product={item.product} />
-          {item.isDemo && <View style={styles.demoVideoOverlay}><Text style={styles.demoVideoTag}>VIDEO YA MFANO</Text></View>}
         </View>
       ) : (
         <View style={styles.productArt}>
