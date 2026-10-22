@@ -10,5 +10,11 @@
   "main": "worker/index.js",
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "dbf6707e8039445788efcf7bef29d643"
+    }
   ]
 }
