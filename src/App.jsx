@@ -19,6 +19,21 @@ const seedVideos = [
   { id: 'demo-video-two', seller: '@sokora_demo_shop', product: 'Video ya duka — onyesho', price: 75000, location: 'Tanzania', category: 'Biashara', caption: 'Mfano wa video kwa duka. Maudhui haya si tangazo la muuzaji halisi.', emoji: '🛍️', video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=85', likes: 41, demo: true },
 ];
 
+function useLocalStorageState(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem(key);
+      return stored === null ? initialValue : JSON.parse(stored);
+    } catch {
+      return initialValue;
+    }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage may be unavailable */ }
+  }, [key, value]);
+  return [value, setValue];
+}
+
 function openSokoraListingsDB() {
   return new Promise((resolve, reject) => {
     if (!('indexedDB' in window)) { reject(new Error('IndexedDB haipatikani')); return; }
@@ -37,13 +52,13 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Zote');
   const [sortBy, setSortBy] = useState('recommended');
-  const [liked, setLiked] = useState({});
-  const [saved, setSaved] = useState({});
-  const [following, setFollowing] = useState({});
+  const [liked, setLiked] = useLocalStorageState('sokora_liked_v1', {});
+  const [saved, setSaved] = useLocalStorageState('sokora_saved_v1', {});
+  const [following, setFollowing] = useLocalStorageState('sokora_following_v1', {});
   const [modal, setModal] = useState('');
   const [toast, setToast] = useState('');
   const [selected, setSelected] = useState(null);
-  const [comments, setComments] = useState({});
+  const [comments, setComments] = useLocalStorageState('sokora_comments_v1', {});
   const [commentText, setCommentText] = useState('');
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadCaption, setUploadCaption] = useState('');
