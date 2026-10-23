@@ -1,346 +1,124 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-const API = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
-const categories = ['Zote', 'Elektroniki', 'Mitindo', 'Nyumba', 'Magari', 'Huduma', 'Vyumba vya kupanga', 'Biashara'];
-const seedVideos = [
-  { id: 'demo-phone', seller: '@jiji_gadgets_tz', product: 'Simu janja ya kisasa', price: 450000, location: 'Dar es Salaam', category: 'Elektroniki', caption: 'Simu za kisasa kwa bei rafiki 🇹🇿 Uliza kuhusu stock na delivery.', emoji: '📱', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80', likes: 1200, demo: true },
-  { id: 'demo-shoes', seller: '@mariam_fashion', product: 'Viatu vya mtindo', price: 65000, location: 'Arusha', category: 'Mitindo', caption: 'Mitindo mipya imefika. Uliza kuhusu rangi na size zinazopatikana.', emoji: '👟', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80', likes: 846, demo: true },
-  { id: 'demo-sofa', seller: '@mama_neema_home', product: 'Kiti cha sebuleni', price: 220000, location: 'Mwanza', category: 'Nyumba', caption: 'Boresha nyumba yako kwa samani zilizotengenezwa kwa umakini.', emoji: '🪑', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80', likes: 532, demo: true },
-  { id: 'demo-laptop', seller: '@jmk_tech', product: 'Laptop kwa kazi na masomo', price: 780000, location: 'Dodoma', category: 'Elektroniki', caption: 'Laptop kwa kazi, biashara na masomo. Wasiliana kwa maelezo.', emoji: '💻', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80', likes: 319, demo: true },
-  { id: 'demo-watch', seller: '@smart_zone_tz', product: 'Smartwatch ya michezo', price: 85000, location: 'Dar es Salaam', category: 'Elektroniki', caption: 'Smartwatch yenye muonekano wa kisasa. Uliza kuhusu dhamana na delivery.', emoji: '⌚', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1000&q=85', likes: 284, demo: true },
-  { id: 'demo-camera', seller: '@pixel_hub', product: 'Kamera kwa content creators', price: 540000, location: 'Dodoma', category: 'Elektroniki', caption: 'Kwa picha na video za biashara yako. Wasiliana kuthibitisha stock.', emoji: '📷', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=85', likes: 192, demo: true },
-  { id: 'demo-chair', seller: '@mwanza_furniture', product: 'Samani za nyumbani', price: 180000, location: 'Mwanza', category: 'Nyumba', caption: 'Samani za nyumba na ofisi. Uliza vipimo na gharama ya usafirishaji.', emoji: '🪑', image: 'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1000&q=85', likes: 177, demo: true },
-  { id: 'demo-bag', seller: '@urban_style_tz', product: 'Mkoba wa kila siku', price: 42000, location: 'Arusha', category: 'Mitindo', caption: 'Muonekano safi kwa matumizi ya kila siku. Uliza rangi zinazopatikana.', emoji: '👜', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1000&q=85', likes: 231, demo: true },
-  { id: 'demo-headphones', seller: '@jmk_tech', product: 'Headphones za wireless', price: 68000, location: 'Dodoma', category: 'Elektroniki', caption: 'Sikiliza muziki na hudhuria mikutano. Hakiki stock kabla ya kulipa.', emoji: '🎧', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=85', likes: 356, demo: true },
-  { id: 'demo-sneakers', seller: '@mariam_fashion', product: 'Sneakers za mitaani', price: 55000, location: 'Arusha', category: 'Mitindo', caption: 'Viatu vya mtindo mbalimbali. Uliza size na rangi zilizopo.', emoji: '👟', image: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1000&q=85', likes: 411, demo: true },
-  { id: 'demo-car', seller: '@motor_hub_tz', product: 'Gari na huduma za magari', price: 18500000, location: 'Dar es Salaam', category: 'Magari', caption: 'Mfano wa tangazo la magari. Hakiki nyaraka na hali ya gari ana kwa ana.', emoji: '🚙', image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=85', likes: 128, demo: true },
-  { id: 'demo-house', seller: '@makazi_tanzania', product: 'Nyumba na vyumba vya kupanga', price: 250000, location: 'Dodoma', category: 'Vyumba vya kupanga', caption: 'Mfano wa tangazo la makazi. Tembelea eneo na thibitisha mwenye nyumba kabla ya malipo.', emoji: '🏠', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=85', likes: 96, demo: true },
-  { id: 'demo-video-one', seller: '@sokora_video_demo', product: 'Video ya bidhaa — onyesho', price: 32000, location: 'Tanzania', category: 'Elektroniki', caption: 'Mfano wa video ya bidhaa. Bei na maelezo ni ya kuonyesha mtiririko wa mfumo tu.', emoji: '🎬', video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1000&q=85', likes: 63, demo: true },
-  { id: 'demo-video-two', seller: '@sokora_demo_shop', product: 'Video ya duka — onyesho', price: 75000, location: 'Tanzania', category: 'Biashara', caption: 'Mfano wa video kwa duka. Maudhui haya si tangazo la muuzaji halisi.', emoji: '🛍️', video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=85', likes: 41, demo: true },
+const roles = [
+  { id: 'admin', label: 'System Administrator', short: 'System Admin' },
+  { id: 'school', label: 'School Administrator / Headteacher', short: 'School Admin' },
+  { id: 'teacher', label: 'Teacher', short: 'Teacher' },
+  { id: 'student', label: 'Student', short: 'Student' },
+  { id: 'parent', label: 'Parent / Guardian', short: 'Parent' },
+  { id: 'accountant', label: 'Accountant', short: 'Accountant' },
+  { id: 'transport', label: 'Transport Manager', short: 'Transport' },
+  { id: 'boarding', label: 'Boarding Manager', short: 'Boarding' },
 ];
 
-function useLocalStorageState(key, initialValue) {
-  const [value, setValue] = useState(() => {
-    try {
-      const stored = window.localStorage.getItem(key);
-      return stored === null ? initialValue : JSON.parse(stored);
-    } catch {
-      return initialValue;
-    }
-  });
-  useEffect(() => {
-    try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage may be unavailable */ }
-  }, [key, value]);
-  return [value, setValue];
-}
+const navItems = [
+  { id: 'overview', label: 'Dashboard', icon: '▦', roles: ['admin', 'school', 'teacher', 'student', 'parent', 'accountant', 'transport', 'boarding'] },
+  { id: 'students', label: 'Students', icon: '♙', roles: ['admin', 'school', 'teacher'] },
+  { id: 'academics', label: 'Academics & Results', icon: '▤', roles: ['admin', 'school', 'teacher', 'student', 'parent'] },
+  { id: 'attendance', label: 'Attendance', icon: '◷', roles: ['admin', 'school', 'teacher', 'student', 'parent'] },
+  { id: 'teachers', label: 'Teachers & Classes', icon: '♧', roles: ['admin', 'school', 'teacher'] },
+  { id: 'fees', label: 'Fees & Finance', icon: 'TSh', roles: ['admin', 'school', 'accountant', 'parent'] },
+  { id: 'transport', label: 'Transport & Routes', icon: '▰', roles: ['admin', 'school', 'transport', 'parent'] },
+  { id: 'boarding', label: 'Boarding & Hostels', icon: '⌂', roles: ['admin', 'school', 'boarding', 'parent'] },
+  { id: 'announcements', label: 'Announcements', icon: '◉', roles: ['admin', 'school', 'teacher', 'student', 'parent'] },
+  { id: 'reports', label: 'Reports', icon: '▥', roles: ['admin', 'school', 'teacher', 'accountant', 'transport', 'boarding'] },
+  { id: 'settings', label: 'Settings', icon: '⚙', roles: ['admin', 'school'] },
+];
 
-function openSokoraListingsDB() {
-  return new Promise((resolve, reject) => {
-    if (!('indexedDB' in window)) { reject(new Error('IndexedDB haipatikani')); return; }
-    const request = indexedDB.open('sokora-listings-v1', 1);
-    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('listings')) request.result.createObjectStore('listings', { keyPath: 'id' }); };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error('Database ya kifaa haikufunguka'));
-  });
-}
+const sampleStudents = [
+  { id: 'ES-2026-001', name: 'Amina Juma', level: 'Standard 7', gender: 'Female', attendance: 'Present', average: '82%' },
+  { id: 'ES-2026-002', name: 'Baraka Peter', level: 'Form 2', gender: 'Male', attendance: 'Present', average: '76%' },
+  { id: 'ES-2026-003', name: 'Neema Joseph', level: 'Form 4', gender: 'Female', attendance: 'Absent', average: '89%' },
+  { id: 'ES-2026-004', name: 'Daniel Michael', level: 'Standard 5', gender: 'Male', attendance: 'Present', average: '71%' },
+];
 
-const money = (value) => 'TSh ' + Number(value || 0).toLocaleString('en-TZ');
+const moduleDetails = {
+  students: { title: 'Student Records', subtitle: 'Manage admissions, student profiles, guardians and class placement.', action: 'Register student', stats: [['Registered students', '—'], ['New admissions', '—'], ['Transfers pending', '—']], note: 'Student records will appear here after the school database and authentication are connected.' },
+  academics: { title: 'Academics & Results', subtitle: 'Set up classes, subjects, examinations, grading and report cards.', action: 'Create examination', stats: [['Active classes', '—'], ['Examinations', '—'], ['Reports ready', '—']], note: 'Marks, grading rules and report cards must be connected to the real academic database.' },
+  attendance: { title: 'Attendance Management', subtitle: 'Record daily attendance and follow up student absences.', action: 'Record attendance', stats: [['Today present', '—'], ['Absent today', '—'], ['Awaiting review', '—']], note: 'Live attendance is not connected yet. No attendance records have been saved.' },
+  teachers: { title: 'Teachers & Classes', subtitle: 'Manage staff profiles, subjects, streams and class assignments.', action: 'Add teacher', stats: [['Teachers', '—'], ['Classes', '—'], ['Subjects', '—']], note: 'Teacher and class information will load after backend integration.' },
+  fees: { title: 'Fees & Finance', subtitle: 'Track fee structures, invoices, receipts and outstanding balances.', action: 'Create fee invoice', stats: [['Collected this term', '—'], ['Outstanding', '—'], ['Receipts issued', '—']], note: 'No payments are processed or recorded in this preview. Connect and test a payment workflow before use.' },
+  transport: { title: 'Transport & Routes', subtitle: 'Organise buses, drivers, stops, pickup schedules and assigned students.', action: 'Add bus route', stats: [['Registered buses', '—'], ['Active routes', '—'], ['Students assigned', '—']], note: 'Bus routes are not live. GPS tracking is a future optional integration.' },
+  boarding: { title: 'Boarding & Hostels', subtitle: 'Manage dormitories, room capacity, bed allocation and boarding records.', action: 'Add dormitory', stats: [['Dormitories', '—'], ['Occupied beds', '—'], ['Available beds', '—']], note: 'Enable this module only for schools with boarding. External hostels remain a separate optional module.' },
+  announcements: { title: 'Announcements', subtitle: 'Share school notices, calendars, events and important updates.', action: 'Create announcement', stats: [['Published notices', '—'], ['Scheduled', '—'], ['SMS status', 'Not connected']], note: 'SMS sending is not enabled. Connect an SMS provider and test delivery before announcing that alerts are operational.' },
+  reports: { title: 'Reports & Analytics', subtitle: 'Review academic, attendance, finance and school operations reports.', action: 'Prepare report', stats: [['Academic reports', '—'], ['Finance reports', '—'], ['Exports', 'PDF / Excel ready to connect']], note: 'Reports will use verified school data after backend and database integration.' },
+  settings: { title: 'School Settings', subtitle: 'Configure school profile, academic years, grading rules and permissions.', action: 'Edit school profile', stats: [['School profile', 'Not configured'], ['Academic year', 'Not configured'], ['Data protection', 'Setup required']], note: 'Configure roles, school boundaries and access controls before adding real student information.' },
+};
+
+function Icon({ children }) { return <span className="ui-icon" aria-hidden="true">{children}</span>; }
 
 export default function App() {
-  const [videos, setVideos] = useState([]);
-  const [mode, setMode] = useState('loading');
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('Zote');
-  const [sortBy, setSortBy] = useState('recommended');
-  const [liked, setLiked] = useLocalStorageState('sokora_liked_v1', {});
-  const [saved, setSaved] = useLocalStorageState('sokora_saved_v1', {});
-  const [following, setFollowing] = useLocalStorageState('sokora_following_v1', {});
+  const [view, setView] = useState('home');
+  const [activeNav, setActiveNav] = useState('overview');
+  const [role, setRole] = useState('school');
+  const [search, setSearch] = useState('');
   const [modal, setModal] = useState('');
   const [toast, setToast] = useState('');
-  const [selected, setSelected] = useState(null);
-  const [comments, setComments] = useLocalStorageState('sokora_comments_v1', {});
-  const [commentText, setCommentText] = useState('');
-  const [uploadFile, setUploadFile] = useState(null);
-  const [uploadCaption, setUploadCaption] = useState('');
-  const [uploadPrice, setUploadPrice] = useState('');
-  const [uploadLocation, setUploadLocation] = useState('Dodoma');
-  const [uploadPhone, setUploadPhone] = useState('');
-  const [mobileTab, setMobileTab] = useState('Nyumbani');
-  const [authMode, setAuthMode] = useState('login');
-  const [authIdentity, setAuthIdentity] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authUsername, setAuthUsername] = useState('');
-  const [authDisplayName, setAuthDisplayName] = useState('');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPhone, setAuthPhone] = useState('');
-  const [authBusy, setAuthBusy] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
+  const [mobileMenu, setMobileMenu] = useState(false);
 
-  useEffect(() => {
-    let alive = true;
-    openSokoraListingsDB().then((db) => new Promise((resolve) => {
-      const request = db.transaction('listings', 'readonly').objectStore('listings').getAll();
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => resolve([]);
-    })).then((items) => {
-      if (!alive || !items.length) return;
-      const restored = items.map(({ mediaBlob, mediaType, ...item }) => ({
-        ...item,
-        image: mediaType.startsWith('image/') ? URL.createObjectURL(mediaBlob) : item.image,
-        video: mediaType.startsWith('video/') ? URL.createObjectURL(mediaBlob) : item.video,
-        local: true,
-      }));
-      setVideos((old) => [...restored, ...old.filter((v) => !restored.some((savedItem) => savedItem.id === v.id))]);
-    }).catch(() => {});
-    return () => { alive = false; };
-  }, []);
+  const roleInfo = roles.find((item) => item.id === role) || roles[1];
+  const visibleNav = navItems.filter((item) => item.roles.includes(role));
+  const filteredStudents = useMemo(() => sampleStudents.filter((student) => [student.id, student.name, student.level].join(' ').toLowerCase().includes(search.toLowerCase())), [search]);
 
-  useEffect(() => {
-    const token = window.localStorage.getItem('sokora_token');
-    if (!token) return;
-    fetch((API || '') + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' } })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Session expired')))
-      .then((data) => setAuthUser(data.user || null))
-      .catch(() => window.localStorage.removeItem('sokora_token'));
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-    const loadJson = async (path) => {
-      const response = await fetch((API || '') + path, { headers: { Accept: 'application/json' } });
-      if (!response.ok) throw new Error(path + ' unavailable');
-      return response.json();
-    };
-    Promise.all([
-      loadJson('/api/feed?limit=30').catch(() => ({ items: [] })),
-      loadJson('/api/products?limit=30').catch(() => ({ items: [] })),
-    ]).then(([feedData, productData]) => {
-      if (!alive) return;
-      const feedRows = Array.isArray(feedData) ? feedData : (Array.isArray(feedData.items) ? feedData.items : []);
-      const productRows = Array.isArray(productData) ? productData : (Array.isArray(productData.items) ? productData.items : []);
-      const normalizeProduct = (row, i, isVideo) => ({
-        id: String(isVideo ? (row.video_id ?? row.id ?? 'video-' + i) : (row.id ?? row.product_id ?? 'product-' + i)),
-        seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || '@sokora_seller'),
-        product: row.product_name || row.name || 'Bidhaa ya SOKORA',
-        price: Number(row.price_tzs || 0),
-        location: row.location || 'Tanzania',
-        category: row.category || 'Biashara',
-        caption: row.caption || row.description || '',
-        emoji: '🛍️',
-        image: row.thumbnail_url || row.product_image_url || row.image_url || '',
-        video: row.video_url || '',
-        likes: Number(row.likes_count || 0),
-        demo: false,
-      });
-      const normalizedVideos = feedRows.map((row, i) => normalizeProduct(row, i, true));
-      const normalizedProducts = productRows.map((row, i) => normalizeProduct(row, i, false));
-      const normalized = normalizedVideos.length ? normalizedVideos : normalizedProducts;
-      if (normalized.length) {
-        setVideos(normalized);
-        setMode(normalizedVideos.length ? 'video-api' : 'api');
-      } else {
-        setVideos([]);
-        setMode('empty-api');
-      }
-    }).catch(() => {
-      if (alive) { setVideos([]); setMode('api-error'); }
-    });
-    return () => { alive = false; };
-  }, []);
-
-  useEffect(() => {
-    if (!toast) return undefined;
-    const id = window.setTimeout(() => setToast(''), 2800);
-    return () => window.clearTimeout(id);
-  }, [toast]);
-
-  const filtered = useMemo(() => {
-    const results = videos.filter((v) => {
-      const matchesCategory = category === 'Zote' || v.category.toLocaleLowerCase('sw').includes(category.toLocaleLowerCase('sw'));
-      const haystack = [v.product, v.seller, v.location, v.caption, v.category].join(' ').toLocaleLowerCase('sw');
-      return matchesCategory && haystack.includes(query.trim().toLocaleLowerCase('sw'));
-    });
-    if (sortBy === 'price-low') return [...results].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-    if (sortBy === 'price-high') return [...results].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-    return results;
-  }, [videos, category, query, sortBy]);
-
-  const closeModal = () => { setModal(''); setSelected(null); setCommentText(''); setAuthPassword(''); };
-  const notify = (message) => setToast(message);
-  const askDemo = (feature) => { setModal(feature); };
-  async function submitAuth(event) {
-    event?.preventDefault();
-    if (authBusy) return;
-    setAuthBusy(true);
-    try {
-      const registering = authMode === 'register';
-      const payload = registering
-        ? { email: authEmail.trim(), phone: authPhone.trim(), username: authUsername.trim(), displayName: authDisplayName.trim(), password: authPassword }
-        : { identity: authIdentity.trim(), password: authPassword };
-      const response = await fetch((API || '') + (registering ? '/api/auth/register' : '/api/auth/login'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const messages = {
-          AUTH_NOT_CONFIGURED: 'Mfumo wa akaunti bado haujawezeshwa kwenye Cloudflare.',
-          DATABASE_NOT_CONFIGURED: 'Database haijaunganishwa bado.',
-          INVALID_REGISTRATION: data.message || 'Angalia taarifa za usajili; password iwe na herufi angalau 10.',
-          ACCOUNT_ALREADY_EXISTS: 'Username, email au simu hiyo tayari imesajiliwa.',
-          INVALID_CREDENTIALS: 'Taarifa za kuingia si sahihi au akaunti haijawashwa.',
-          INVALID_SESSION: 'Session imeisha. Ingia tena.',
-        };
-        throw new Error(messages[data.error] || 'Imeshindikana. Jaribu tena baada ya muda.');
-      }
-      window.localStorage.setItem('sokora_token', data.token);
-      setAuthUser(data.user);
-      closeModal();
-      setAuthIdentity('');
-      setAuthPassword('');
-      setAuthUsername('');
-      setAuthDisplayName('');
-      setAuthEmail('');
-      setAuthPhone('');
-      notify(registering ? 'Akaunti ya SOKORA imefunguliwa.' : 'Umeingia SOKORA kikamilifu.');
-    } catch (error) {
-      notify(error.message || 'Hitilafu ya mtandao. Jaribu tena.');
-    } finally {
-      setAuthBusy(false);
-    }
-  }
-  function openAuth(mode = 'login') {
-    setAuthMode(mode);
-    setAuthIdentity('');
-    setAuthPassword('');
-    setModal('login');
-  }
-  function logout() {
-    window.localStorage.removeItem('sokora_token');
-    setAuthUser(null);
-    notify('Umetoka kwenye akaunti yako.');
-  }
-  const current = selected || videos[0];
-
-  async function shareVideo(video) {
-    const url = window.location.href;
-    const text = video.product + ' — ' + money(video.price) + ' kupitia SOKORA';
-    if (navigator.share) {
-      try { await navigator.share({ title: video.product, text, url }); } catch { /* user cancelled */ }
-    } else {
-      try { await navigator.clipboard.writeText(text + ' ' + url); notify('Maelezo yamenakiliwa.'); }
-      catch { notify(text + ' · ' + url); }
-    }
+  function showMessage(message) {
+    setToast(message);
+    window.setTimeout(() => setToast(''), 3200);
   }
 
-  function handleUpload(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('video/') && !file.type.startsWith('image/')) {
-      notify('Chagua picha au video ya bidhaa.'); return;
-    }
-    setUploadFile(file);
-    setModal('upload');
+  function openModule(id) {
+    setActiveNav(id);
+    setView('dashboard');
+    setMobileMenu(false);
+    if (id !== 'overview' && !moduleDetails[id]) showMessage('Sehemu hii inaandaliwa.');
   }
 
-  function downloadSelected() {
-    if (!current?.video) { notify('Hakuna faili halisi ya video ya kupakua kwenye tangazo hili.'); return; }
-    const a = document.createElement('a');
-    a.href = current.video; a.download = 'sokora-video'; a.rel = 'noopener'; a.click();
+  function requestAction(label) {
+    setModal(label);
   }
 
-  function contactSeller(video) {
-    const phone = String(video?.sellerPhone || '').replace(/[^0-9]/g, '');
-    if (!phone || phone.length < 9) {
-      notify('Muuzaji hajaweka namba ya WhatsApp. Kagua maelezo ya tangazo kabla ya kuwasiliana.');
-      return;
-    }
-    const message = 'Habari, nimeona tangazo la ' + video.product + ' kwenye SOKORA. Bei: ' + money(video.price) + '. Je, bado linapatikana?';
-    window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(message), '_blank', 'noopener,noreferrer');
-  }
-
-  function saveLocalListing() {
-    if (!uploadFile || !uploadCaption.trim() || !uploadPrice.trim()) {
-      notify('Jaza maelezo, bei na uchague picha/video kwanza.'); return;
-    }
-    const localUrl = URL.createObjectURL(uploadFile);
-    const localItem = {
-      id: 'local-' + Date.now(), seller: authUser?.username ? '@' + authUser.username : '@wewe', sellerPhone: uploadPhone.trim(), product: uploadCaption.trim(),
-      price: Number(uploadPrice.replace(/[^0-9]/g, '')) || 0, location: uploadLocation,
-      category: 'Biashara', caption: uploadCaption.trim(), emoji: '🛍️',
-      image: uploadFile.type.startsWith('image/') ? localUrl : '', video: uploadFile.type.startsWith('video/') ? localUrl : '',
-      likes: 0, demo: true, local: true,
-    };
-    openSokoraListingsDB().then((db) => new Promise((resolve, reject) => {
-      const tx = db.transaction('listings', 'readwrite');
-      tx.objectStore('listings').put({ ...localItem, mediaBlob: uploadFile, mediaType: uploadFile.type, image: '', video: '' });
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-    })).then(() => notify('Tangazo limehifadhiwa kwenye kifaa hiki; bado halionekani kwa watumiaji wengine.'))
-      .catch(() => notify('Tangazo limeongezwa kwa muda, lakini kifaa hakikuruhusu kulihifadhi kabisa.'));
-    setVideos((old) => [localItem, ...old]);
-    setQuery('');
-    setCategory('Zote');
-    closeModal();
-    setUploadFile(null); setUploadCaption(''); setUploadPrice(''); setUploadPhone('');
-  }
+  const activeModule = moduleDetails[activeNav];
 
   return (
-    <div className="app-shell">
-      <header className="site-header">
-        <a className="brand" href="#home" aria-label="SOKORA nyumbani"><span className="brand-mark">S</span><span><strong>SOKORA</strong><small>TAZAMA · GUNDUA · NUNUA</small></span></a>
-        <label className="search-box"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta bidhaa, biashara, eneo..." aria-label="Tafuta SOKORA" /><kbd>Enter</kbd></label>
-        <div className="header-actions"><button className="ghost-btn" onClick={() => authUser ? logout() : openAuth('login')}>{authUser ? 'Toka' : 'Ingia'}</button><button className="gold-btn" onClick={() => authUser ? askDemo('upload') : openAuth('login')}>＋ Weka bidhaa</button></div>
-      </header>
-
-      <main id="home">
-        <section className="welcome-row">
-          <div><p className="eyebrow">🇹🇿 SOKO LA TANZANIA</p><h1>Biashara halisi.<br /><span>Fursa kila mahali.</span></h1><p className="welcome-copy">Gundua bidhaa, huduma na biashara kupitia picha na video fupi kutoka Tanzania nzima.</p></div>
-          <div className="welcome-stats"><span><b>{filtered.length}</b><small>Matangazo yanayoonekana</small></span><span><b>24/7</b><small>Gundua kwa muda wako</small></span></div>
-        </section>
-
-        <section className="live-row" aria-label="LIVE">
-          <div className="section-label"><span className="live-dot"></span><div><b>LIVE sasa</b><small>Maonyesho ya wafanyabiashara</small></div></div>
-          <div className="live-creators">
-            {['Mariam Fashion', 'Dodoma Gadgets', 'Mama Neema', 'JMK Tech'].map((name, i) => <button key={name} className="live-person" onClick={() => { setSelected({ product: name, seller: name }); askDemo('live'); }}><span className={'live-avatar avatar-' + i}>{['MF', 'DG', 'MN', 'JT'][i]}</span><span>{name}</span></button>)}
+    <div className="site-shell">
+      {view === 'home' ? (
+        <>
+          <header className="public-header">
+            <a className="brand" href="#home" onClick={(event) => { event.preventDefault(); setView('home'); }}><span className="brand-mark">E</span><span><strong>ElimuSmart</strong><small>SCHOOL MANAGEMENT SYSTEM</small></span></a>
+            <nav className="public-nav"><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#about">About</a></nav>
+            <div className="public-actions"><button className="btn btn-outline" onClick={() => setModal('Login')}>Log in</button><button className="btn btn-primary" onClick={() => setModal('Register your school')}>Register school <span>↗</span></button></div>
+          </header>
+          <main className="public-main" id="home">
+            <section className="hero">
+              <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> BUILT FOR TANZANIAN SCHOOLS</div><h1>One school.<br /><span>One smart system.</span></h1><p>Manage students, academic results, fees, attendance and parent communication in one simple platform built for schools across Tanzania.</p><div className="hero-actions"><button className="btn btn-primary btn-large" onClick={() => setModal('Register your school')}>Get started <span>→</span></button><button className="btn btn-outline btn-large" onClick={() => { setView('dashboard'); setActiveNav('overview'); }}>Explore dashboard <span>↗</span></button></div><div className="hero-proof"><span className="proof-icon">✓</span><span>Primary to Form 6</span><i /> <span>Mobile friendly</span><i /> <span>Role-based access</span></div></div>
+              <div className="hero-visual"><div className="visual-glow" /><div className="preview-window"><div className="preview-top"><div className="mini-brand"><span className="brand-mark mini">E</span><span><b>ElimuSmart</b><small>School dashboard</small></span></div><span className="preview-status"><i /> Preview</span></div><div className="preview-welcome"><span><small>MONDAY, 26 OCTOBER 2026</small><b>Good morning, School Admin</b></span><span className="preview-avatar">SA</span></div><div className="preview-stats"><div><small>Total students</small><b>1,248</b><span>Illustrative preview</span></div><div><small>Attendance</small><b>94.8%</b><span>Illustrative preview</span></div></div><div className="preview-chart"><div className="chart-title"><b>Academic overview</b><small>Sample visual only</small></div><div className="chart-bars">{[35,52,42,70,58,83,64,92,73,80,61,96].map((height, index) => <span key={index} style={{ height: height + '%' }} />)}</div><div className="chart-labels"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span></div></div><div className="preview-foot"><span><i className="dot-blue" /> Student management</span><span><i className="dot-gold" /> Academic records</span></div></div><div className="floating-note"><span className="floating-icon">✓</span><span><b>Designed for schools</b><small>Primary to Form 6</small></span></div></div>
+            </section>
+            <section className="trust-strip"><span>ONE PLATFORM FOR EVERY SCHOOL TEAM</span><div><b>Administration</b><i /><b>Teachers</b><i /><b>Parents</b><i /><b>Students</b><i /><b>School operations</b></div></section>
+            <section className="features-section" id="features"><div className="section-intro"><div className="eyebrow">THE ELIMUSMART PLATFORM</div><h2>Everything your school needs.<br /><span>Connected in one place.</span></h2><p>Start with the essentials and enable additional modules as your school grows.</p></div><div className="feature-grid">{[
+              ['♙','Student records','Admissions, student profiles, guardians, classes and academic history.'],
+              ['▤','Academics & results','Examinations, configurable grading, attendance and report cards.'],
+              ['TSh','Fees & finance','Fee structures, balances, receipts and financial summaries.'],
+              ['◉','Parent communication','Parent portal, school notices and SMS integration when configured.'],
+              ['▰','Transport management','Bus registration, routes, pickup stops and daily schedules.'],
+              ['⌂','Boarding & hostels','Dormitories, room allocation and optional external hostel records.'],
+            ].map(([icon, title, text]) => <article className="feature-card" key={title}><div className="feature-icon"><Icon>{icon}</Icon></div><h3>{title}</h3><p>{text}</p><button onClick={() => { setView('dashboard'); setActiveNav(({ 'Student records':'students','Academics & results':'academics','Fees & finance':'fees','Parent communication':'announcements','Transport management':'transport','Boarding & hostels':'boarding' })[title] || 'overview'); }}>Explore module <span>→</span></button></article>)}</div></section>
+            <section className="how-section" id="how-it-works"><div><div className="eyebrow">SIMPLE TO GET STARTED</div><h2>Built around the way<br />schools actually work.</h2><p>ElimuSmart is planned for public and private schools, with access tailored to each person's responsibilities.</p><button className="btn btn-primary" onClick={() => setModal('Register your school')}>Register your school <span>→</span></button></div><div className="steps-list"><div><span>01</span><section><b>Set up your school</b><p>Configure school details, academic years, classes and subjects.</p></section></div><div><span>02</span><section><b>Invite your team</b><p>Give administrators, teachers and accountants the right permissions.</p></section></div><div><span>03</span><section><b>Connect families</b><p>Help parents access academic updates and school announcements.</p></section></div></div></section>
+            <section className="cta-section" id="about"><div><div className="eyebrow">EDUCATION, CONNECTED</div><h2>Make school administration<br />simpler and clearer.</h2><p>ElimuSmartSystem — designed for Tanzanian education, from primary school to Form 6.</p></div><button className="btn btn-light" onClick={() => setModal('Register your school')}>Get started <span>→</span></button></section>
+          </main>
+          <footer className="public-footer"><a className="brand" href="#home"><span className="brand-mark">E</span><span><strong>ElimuSmart</strong><small>SCHOOL MANAGEMENT SYSTEM</small></span></a><p>Helping schools manage learning and operations with clarity.</p><span>© {new Date().getFullYear()} ElimuSmartSystem. All rights reserved.</span></footer>
+        </>
+      ) : (
+        <div className="dashboard-layout">
+          <aside className={'sidebar ' + (mobileMenu ? 'sidebar-open' : '')}><a className="brand sidebar-brand" href="#dashboard" onClick={(event) => { event.preventDefault(); setView('home'); }}><span className="brand-mark">E</span><span><strong>ElimuSmart</strong><small>SCHOOL PLATFORM</small></span></a><div className="school-switch"><span className="school-crest">ES</span><span><b>Demo School</b><small>School workspace</small></span><span className="chevron">⌄</span></div><div className="nav-caption">WORKSPACE</div><nav className="side-nav">{visibleNav.map((item) => <button key={item.id} className={activeNav === item.id ? 'side-link active' : 'side-link'} onClick={() => openModule(item.id)}><Icon>{item.icon}</Icon><span>{item.label}</span>{item.id === 'announcements' && <i className="nav-dot" />}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><span>?</span><b>Need help?</b><small>Get guidance setting up your school.</small><button onClick={() => setModal('Contact support')}>Contact support →</button></div><button className="back-home" onClick={() => setView('home')}>← Back to website</button></div></aside>
+          <div className="dashboard-main"><header className="dashboard-header"><button className="mobile-menu-btn" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Toggle navigation">☰</button><div className="breadcrumb">Workspace <span>/</span> {activeNav === 'overview' ? 'Dashboard' : navItems.find((item) => item.id === activeNav)?.label}</div><div className="dashboard-header-actions"><label className="dashboard-search"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search this page..." /></label><button className="icon-btn" aria-label="Notifications" onClick={() => openModule('announcements')}>♧<i /></button><div className="user-chip"><span className="user-avatar">SA</span><span><b>School Admin</b><small>{roleInfo.short}</small></span></div></div></header>
+            <main className="dashboard-content"><div className="demo-banner"><span>i</span><div><b>Preview mode — sample interface</b><p>Numbers and student names shown here are illustrative only. This preview is not connected to a live school database.</p></div><button onClick={() => setModal('About preview mode')} aria-label="About preview">×</button></div><div className="dashboard-title-row"><div><div className="eyebrow">SCHOOL WORKSPACE</div><h1>{activeNav === 'overview' ? 'School overview' : activeModule?.title || 'School workspace'}</h1><p>{activeNav === 'overview' ? 'A clear view of your school operations and academic activity.' : activeModule?.subtitle || 'Manage your school operations from one place.'}</p></div><div className="title-actions"><label className="role-select"><span>Preview role</span><select value={role} onChange={(event) => { setRole(event.target.value); setActiveNav('overview'); }} aria-label="Preview dashboard role">{roles.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><button className="btn btn-primary" onClick={() => requestAction(activeNav === 'overview' ? 'Quick action' : activeModule?.action || 'Quick action')}>＋ {activeNav === 'overview' ? 'Quick action' : activeModule?.action || 'Quick action'}</button></div></div>
+              {activeNav === 'overview' ? <><div className="metric-grid"><article className="metric-card"><div className="metric-label"><span>Total students</span><i className="metric-icon blue">♙</i></div><b>1,248</b><small className="metric-foot">Illustrative sample <span>↗</span></small></article><article className="metric-card"><div className="metric-label"><span>Attendance today</span><i className="metric-icon green">◷</i></div><b>94.8%</b><small className="metric-foot">Illustrative sample</small></article><article className="metric-card"><div className="metric-label"><span>Fee collection</span><i className="metric-icon gold">TSh</i></div><b>—</b><small className="metric-foot">Connect finance module</small></article><article className="metric-card"><div className="metric-label"><span>Pending tasks</span><i className="metric-icon purple">✓</i></div><b>—</b><small className="metric-foot">Live tasks not connected</small></article></div><div className="dashboard-grid"><section className="panel student-panel"><div className="panel-heading"><div><h2>Student directory</h2><p>Sample records for interface preview</p></div><button className="subtle-action" onClick={() => openModule('students')}>View students →</button></div><div className="table-scroll"><table><thead><tr><th>STUDENT</th><th>CLASS</th><th>ATTENDANCE</th><th>AVERAGE</th></tr></thead><tbody>{filteredStudents.map((student) => <tr key={student.id}><td><span className="student-avatar">{student.name.split(' ').map((part) => part[0]).join('').slice(0,2)}</span><span className="student-name"><b>{student.name}</b><small>{student.id}</small></span></td><td>{student.level}</td><td><span className={student.attendance === 'Present' ? 'status status-good' : 'status status-warn'}>{student.attendance}</span></td><td><b>{student.average}</b></td></tr>)}</tbody></table></div><div className="panel-note">Demo data only. Real student records will be loaded from the school database after integration.</div></section><section className="panel quick-panel"><div className="panel-heading"><div><h2>Quick access</h2><p>Common school tasks</p></div></div><div className="quick-actions">{[['♙','Register student','students'],['▤','Enter examination results','academics'],['◷','Record attendance','attendance'],['TSh','Review school fees','fees'],['◉','Send announcement','announcements'],['▥','View reports','reports']].map(([icon, label, target]) => <button key={target} onClick={() => { if (target === 'announcements') setActiveNav(target); else setActiveNav(target); }}><span className="quick-icon"><Icon>{icon}</Icon></span><b>{label}</b><span className="quick-arrow">↗</span></button>)}</div></section></div><section className="panel setup-panel"><div className="panel-heading"><div><h2>Get your school ready</h2><p>Suggested setup sequence before adding real student information</p></div><span className="setup-count">0 of 5 connected</span></div><div className="setup-steps">{[['01','School profile','Add the official school details'],['02','Academic year & classes','Configure classes, streams and subjects'],['03','User access','Create roles and secure logins'],['04','Student records','Connect registration and guardian records'],['05','Results & reports','Set grading rules and report cards']].map(([num,title,desc]) => <button key={num} onClick={() => requestAction(title)}><span className="step-num">{num}</span><span><b>{title}</b><small>{desc}</small></span><span className="step-arrow">→</span></button>)}</div></section></> : activeModule ? <section className="panel module-panel"><div className="module-banner"><span className="module-symbol"><Icon>{navItems.find((item) => item.id === activeNav)?.icon}</Icon></span><div><h2>{activeModule.title}</h2><p>{activeModule.subtitle}</p></div></div><div className="metric-grid module-metrics">{activeModule.stats.map(([label, value]) => <article className="metric-card" key={label}><div className="metric-label"><span>{label}</span></div><b>{value}</b></article>)}</div><div className="module-empty"><span>▤</span><h3>{activeNav === 'students' ? 'Student directory will appear here' : 'Connect this module to continue'}</h3><p>{activeModule.note}</p><button className="btn btn-primary" onClick={() => requestAction(activeModule.action)}>{activeModule.action} <span>→</span></button></div></section> : <section className="panel module-panel"><h2>{navItems.find((item) => item.id === activeNav)?.label || 'Workspace'}</h2><p>This workspace is part of the ElimuSmartSystem roadmap.</p></section>}
+              <footer className="dashboard-footer"><span>ElimuSmartSystem · Tanzania</span><span>Preview interface · No live school data connected</span></footer>
+            </main>
           </div>
-          <button className="live-outline" onClick={() => askDemo('live')}>● Anza LIVE</button>
-        </section>
-
-        <section className="market-section">
-          <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'loading' ? 'Inapakia soko…' : mode === 'video-api' ? 'Video kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : mode === 'empty-api' ? 'Hakuna matangazo bado' : mode === 'api-error' ? 'API haipatikani' : 'Data za mfano'}</span></div>
-          <div className="category-row" aria-label="Makundi ya bidhaa">{categories.map((name) => <button key={name} className={'category-chip ' + (category === name ? 'active' : '')} onClick={() => setCategory(name)}>{name}</button>)}</div>
-          <div className="result-line"><span>{filtered.length} matokeo</span><label className="sort-label">Panga kwa <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}><option value="recommended">Vinavyopendekezwa</option><option value="price-low">Bei: chini kwenda juu</option><option value="price-high">Bei: juu kwenda chini</option></select></label></div>
-          {mode === 'api-error' ? <div className="empty-state"><span>⚠</span><h3>Imeshindikana kupakia soko</h3><p>Muunganisho wa API umeshindwa. Jaribu tena baada ya muda; bidhaa za mfano hazitaonyeshwa kama bidhaa halisi.</p><button className="gold-btn" onClick={() => window.location.reload()}>Jaribu tena</button></div> : mode === 'loading' ? <div className="empty-state"><span>…</span><h3>Inapakia matangazo</h3><p>Tunasoma bidhaa kutoka SOKORA API.</p></div> : mode === 'empty-api' && !filtered.length ? <div className="empty-state"><span>🛍️</span><h3>Bado hakuna matangazo ya umma</h3><p>Bidhaa zitaonekana hapa baada ya muuzaji kuweka tangazo kupitia API.</p></div> : filtered.length ? <div className="product-grid">{filtered.map((video) => <article className="product-card" key={video.id}>
-            <button className="product-media" onClick={() => { setSelected(video); askDemo('details'); }} aria-label={'Tazama ' + video.product}>
-              {video.video ? <video src={video.video} muted playsInline preload="metadata" /> : video.image ? <img src={video.image} alt={video.product} loading="lazy" /> : <span className="product-emoji">{video.emoji || '🛍️'}</span>}
-              <span className="media-tag">{video.video ? '▶ VIDEO' : video.demo ? 'MFANO' : 'BIDHAA'}</span>
-            </button>
-            <div className="product-content"><div className="seller-line"><span className="seller-avatar">{(video.seller || 'S').replace('@','').slice(0,2).toUpperCase()}</span><span>{video.seller}</span><button className={'follow-mini ' + (following[video.seller] ? 'following' : '')} onClick={() => { setFollowing((old) => ({ ...old, [video.seller]: !old[video.seller] })); notify('Ufuatiliaji huu ni wa kivinjari hiki tu.'); }}>{following[video.seller] ? '✓' : '+'}</button></div><h3>{video.product}</h3><p className="product-caption">{video.caption}</p><div className="product-bottom"><strong>{money(video.price)}</strong><span>⌖ {video.location}</span></div><div className="card-actions"><button onClick={() => { setLiked((old) => ({ ...old, [video.id]: !old[video.id] })); notify('Like imehifadhiwa kwenye hali ya kivinjari hiki tu.'); }} className={liked[video.id] ? 'is-liked' : ''}>{liked[video.id] ? '♥' : '♡'} <span>{Number(video.likes || 0) + (liked[video.id] ? 1 : 0)}</span></button><button onClick={() => { setSelected(video); askDemo('comments'); }}>▢ Maoni</button><button onClick={() => shareVideo(video)}>↗ Shiriki</button><button onClick={() => { setSaved((old) => ({ ...old, [video.id]: !old[video.id] })); notify('Hifadhi ni ya kivinjari hiki tu.'); }}>{saved[video.id] ? '★' : '☆'}</button></div></div>
-          </article>)}</div> : <div className="empty-state"><span>⌕</span><h3>Hakuna kilichopatikana</h3><p>Badili neno la utafutaji au chagua kundi jingine.</p><button className="gold-btn" onClick={() => { setQuery(''); setCategory('Zote'); }}>Ondoa vichujio</button></div>}
-        </section>
-
-        <section className="seller-banner"><div className="banner-icon">↗</div><div><p className="eyebrow">WEKA BIASHARA YAKO</p><h2>Bidhaa yako inastahili kuonekana.</h2><p>Andaa tangazo lenye picha au video, bei na eneo la biashara yako.</p></div><button className="gold-btn" onClick={() => askDemo('upload')}>＋ Tengeneza tangazo</button></section>
-        <p className="disclaimer">SOKORA Web · Taarifa zilizoandikwa “mfano” ni za kuonyesha muonekano tu. Likes, follows na matangazo ya kifaa hiki hazijahifadhiwa kwenye akaunti au database ya umma.</p>
-      </main>
-
-      <nav className="mobile-nav" aria-label="Urambazaji wa SOKORA">{[['⌂','Nyumbani'],['⌕','Gundua'],['＋','Weka'],['●','LIVE'],['◉','Wasifu']].map(([icon, label]) => <button key={label} className={mobileTab === label ? 'active' : ''} onClick={() => { setMobileTab(label); if (label === 'Weka') askDemo('upload'); else if (label === 'LIVE') askDemo('live'); else if (label === 'Wasifu') authUser ? notify('Umeingia kama @' + authUser.username + '.') : openAuth('login'); else window.scrollTo({ top: label === 'Gundua' ? 420 : 0, behavior: 'smooth' }); }}><span>{icon}</span>{label}</button>)}</nav>
-
+        </div>
+      )}
+      {modal && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setModal(''); }}><section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button className="modal-close" onClick={() => setModal('')} aria-label="Close">×</button><div className="modal-logo"><span className="brand-mark">E</span></div><div className="eyebrow">ELIMUSMARTSYSTEM</div><h2 id="modal-title">{modal}</h2><p>This preview currently demonstrates the user interface only. Real school accounts, student records, SMS, fee payments and report exports must be connected to a secure backend before production use.</p>{modal.toLowerCase().includes('login') || modal.toLowerCase().includes('register') ? <form onSubmit={(event) => { event.preventDefault(); setModal(''); showMessage('Hii ni preview tu. Authentication halijaunganishwa bado.'); }}><label className="form-label">{modal.toLowerCase().includes('register') ? 'School name' : 'Email or username'}<input required placeholder={modal.toLowerCase().includes('register') ? 'Enter official school name' : 'Enter email or username'} /></label>{modal.toLowerCase().includes('register') && <label className="form-label">Contact email<input type="email" required placeholder="school@example.co.tz" /></label>}<label className="form-label">Password<input type="password" required placeholder="Enter password" /></label><button className="btn btn-primary modal-submit" type="submit">{modal.toLowerCase().includes('register') ? 'Continue registration' : 'Sign in'} <span>→</span></button></form> : <div className="modal-info"><b>What happens next?</b><span>1. Confirm the module requirements.</span><span>2. Connect secure authentication and the database.</span><span>3. Test the workflow before using real school data.</span><button className="btn btn-primary" onClick={() => { setModal(''); showMessage('Maelezo yamefungwa. Hakuna data iliyohifadhiwa.'); }}>Understood</button></div>}</section></div>}
       {toast && <div className="toast" role="status">{toast}</div>}
-      {modal && <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}><section className="modal-card" role="dialog" aria-modal="true">
-        <button className="modal-close" onClick={closeModal} aria-label="Funga">×</button>
-        {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2><p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><p className="modal-muted">Usitume malipo kabla ya kuthibitisha bidhaa na muuzaji. Kagua bidhaa na tumia njia salama ya malipo.</p><div className="modal-actions"><button className="gold-btn" onClick={() => contactSeller(current)}>Wasiliana WhatsApp</button><button className="ghost-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
-        {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>{authMode === 'register' ? 'Fungua akaunti' : 'Karibu SOKORA'}</h2><p>{authMode === 'register' ? 'Jisajili ili uweze kuanza kuweka biashara na kufuatilia wauzaji.' : 'Ingia kwa username, email au namba ya simu.'}</p><form className="auth-form" onSubmit={submitAuth}>
-          {authMode === 'register' ? <><label className="field-label">Jina kamili<input autoComplete="name" value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)} required minLength={2} maxLength={80} /></label><label className="field-label">Username<input autoComplete="username" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} placeholder="mfano_joseph" required minLength={3} maxLength={30} pattern="[A-Za-z0-9_]+" /></label><label className="field-label">Email (si lazima ikiwa una simu)<input type="email" autoComplete="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} /></label><label className="field-label">Namba ya simu (si lazima ikiwa una email)<input type="tel" autoComplete="tel" value={authPhone} onChange={(e) => setAuthPhone(e.target.value)} placeholder="+255..." /></label></> : <label className="field-label">Username, email au simu<input autoComplete="username" value={authIdentity} onChange={(e) => setAuthIdentity(e.target.value)} required /></label>}
-          <label className="field-label">Password<input type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required minLength={authMode === 'register' ? 10 : 1} maxLength={128} /></label>
-          {authMode === 'register' && <p className="modal-muted">Tumia password ya angalau herufi 10. Hifadhi kwa usalama; usimpe mtu mwingine.</p>}
-          <button className="gold-btn" type="submit" disabled={authBusy}>{authBusy ? 'Inashughulikia...' : authMode === 'register' ? 'Fungua akaunti' : 'Ingia'}</button>
-        </form><p className="auth-switch">{authMode === 'register' ? 'Tayari una akaunti?' : 'Bado huna akaunti?'} <button type="button" className="text-link" onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}>{authMode === 'register' ? 'Ingia' : 'Jisajili'}</button></p></>}
-        {modal === 'live' && <><p className="eyebrow"><span className="live-dot"></span> LIVE</p><h2>Maonyesho ya moja kwa moja</h2><p>LIVE halisi haijaunganishwa bado. Inahitaji huduma ya streaming, akaunti ya muuzaji na udhibiti wa usalama. Hatuonyeshi video ya moja kwa moja ya kubuni.</p><button className="gold-btn" onClick={closeModal}>Sawa</button></>}
-        {modal === 'comments' && current && <><p className="eyebrow">MAONI</p><h2>{current.product}</h2><div className="comment-list">{(comments[current.id] || []).map((comment, i) => <p key={i}><b>{comment.name}</b><br />{comment.text}</p>)}{!(comments[current.id] || []).length && <p className="modal-muted">Bado hakuna maoni yaliyowekwa kwenye kivinjari hiki.</p>}</div><textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Andika maoni..." rows="3" /><button className="gold-btn" onClick={() => { if (!commentText.trim()) return; setComments((old) => ({ ...old, [current.id]: [...(old[current.id] || []), { name: 'Wewe (kifaa hiki)', text: commentText.trim() }] })); setCommentText(''); notify('Maoni yameongezwa kwenye kifaa hiki tu.'); }}>Ongeza maoni</button></>}
-        {modal === 'upload' && <><p className="eyebrow">TANGAZO JIPYA</p><h2>Weka bidhaa au video</h2><p>Hili ni tangazo la ndani ya kivinjari kwa sasa. Halitapakiwa kwa umma hadi upload API na storage salama viunganishwe.</p><label className="field-label">Picha au video<input type="file" accept="image/*,video/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} /></label><label className="field-label">Jina/maelezo ya bidhaa<input value={uploadCaption} onChange={(e) => setUploadCaption(e.target.value)} placeholder="Mf. Simu Samsung..." /></label><label className="field-label">Bei kwa TSh<input inputMode="numeric" value={uploadPrice} onChange={(e) => setUploadPrice(e.target.value)} placeholder="25000" /></label><label className="field-label">Eneo<input value={uploadLocation} onChange={(e) => setUploadLocation(e.target.value)} required /></label><label className="field-label">Namba ya WhatsApp ya biashara (hiari)<input type="tel" value={uploadPhone} onChange={(e) => setUploadPhone(e.target.value)} placeholder="2557XXXXXXXX" /></label>{uploadFile && <p className="modal-muted">Faili: {uploadFile.name} · {(uploadFile.size / 1048576).toFixed(1)} MB</p>}<div className="modal-actions"><button className="gold-btn" onClick={saveLocalListing}>Ongeza kwenye kifaa hiki</button><button className="ghost-btn" onClick={closeModal}>Ghairi</button></div></>}
-      </section></div>}
     </div>
   );
 }
