@@ -103,3 +103,76 @@ img { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* SOKORA visual redesign v2 — warm marketplace, emerald + gold, not the previous dark theme */
+:root{
+ color-scheme:light;
+ --bg:#f7f4ed;--panel:#ffffff;--panel2:#f0ece2;--line:#e2dacb;--muted:#66766d;--gold:#c28b12;--red:#df5147;
+ --sokora-ink:#172b23;--sokora-green:#126447;--sokora-green-dark:#0b4c36;--sokora-cream:#f7f4ed;
+ font-family:'DM Sans',system-ui,sans-serif;color:#172b23;background:#f7f4ed;
+}
+html,body{background:#f7f4ed;color:#172b23}
+body{font-size:16px;line-height:1.6}
+.app-shell{background:radial-gradient(ellipse at 84% 0%,#e5eee5 0,transparent 34%),#f7f4ed;color:#172b23}
+.site-header{background:rgba(250,248,242,.94);border-bottom:1px solid #e1dacd;box-shadow:0 4px 24px #20382a0b;backdrop-filter:blur(18px)}
+.brand{color:#172b23}.brand-mark{background:#126447;color:#fff;border-radius:14px;box-shadow:0 6px 16px #12644728}.brand small{color:#63746a}
+.search-box{background:#fff;border:1px solid #ded8cc;color:#65766b;box-shadow:inset 0 1px 2px #172b2308}.search-box input{color:#172b23}.search-box input::placeholder{color:#89958c}.search-box kbd{border-color:#e4ded2;color:#89958c}
+.gold-btn{background:#126447;border-color:#126447;color:#fff;box-shadow:0 5px 13px #12644720}.gold-btn:hover{background:#0b4c36;border-color:#0b4c36}.ghost-btn{background:#fff;border-color:#d9d3c7;color:#234334}.ghost-btn:hover{border-color:#126447;background:#f2f7f2}
+main{max-width:1460px}
+.welcome-row{padding-top:58px;padding-bottom:36px}
+.eyebrow{color:#126447;letter-spacing:2px;font-size:12px}
+.welcome-row h1{color:#172b23;letter-spacing:-2.2px;font-size:clamp(38px,4.6vw,64px)}
+.welcome-row h1 span{color:#b17c0b}
+.welcome-copy{color:#5f7065;font-size:16px;max-width:620px}
+.welcome-stats>span{background:#fff;border-color:#e2dacb;box-shadow:0 8px 26px #263e2d0a}.welcome-stats b{color:#172b23}.welcome-stats small{color:#69796f}
+.live-row{background:linear-gradient(110deg,#fff,#f0f5ed);border-color:#d9e4d8;box-shadow:0 12px 32px #2948310b}
+.section-label b{color:#172b23}.section-label small{color:#69796f}.live-person{color:#344b3d}.live-avatar{background:#e1eee3;border-color:#bdd7c1;color:#126447}.avatar-1,.avatar-2,.avatar-3{background:#edf3e9;border-color:#cbdcc8;color:#315e45}
+.live-outline{background:#fff1ef;border-color:#efb7b1;color:#c23f35}
+.section-heading h2{color:#172b23}
+.source-note{border-color:#dfd8ca;color:#6b786f;background:#fff}
+.category-chip{background:#fff;border-color:#e1dacd;color:#5b6d61;box-shadow:0 2px 5px #263e2d05}
+.category-chip.active,.category-chip:hover{border-color:#126447;background:#126447;color:#fff;box-shadow:0 5px 14px #12644720}
+.result-line{color:#627267}.sort-label select{background:#fff;border-color:#ded7ca;color:#24392d}
+.product-grid{gap:22px}
+.product-card{background:#fff;border:1px solid #e5ded2;border-radius:20px;box-shadow:0 8px 25px #283d2e0a;transition:transform .2s,box-shadow .2s,border-color .2s}
+.product-card:hover{transform:translateY(-5px);border-color:#b7d0bb;box-shadow:0 18px 38px #1b42271a}
+.product-media{height:300px;background:#ece9e0}
+.product-media img,.product-media video{object-fit:cover}
+.media-tag{background:rgba(18,100,71,.92);border-color:#ffffff50;border-radius:7px;font-size:10px}
+.product-content{padding:17px}
+.seller-line{color:#617267;font-size:12px}.seller-avatar{background:#e3efe4;color:#126447;font-size:10px}
+.follow-mini{background:#f7faf6;border-color:#d7e3d7;color:#126447}.follow-mini.following{background:#126447;color:#fff;border-color:#126447}
+.product-content h3{color:#1a3025;font-size:17px;line-height:1.35}
+.product-caption{color:#69796f;font-size:13px;line-height:1.65}
+.product-bottom strong{color:#126447;font-size:19px}.product-bottom span{color:#7b877e;font-size:12px}
+.card-actions{border-top-color:#eee8de}.card-actions button{color:#607267;font-size:12px;padding:7px 4px}.card-actions button:hover,.card-actions button.is-liked{color:#b17c0b}
+.empty-state{border-color:#d8d0c2;color:#637368;background:#fff}.empty-state h3{color:#1a3025}
+.seller-banner{background:linear-gradient(110deg,#e7f1e5,#fff9eb 80%);border-color:#d7e4d5;box-shadow:0 10px 28px #23482a0b}
+.banner-icon{background:#126447;color:#fff}.seller-banner h2{color:#172b23}.seller-banner p:last-child{color:#5e7164}
+.disclaimer{color:#78867b}
+.mobile-nav{background:rgba(250,248,242,.97);border-top-color:#e1dacd;box-shadow:0 -8px 25px #263e2d0c}.mobile-nav button{color:#748278}.mobile-nav button.active{color:#126447}
+.toast{background:#172b23;border-color:#2c5742;color:#fff}
+.modal-backdrop{background:#172b2380}
+.modal-card{background:#fff;color:#172b23;border-color:#e1dacd;box-shadow:0 25px 100px #172b2333}
+.modal-card h2{color:#172b23}.modal-card p{color:#5f7065}.modal-card .modal-muted{color:#7d8980}.modal-price{color:#126447!important}
+.modal-close{background:#f3f1eb;border-color:#ded7ca;color:#172b23}
+.field-label,.auth-form .field-label{color:#334b3b}
+.field-label input,.modal-card textarea,.auth-form input{background:#fbfaf6;border-color:#ded7ca;color:#172b23}
+.field-label input:focus,.auth-form input:focus{border-color:#126447}
+.auth-switch{color:#64746a}.text-link{color:#126447}
+.product-media:focus-visible{outline-color:#126447}
+@media(min-width:1400px){.product-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}.product-media{height:320px}}
+@media(max-width:1050px){.product-media{height:260px}}
+@media(max-width:760px){
+ .site-header{background:rgba(250,248,242,.97);padding:12px 16px}
+ .welcome-row{padding:34px 0 25px}
+ .welcome-row h1{font-size:clamp(35px,9vw,46px);letter-spacing:-1.5px}
+ .welcome-copy{font-size:15px}
+ .welcome-stats>span{background:#fff}
+ .product-grid{gap:13px}.product-media{height:clamp(190px,52vw,255px)}
+ .product-content{padding:12px}.product-content h3{font-size:15px}.product-caption{font-size:12px}
+ .product-bottom strong{font-size:16px}.card-actions button{font-size:11px}
+ .seller-banner{background:linear-gradient(120deg,#e7f1e5,#fff9eb)}
+}
+@media(max-width:390px){.product-media{height:175px}.product-content h3{font-size:14px}.product-bottom strong{font-size:14px}}
