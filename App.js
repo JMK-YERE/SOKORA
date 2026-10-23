@@ -19,7 +19,7 @@ import {
 
 const API_BASE_URL = (typeof process !== 'undefined' && process.env && process.env.EXPO_PUBLIC_API_URL)
   ? process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')
-  : '';
+  : 'https://sokora.josephjonas4596.workers.dev';
 
 function normalizeApiVideo(row, index) {
   const amount = Number(row.price_tzs || 0);
@@ -131,6 +131,13 @@ export default function App() {
   const [feedLoading, setFeedLoading] = useState(true);
   const [feedMessage, setFeedMessage] = useState('');
   const [showUpload, setShowUpload] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authIdentity, setAuthIdentity] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [authUser, setAuthUser] = useState(null);
+  const [authToken, setAuthToken] = useState('');
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadPrice, setUploadPrice] = useState('');
@@ -241,6 +248,11 @@ export default function App() {
   };
 
   const uploadVideo = () => {
+    if (!authToken || !authUser) {
+      setAuthError('Ingia kwenye akaunti yako ili kuweka picha au video za bidhaa.');
+      setShowAuth(true);
+      return;
+    }
     setUploadFile(null);
     setUploadTitle('');
     setUploadPrice('');
@@ -249,6 +261,12 @@ export default function App() {
   };
 
   const publishProduct = async () => {
+    if (!authToken || !authUser) {
+      setShowUpload(false);
+      setAuthError('Ingia kwenye akaunti yako ili kuchapisha bidhaa.');
+      setShowAuth(true);
+      return;
+    }
     if (!uploadFile || !uploadTitle.trim() || !uploadPrice.trim()) {
       Alert.alert('Taarifa hazijakamilika', 'Chagua video au picha, andika jina la bidhaa na bei.');
       return;
@@ -265,7 +283,7 @@ export default function App() {
     body.append('caption', uploadCaption.trim());
     setUploading(true);
     try {
-      const response = await fetch(API_BASE_URL + '/api/videos', { method: 'POST', body });
+      const response = await fetch(API_BASE_URL + '/api/videos', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken }, body });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       setShowUpload(false);
       setFeedMessage('Bidhaa imetumwa. Inapakia upya feed…');
@@ -375,6 +393,7 @@ export default function App() {
             <Pressable onPress={() => setActiveTab('Kwa ajili yako')}><Text style={[styles.headerLink, activeTab === 'Kwa ajili yako' && styles.headerLinkActive]}>For you</Text></Pressable>
             <Pressable onPress={() => setActiveTab('Inafuatwa')}><Text style={[styles.headerLink, activeTab === 'Inafuatwa' && styles.headerLinkActive]}>Discover</Text></Pressable>
             <Pressable onPress={startLive} style={styles.headerLiveButton}><Text style={styles.headerLive}>● LIVE</Text></Pressable>
+            <Pressable onPress={() => { if (authUser) { setAuthUser(null); setAuthToken(''); setAuthPassword(''); setShowUpload(false); } else { setAuthError(''); setShowAuth(true); } }} style={styles.profileTopButton}><Text style={styles.profileTopButtonText}>{authUser ? 'Toka' : 'Ingia'}</Text></Pressable>
             <Pressable onPress={() => { setShowProfile(true); setActiveNav('Wasifu'); }} style={styles.profileTopButton}><Text style={styles.profileTopButtonText}>Wasifu</Text></Pressable>
           </View>
         </View>
@@ -400,7 +419,7 @@ export default function App() {
 
       <View style={styles.feedHeader}>
         <View><Text style={styles.feedHeaderTitle}>Video za bidhaa</Text>{!!feedMessage && <Text style={styles.feedStatusText}>{feedMessage}</Text>}</View>
-        <Pressable onPress={uploadVideo} style={styles.uploadButton}><Text style={styles.uploadButtonText}>＋ Weka video</Text></Pressable>
+        {authUser && authToken ? <Pressable onPress={uploadVideo} style={styles.uploadButton}><Text style={styles.uploadButtonText}>＋ Weka video</Text></Pressable> : null}
       </View>
 
       {feedLoading ? (
@@ -438,7 +457,7 @@ export default function App() {
         {[
           { id: 'Video', icon: '🎬', label: 'Video' },
           { id: 'Gundua', icon: '🔎', label: 'Gundua' },
-          { id: 'Weka', icon: '➕', label: 'Weka' },
+          ...(authUser && authToken ? [{ id: 'Weka', icon: '＋', label: 'Weka' }] : []),
           { id: 'Inbox', icon: '💬', label: 'Inbox' },
           { id: 'Wasifu', icon: '👤', label: 'Wasifu' },
         ].map((nav) => (
@@ -455,6 +474,54 @@ export default function App() {
           </Pressable>
         ))}
       </View>
+
+      <Modal visible={showAuth} animationType="fade" transparent onRequestClose={() => setShowAuth(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.uploadSheet}>
+            <View style={styles.modalTitleRow}>
+              <Text style={styles.modalTitle}>Ingia SOKORA</Text>
+              <Pressable onPress={() => setShowAuth(false)}><Text style={styles.closeModal}>✕</Text></Pressable>
+            </View>
+            <Text style={styles.uploadIntro}>Ingia kwa username, email au namba ya simu pamoja na password yako.</Text>
+            <Text style={styles.uploadFieldLabel}>Username / Email / Simu</Text>
+            <TextInput value={authIdentity} onChangeText={setAuthIdentity} autoCapitalize="none" autoCorrect={false} placeholder="Mf. username au email" placeholderTextColor="#9FB4C5" style={styles.uploadInput} />
+            <Text style={styles.uploadFieldLabel}>Password</Text>
+            <TextInput value={authPassword} onChangeText={setAuthPassword} secureTextEntry autoCapitalize="none" placeholder="Weka password yako" placeholderTextColor="#9FB4C5" style={styles.uploadInput} />
+            {!!authError && <Text style={{ color: '#FF8B83', fontSize: 12, lineHeight: 18, marginTop: 10 }}>{authError}</Text>}
+            <Pressable disabled={authBusy} onPress={async () => {
+              if (!authIdentity.trim() || !authPassword) { setAuthError('Weka username/email/simu na password.'); return; }
+              setAuthBusy(true); setAuthError('');
+              try {
+                const response = await fetch(API_BASE_URL + '/api/auth/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                  body: JSON.stringify({ identity: authIdentity.trim(), password: authPassword }),
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                  const messages = {
+                    AUTH_NOT_CONFIGURED: 'Huduma ya kuingia haijakamilishwa kwenye server.',
+                    DATABASE_NOT_CONFIGURED: 'Database haijaunganishwa kwenye server.',
+                    INVALID_CREDENTIALS: 'Taarifa za kuingia si sahihi au akaunti haijawezeshwa.',
+                    LOGIN_FAILED: 'Server imeshindwa kuthibitisha akaunti. Angalia muunganisho wa database.',
+                  };
+                  throw new Error(messages[payload.error] || payload.message || 'Imeshindikana kuingia (' + response.status + ').');
+                }
+                if (!payload.token || !payload.user) throw new Error('Server haikurudisha session halali.');
+                setAuthToken(payload.token); setAuthUser(payload.user);
+                setAccountName(payload.user.display_name || payload.user.displayName || payload.user.username || 'Mtumiaji wa SOKORA');
+                setAccountHandle('@' + String(payload.user.username || '').replace(/^@/, ''));
+                setAuthPassword(''); setShowAuth(false); setAuthError('');
+              } catch (error) {
+                setAuthError(String(error?.message || 'Imeshindikana kuingia. Jaribu tena.'));
+              } finally { setAuthBusy(false); }
+            }} style={[styles.publishButton, authBusy && { opacity: 0.6 }]}>
+              <Text style={styles.publishButtonText}>{authBusy ? 'Inathibitisha…' : 'Ingia'}</Text>
+            </Pressable>
+            <Text style={styles.uploadFootnote}>Kwa usalama, password haitahifadhiwa kwenye kifaa baada ya kutoka.</Text>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={showUpload} animationType="slide" transparent onRequestClose={() => setShowUpload(false)}>
         <View style={styles.modalOverlay}>
