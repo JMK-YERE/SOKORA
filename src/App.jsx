@@ -246,9 +246,14 @@ export default function App() {
   }
 
   function downloadSelected() {
-    if (!current?.video) { notify('Hakuna faili halisi ya video ya kupakua kwenye tangazo hili.'); return; }
+    const mediaUrl = current?.video || current?.image;
+    if (!mediaUrl) { notify('Tangazo hili halina faili ya picha/video ya kupakua.'); return; }
     const a = document.createElement('a');
-    a.href = current.video; a.download = 'sokora-video'; a.rel = 'noopener'; a.click();
+    a.href = mediaUrl;
+    a.download = (String(current.product || 'sokora-bidhaa').trim().replace(/[^a-z0-9_-]+/gi, '-').slice(0, 60) || 'sokora-bidhaa') + (current.video ? '.mp4' : '.jpg');
+    a.rel = 'noopener';
+    a.target = '_blank';
+    a.click();
   }
 
   function contactSeller(video) {
@@ -331,7 +336,7 @@ export default function App() {
       {toast && <div className="toast" role="status">{toast}</div>}
       {modal && <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}><section className="modal-card" role="dialog" aria-modal="true">
         <button className="modal-close" onClick={closeModal} aria-label="Funga">×</button>
-        {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2><p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><p className="modal-muted">Usitume malipo kabla ya kuthibitisha bidhaa na muuzaji. Kagua bidhaa na tumia njia salama ya malipo.</p><div className="modal-actions"><button className="gold-btn" onClick={() => contactSeller(current)}>Wasiliana WhatsApp</button><button className="ghost-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
+        {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2>{current.video ? <video className="detail-media" src={current.video} controls playsInline preload="metadata" /> : current.image ? <img className="detail-media" src={current.image} alt={current.product} /> : null}<p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><p className="modal-muted">Usitume malipo kabla ya kuthibitisha bidhaa na muuzaji. Kagua bidhaa na tumia njia salama ya malipo.</p><div className="modal-actions"><button className="gold-btn" onClick={() => contactSeller(current)}>Wasiliana WhatsApp</button><button className="ghost-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={() => { setSelected(current); setModal('comments'); }}>Maoni</button><button className="ghost-btn" onClick={downloadSelected}>Pakua picha/video</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
         {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>{authMode === 'register' ? 'Fungua akaunti' : 'Karibu SOKORA'}</h2><p>{authMode === 'register' ? 'Jisajili ili uweze kuanza kuweka biashara na kufuatilia wauzaji.' : 'Ingia kwa username, email au namba ya simu.'}</p><form className="auth-form" onSubmit={submitAuth}>
           {authMode === 'register' ? <><label className="field-label">Jina kamili<input autoComplete="name" value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)} required minLength={2} maxLength={80} /></label><label className="field-label">Username<input autoComplete="username" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} placeholder="mfano_joseph" required minLength={3} maxLength={30} pattern="[A-Za-z0-9_]+" /></label><label className="field-label">Email (si lazima ikiwa una simu)<input type="email" autoComplete="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} /></label><label className="field-label">Namba ya simu (si lazima ikiwa una email)<input type="tel" autoComplete="tel" value={authPhone} onChange={(e) => setAuthPhone(e.target.value)} placeholder="+255..." /></label></> : <label className="field-label">Username, email au simu<input autoComplete="username" value={authIdentity} onChange={(e) => setAuthIdentity(e.target.value)} required /></label>}
           <label className="field-label">Password<input type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required minLength={authMode === 'register' ? 10 : 1} maxLength={128} /></label>
