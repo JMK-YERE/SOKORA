@@ -47,8 +47,8 @@ function openSokoraListingsDB() {
 const money = (value) => 'TSh ' + Number(value || 0).toLocaleString('en-TZ');
 
 export default function App() {
-  const [videos, setVideos] = useState(seedVideos);
-  const [mode, setMode] = useState('demo');
+  const [videos, setVideos] = useState([]);
+  const [mode, setMode] = useState('loading');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Zote');
   const [sortBy, setSortBy] = useState('recommended');
@@ -139,11 +139,11 @@ export default function App() {
         setVideos(normalized);
         setMode(normalizedVideos.length ? 'video-api' : 'api');
       } else {
-        setVideos(seedVideos);
-        setMode('demo');
+        setVideos([]);
+        setMode('empty-api');
       }
     }).catch(() => {
-      if (alive) { setVideos(seedVideos); setMode('demo'); }
+      if (alive) { setVideos([]); setMode('api-error'); }
     });
     return () => { alive = false; };
   }, []);
@@ -309,10 +309,10 @@ export default function App() {
         </section>
 
         <section className="market-section">
-          <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'video-api' ? 'Video halisi kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : 'Data za mfano'}</span></div>
+          <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'loading' ? 'Inapakia soko…' : mode === 'video-api' ? 'Video kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : mode === 'empty-api' ? 'Hakuna matangazo bado' : mode === 'api-error' ? 'API haipatikani' : 'Data za mfano'}</span></div>
           <div className="category-row" aria-label="Makundi ya bidhaa">{categories.map((name) => <button key={name} className={'category-chip ' + (category === name ? 'active' : '')} onClick={() => setCategory(name)}>{name}</button>)}</div>
           <div className="result-line"><span>{filtered.length} matokeo</span><label className="sort-label">Panga kwa <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}><option value="recommended">Vinavyopendekezwa</option><option value="price-low">Bei: chini kwenda juu</option><option value="price-high">Bei: juu kwenda chini</option></select></label></div>
-          {filtered.length ? <div className="product-grid">{filtered.map((video) => <article className="product-card" key={video.id}>
+          {mode === 'api-error' ? <div className="empty-state"><span>⚠</span><h3>Imeshindikana kupakia soko</h3><p>Muunganisho wa API umeshindwa. Jaribu tena baada ya muda; bidhaa za mfano hazitaonyeshwa kama bidhaa halisi.</p><button className="gold-btn" onClick={() => window.location.reload()}>Jaribu tena</button></div> : mode === 'loading' ? <div className="empty-state"><span>…</span><h3>Inapakia matangazo</h3><p>Tunasoma bidhaa kutoka SOKORA API.</p></div> : mode === 'empty-api' && !filtered.length ? <div className="empty-state"><span>🛍️</span><h3>Bado hakuna matangazo ya umma</h3><p>Bidhaa zitaonekana hapa baada ya muuzaji kuweka tangazo kupitia API.</p></div> : filtered.length ? <div className="product-grid">{filtered.map((video) => <article className="product-card" key={video.id}>
             <button className="product-media" onClick={() => { setSelected(video); askDemo('details'); }} aria-label={'Tazama ' + video.product}>
               {video.video ? <video src={video.video} muted playsInline preload="metadata" /> : video.image ? <img src={video.image} alt={video.product} loading="lazy" /> : <span className="product-emoji">{video.emoji || '🛍️'}</span>}
               <span className="media-tag">{video.video ? '▶ VIDEO' : video.demo ? 'MFANO' : 'BIDHAA'}</span>
