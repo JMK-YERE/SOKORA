@@ -1,15 +1,15 @@
 {
   "id": "/",
-  "name": "SOKORA — Soko la Tanzania",
-  "short_name": "SOKORA",
-  "description": "Gundua bidhaa, biashara na video fupi kutoka Tanzania.",
+  "name": "ElimuSmartSystem — School Management for Tanzania",
+  "short_name": "ElimuSmart",
+  "description": "A school management platform designed for Tanzanian primary and secondary schools.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#080B10",
-  "theme_color": "#080B10",
-  "lang": "sw-TZ",
+  "background_color": "#f6f8fb",
+  "theme_color": "#12233f",
+  "lang": "en-TZ",
   "icons": [
     {
       "src": "/icon.svg",
