@@ -94,7 +94,7 @@ export default {
     }
 
     if (url.pathname === '/api/auth/register' && request.method === 'POST') {
-      if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      if (!env.JWT_SECRET2 || env.JWT_SECRET2.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
       let body;
       try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
       const email = String(body.email || '').trim().toLowerCase() || null;
@@ -115,7 +115,7 @@ export default {
         `;
         const user = rows[0];
         const now = Math.floor(Date.now() / 1000);
-        const token = await signToken({ sub: String(user.id), username: user.username, role: user.role, iss: 'sokora-api', aud: 'sokora-app', iat: now, exp: now + 604800 }, env.JWT_SECRET);
+        const token = await signToken({ sub: String(user.id), username: user.username, role: user.role, iss: 'sokora-api', aud: 'sokora-app', iat: now, exp: now + 604800 }, env.JWT_SECRET2);
         return json({ user, token, tokenType: 'Bearer', expiresIn: 604800 }, 201);
       } catch (error) {
         if (error?.code === '23505') return json({ error: 'ACCOUNT_ALREADY_EXISTS' }, 409);
@@ -125,7 +125,7 @@ export default {
     }
 
     if (url.pathname === '/api/auth/login' && request.method === 'POST') {
-      if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      if (!env.JWT_SECRET2 || env.JWT_SECRET2.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
       let body;
       try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
       const identity = String(body.identity || '').trim().toLowerCase();
@@ -146,7 +146,7 @@ export default {
           return json({ error: 'INVALID_CREDENTIALS' }, 401);
         }
         const now = Math.floor(Date.now() / 1000);
-        const token = await signToken({ sub: String(user.id), username: user.username, role: user.role, iss: 'sokora-api', aud: 'sokora-app', iat: now, exp: now + 604800 }, env.JWT_SECRET);
+        const token = await signToken({ sub: String(user.id), username: user.username, role: user.role, iss: 'sokora-api', aud: 'sokora-app', iat: now, exp: now + 604800 }, env.JWT_SECRET2);
         return json({ user: { id: user.id, username: user.username, display_name: user.display_name, role: user.role }, token, tokenType: 'Bearer', expiresIn: 604800 });
       } catch (error) {
         console.error('SOKORA login failed:', error?.message || 'unknown error');
@@ -155,10 +155,10 @@ export default {
     }
 
     if (url.pathname === '/api/auth/me' && request.method === 'GET') {
-      if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
+      if (!env.JWT_SECRET2 || env.JWT_SECRET2.length < 32) return json({ error: 'AUTH_NOT_CONFIGURED' }, 503);
       const authorization = request.headers.get('authorization') || '';
       const token = authorization.replace(/^Bearer\s+/i, '');
-      const payload = await readToken(token, env.JWT_SECRET);
+      const payload = await readToken(token, env.JWT_SECRET2);
       if (!payload) return json({ error: 'INVALID_SESSION' }, 401);
       try {
         const db = getDatabase(env);
