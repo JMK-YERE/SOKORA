@@ -234,6 +234,12 @@ async function authenticatedUser(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // Feature preview bindings currently point at production Neon. Keep preview UI available,
+    // but block every API route so preview requests cannot read or mutate production data.
+    const isFeaturePreview = url.hostname.startsWith('feature-') && url.hostname.endsWith('.workers.dev');
+    if (isFeaturePreview && url.pathname.startsWith('/api/')) {
+      return json({ error: 'PREVIEW_DATABASE_DISABLED', message: 'API access is disabled on feature previews.' }, 503);
+    }
     const d1ReadResponse = await handleD1ReadRoutes(request, env, url);
     if (d1ReadResponse) return d1ReadResponse;
     const isAuthPost = request.method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname);
