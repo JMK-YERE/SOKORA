@@ -92,6 +92,11 @@ export default function App() {
   const [authEmail, setAuthEmail] = useState('');
   const [authPhone, setAuthPhone] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [deliveryName, setDeliveryName] = useState('');
+  const [deliveryPhone, setDeliveryPhone] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [orderNote, setOrderNote] = useState('');
   const [authUser, setAuthUser] = useState(null);
   const [dashboardSection, setDashboardSection] = useState('dashboard');
   const [navHidden, setNavHidden] = useState(false);
@@ -140,6 +145,7 @@ export default function App() {
       const productRows = Array.isArray(productData) ? productData : (Array.isArray(productData.items) ? productData.items : []);
       const normalizeProduct = (row, i, isVideo) => ({
         id: String(isVideo ? (row.video_id ?? row.id ?? 'video-' + i) : (row.id ?? row.product_id ?? 'product-' + i)),
+        productId: String(isVideo ? (row.product_id ?? '') : (row.id ?? row.product_id ?? '')),
         seller: row.seller_username ? '@' + String(row.seller_username).replace(/^@/, '') : (row.seller_name || '@sokora_seller'),
         product: row.product_name || row.name || 'Bidhaa ya SOKORA',
         price: Number(row.price_tzs || 0),
@@ -295,6 +301,65 @@ export default function App() {
     window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(message), '_blank', 'noopener,noreferrer');
   }
 
+
+  function startCheckout(video) {
+    if (!authUser) {
+      setSelected(video);
+      openAuth('login');
+      notify('Ingia kwanza ili kutengeneza oda ya bidhaa hii.');
+      return;
+    }
+    if (!video?.productId || !/^\d+$/.test(String(video.productId))) {
+      notify('Bidhaa hii haina rekodi ya database inayoweza kuagizwa. Chagua bidhaa halisi kutoka API.');
+      return;
+    }
+    setSelected(video);
+    setDeliveryName(authUser.display_name || authUser.displayName || '');
+    setDeliveryPhone(authUser.phone || '');
+    setDeliveryAddress('');
+    setOrderNote('');
+    setModal('checkout');
+  }
+
+  async function submitCheckout(event) {
+    event?.preventDefault();
+    if (checkoutBusy || !selected) return;
+    const token = window.localStorage.getItem('sokora_token');
+    if (!token) { openAuth('login'); return; }
+    setCheckoutBusy(true);
+    try {
+      const response = await fetch((API || '') + '/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, Accept: 'application/json' },
+        body: JSON.stringify({
+          items: [{ productId: selected.productId, quantity: 1 }],
+          deliveryName: deliveryName.trim(),
+          deliveryPhone: deliveryPhone.trim(),
+          deliveryAddress: deliveryAddress.trim(),
+          note: orderNote.trim(),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const messages = {
+          INVALID_SESSION: 'Session imeisha. Ingia tena.',
+          DATABASE_UNAVAILABLE: 'Database haipatikani kwa sasa.',
+          PRODUCT_NOT_AVAILABLE: 'Bidhaa hii haipatikani tena.',
+          ONE_SELLER_PER_ORDER: 'Bidhaa za maduka tofauti zinahitaji oda tofauti.',
+          ORDER_CREATION_FAILED: 'Oda haikuundwa. Hakiki muunganisho wa database.',
+        };
+        throw new Error(messages[data.error] || 'Imeshindikana kutengeneza oda. Jaribu tena.');
+      }
+      closeModal();
+      setDashboardSection('orders');
+      notify('Oda ' + (data.order?.order_number || '') + ' imetengenezwa. Hali: PENDING.');
+    } catch (error) {
+      notify(error.message || 'Hitilafu ya mtandao wakati wa kutengeneza oda.');
+    } finally {
+      setCheckoutBusy(false);
+    }
+  }
+
   function saveLocalListing() {
     if (!uploadFile || !uploadCaption.trim() || !uploadPrice.trim()) {
       notify('Jaza maelezo, bei na uchague picha/video kwanza.'); return;
@@ -352,7 +417,7 @@ export default function App() {
               {video.video ? <video src={video.video} muted playsInline preload="metadata" /> : video.image ? <img src={video.image} alt={video.product} loading="lazy" /> : <div className="media-placeholder"><span aria-hidden="true">▧</span><strong>Picha haijawekwa</strong><small>Muuzaji hajaongeza picha</small></div>}
               {(video.video || video.image) && <span className="media-tag">{video.video ? '▶ VIDEO' : 'PICHA'}</span>}
             </button>
-            <div className="product-content"><div className="seller-line"><span className="seller-avatar">{(video.seller || 'S').replace('@','').slice(0,2).toUpperCase()}</span><span>{video.seller}</span><button className={'follow-mini ' + (following[video.seller] ? 'following' : '')} onClick={() => { setFollowing((old) => ({ ...old, [video.seller]: !old[video.seller] })); notify('Ufuatiliaji huu ni wa kivinjari hiki tu.'); }}>{following[video.seller] ? '✓' : '+'}</button></div><h3>{video.product}</h3><p className="product-caption">{video.caption}</p><div className="product-bottom"><strong>{money(video.price)}</strong><span>⌖ {video.location}</span></div><div className="card-actions"><button onClick={() => { setLiked((old) => ({ ...old, [video.id]: !old[video.id] })); notify('Like imehifadhiwa kwenye hali ya kivinjari hiki tu.'); }} className={liked[video.id] ? 'is-liked' : ''}>{liked[video.id] ? '♥' : '♡'} <span>{Number(video.likes || 0) + (liked[video.id] ? 1 : 0)}</span></button><button onClick={() => { setSelected(video); askDemo('comments'); }}>▢ Maoni</button><button onClick={() => shareVideo(video)}>↗ Shiriki</button><button onClick={() => { setSaved((old) => ({ ...old, [video.id]: !old[video.id] })); notify('Hifadhi ni ya kivinjari hiki tu.'); }}>{saved[video.id] ? '★' : '☆'}</button></div></div>
+            <div className="product-content"><div className="seller-line"><span className="seller-avatar">{(video.seller || 'S').replace('@','').slice(0,2).toUpperCase()}</span><span>{video.seller}</span><button className={'follow-mini ' + (following[video.seller] ? 'following' : '')} onClick={() => { setFollowing((old) => ({ ...old, [video.seller]: !old[video.seller] })); notify('Ufuatiliaji huu ni wa kivinjari hiki tu.'); }}>{following[video.seller] ? '✓' : '+'}</button></div><h3>{video.product}</h3><p className="product-caption">{video.caption}</p><div className="product-bottom"><strong>{money(video.price)}</strong><span>⌖ {video.location}</span></div><button className="gold-btn buy-now-btn" onClick={() => startCheckout(video)}>Nunua Sasa ↗</button><div className="card-actions"><button onClick={() => { setLiked((old) => ({ ...old, [video.id]: !old[video.id] })); notify('Like imehifadhiwa kwenye hali ya kivinjari hiki tu.'); }} className={liked[video.id] ? 'is-liked' : ''}>{liked[video.id] ? '♥' : '♡'} <span>{Number(video.likes || 0) + (liked[video.id] ? 1 : 0)}</span></button><button onClick={() => { setSelected(video); askDemo('comments'); }}>▢ Maoni</button><button onClick={() => shareVideo(video)}>↗ Shiriki</button><button onClick={() => { setSaved((old) => ({ ...old, [video.id]: !old[video.id] })); notify('Hifadhi ni ya kivinjari hiki tu.'); }}>{saved[video.id] ? '★' : '☆'}</button></div></div>
           </article>)}</div> : <div className="empty-state"><span>⌕</span><h3>Hakuna kilichopatikana</h3><p>Badili neno la utafutaji au chagua kundi jingine.</p><button className="gold-btn" onClick={() => { setQuery(''); setCategory('Zote'); }}>Ondoa vichujio</button></div>}
         </section>
 
@@ -386,7 +451,8 @@ export default function App() {
       {toast && <div className="toast" role="status">{toast}</div>}
       {modal && <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}><section className="modal-card" role="dialog" aria-modal="true">
         <button className="modal-close" onClick={closeModal} aria-label="Funga">×</button>
-        {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2>{current.video ? <video className="detail-media" style={{ width: "100%", maxHeight: "55vh", objectFit: "contain", borderRadius: 12, background: "#080808" }} src={current.video} controls playsInline preload="metadata" /> : current.image ? <img className="detail-media" style={{ width: "100%", maxHeight: "55vh", objectFit: "contain", borderRadius: 12, background: "#080808" }} src={current.image} alt={current.product} /> : null}<p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><p className="modal-muted">Usitume malipo kabla ya kuthibitisha bidhaa na muuzaji. Kagua bidhaa na tumia njia salama ya malipo.</p><div className="modal-actions"><button className="gold-btn" onClick={() => contactSeller(current)}>Wasiliana WhatsApp</button><button className="ghost-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={() => { setSelected(current); setModal('comments'); }}>Maoni</button><button className="ghost-btn" onClick={downloadSelected}>Pakua picha/video</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
+        {modal === 'details' && current && <><p className="eyebrow">TAARIFA ZA TANGAZO</p><h2>{current.product}</h2>{current.video ? <video className="detail-media" style={{ width: "100%", maxHeight: "55vh", objectFit: "contain", borderRadius: 12, background: "#080808" }} src={current.video} controls playsInline preload="metadata" /> : current.image ? <img className="detail-media" style={{ width: "100%", maxHeight: "55vh", objectFit: "contain", borderRadius: 12, background: "#080808" }} src={current.image} alt={current.product} /> : null}<p className="modal-price">{money(current.price)}</p><p>{current.caption}</p><p className="modal-muted">Muuzaji: {current.seller} · {current.location}</p><p className="modal-muted">Usitume malipo kabla ya kuthibitisha bidhaa na muuzaji. Kagua bidhaa na tumia njia salama ya malipo.</p><div className="modal-actions"><button className="gold-btn" onClick={() => startCheckout(current)}>Nunua Sasa</button><button className="ghost-btn" onClick={() => contactSeller(current)}>Wasiliana WhatsApp</button><button className="ghost-btn" onClick={() => shareVideo(current)}>Shiriki bidhaa</button><button className="ghost-btn" onClick={() => { setSelected(current); setModal('comments'); }}>Maoni</button><button className="ghost-btn" onClick={downloadSelected}>Pakua picha/video</button><button className="ghost-btn" onClick={closeModal}>Rudi sokoni</button></div></>}
+        {modal === 'checkout' && selected && <><p className="eyebrow">ODA YA BIDHAA</p><h2>Nunua {selected.product}</h2><p className="modal-price">{money(selected.price)}</p><p className="modal-muted">Bei inathibitishwa tena na database wakati oda inapotengenezwa. Hakuna malipo yanayochukuliwa kwenye hatua hii.</p><form className="auth-form" onSubmit={submitCheckout}><label className="field-label">Jina la mpokeaji<input value={deliveryName} onChange={(e) => setDeliveryName(e.target.value)} required minLength={2} maxLength={120} /></label><label className="field-label">Namba ya simu<input value={deliveryPhone} onChange={(e) => setDeliveryPhone(e.target.value)} required maxLength={32} placeholder="+255..." /></label><label className="field-label">Anwani ya delivery<input value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} required minLength={4} maxLength={500} placeholder="Mtaa, eneo, mji" /></label><label className="field-label">Maelezo ya ziada (hiari)<textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value)} maxLength={1000} rows={3} /></label><button className="gold-btn" type="submit" disabled={checkoutBusy}>{checkoutBusy ? 'Inatengeneza oda…' : 'Thibitisha oda'}</button><button className="ghost-btn" type="button" onClick={closeModal}>Ghairi</button></form></>}
         {modal === 'login' && <><p className="eyebrow">AKAUNTI YA SOKORA</p><h2>{authMode === 'register' ? 'Fungua akaunti' : 'Karibu SOKORA'}</h2><p>{authMode === 'register' ? 'Jisajili ili uweze kuanza kuweka biashara na kufuatilia wauzaji.' : 'Ingia kwa username, email au namba ya simu.'}</p><form className="auth-form" onSubmit={submitAuth}>
           {authMode === 'register' ? <><label className="field-label">Jina kamili<input autoComplete="name" value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)} required minLength={2} maxLength={80} /></label><label className="field-label">Username<input autoComplete="username" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} placeholder="mfano_joseph" required minLength={3} maxLength={30} pattern="[A-Za-z0-9_]+" /></label><label className="field-label">Namba ya simu au email<input type="text" autoComplete="username" value={authIdentity} onChange={(e) => setAuthIdentity(e.target.value)} placeholder="+255... au jina@email.com" required /></label></> : <label className="field-label">Username, email au simu<input autoComplete="username" value={authIdentity} onChange={(e) => setAuthIdentity(e.target.value)} required /></label>}
           <label className="field-label">Password<input type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required minLength={authMode === 'register' ? 10 : 1} maxLength={128} /></label>
