@@ -534,6 +534,19 @@ export default {
     }
 
 
+    if (url.pathname === '/api/live' && request.method === 'GET') {
+      const parsedLimit = Number.parseInt(url.searchParams.get('limit') || '8', 10);
+      const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 20) : 8;
+      try {
+        const db = getDatabase(env);
+        const items = await db`SELECT ls.id, ls.title, ls.started_at, u.id AS seller_id, u.username AS seller_username, u.display_name AS seller_name, sp.business_name, sp.verification_status, p.id AS pinned_product_id, p.name AS pinned_product_name, p.price_tzs AS pinned_product_price_tzs, p.image_url AS pinned_product_image_url FROM live_sessions ls JOIN users u ON u.id = ls.seller_id LEFT JOIN seller_profiles sp ON sp.user_id = u.id LEFT JOIN LATERAL (SELECT p.id, p.name, p.price_tzs, p.image_url FROM live_session_products lsp JOIN products p ON p.id = lsp.product_id WHERE lsp.live_session_id = ls.id AND p.status = 'ACTIVE' ORDER BY lsp.pinned_at DESC LIMIT 1) p ON TRUE WHERE ls.status = 'LIVE' AND u.status = 'ACTIVE' ORDER BY ls.started_at DESC NULLS LAST LIMIT ${limit}`;
+        return json({ items });
+      } catch (error) {
+        console.error('SOKORA live sessions list failed:', error?.message || 'unknown error');
+        return json({ error: 'LIVE_SESSIONS_UNAVAILABLE' }, 503);
+      }
+    }
+
     const sellerMatch = url.pathname.match(/^\/api\/sellers\/([^/]+)$/);
     if (sellerMatch && request.method === 'GET') {
       let username;
