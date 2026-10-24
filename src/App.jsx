@@ -352,10 +352,11 @@ export default function App() {
               <button className="industry-primary-cta" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Gundua bidhaa <span>→</span></button>
               <div className="industry-proof"><span>✓ Bei kwa TSh</span><span>✓ Wauzaji wa Tanzania</span><span>✓ Mawasiliano ya moja kwa moja</span></div>
             </div>
-            <div className="industry-feature-art" aria-hidden="true">
-              <div className="feature-orbit orbit-one"></div><div className="feature-orbit orbit-two"></div>
-              <div className="feature-product-card"><span className="feature-product-icon">▣</span><b>SOKORA MARKET</b><small>Tazama · Gundua · Nunua</small><span className="feature-price">Bei kwa TSh</span></div>
-              <span className="feature-float float-top">Bidhaa</span><span className="feature-float float-bottom">Biashara</span>
+            <div className="industry-feature-art" aria-label="Picha za bidhaa zinazopatikana sokoni">
+              <div className="feature-photo feature-photo-main"><img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=85" alt="Laptop ya biashara" /><span>Elektroniki</span></div>
+              <div className="feature-photo feature-photo-top"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=85" alt="Viatu vya mtindo" /><span>Mitindo</span></div>
+              <div className="feature-photo feature-photo-bottom"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=500&q=85" alt="Samani za nyumbani" /><span>Nyumba</span></div>
+              <div className="feature-float float-top">Bidhaa mbalimbali</div><div className="feature-float float-bottom">Soko la Tanzania</div>
             </div>
           </div>
           <aside className="industry-seller-panel">
