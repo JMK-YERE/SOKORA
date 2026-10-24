@@ -206,8 +206,19 @@ export default {
         await getDatabase(env)`SELECT 1`;
         return json({ ok: true, service: 'sokora-api', database: 'connected' });
       } catch (error) {
-        console.error('SOKORA database health check failed:', error?.message || 'unknown error');
-        return json({ ok: false, service: 'sokora-api', database: 'unavailable' }, 503);
+        // Log only non-secret diagnostic metadata; never log the connection string or credentials.
+        const diagnostic = {
+          name: String(error?.name || 'Error').slice(0, 80),
+          code: String(error?.code || error?.errno || 'UNKNOWN').slice(0, 80),
+          message: String(error?.message || 'unknown error').slice(0, 240),
+        };
+        console.error('SOKORA database health check failed:', JSON.stringify(diagnostic));
+        return json({
+          ok: false,
+          service: 'sokora-api',
+          database: 'unavailable',
+          diagnostic: { name: diagnostic.name, code: diagnostic.code },
+        }, 503);
       }
     }
 
