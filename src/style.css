@@ -470,3 +470,31 @@ main{padding-bottom:100px!important}
   .modal-card{background:#080808!important}
   .auth-form .gold-btn{min-height:50px!important}
 }
+
+
+/* SOKORA green + white refresh */
+:root{color:#18251f;background:#fff;--bg:#f7faf8;--panel:#fff;--panel2:#f0f7f3;--line:#dce8e0;--muted:#65766c;--gold:#0e6b4f;--red:#e84b4b}
+body,.app-shell{background:#f7faf8!important;color:#18251f}
+.app-shell{background:#f7faf8!important}
+.site-header{background:#ffffffed!important;border-bottom-color:#dce8e0!important;box-shadow:0 3px 18px #123b2410}
+.brand{color:#0e6b4f!important}.brand-mark{background:#0e6b4f!important;color:#fff!important}.brand small{color:#65766c!important}
+.search-box,.sort-label select,.category-chip,.product-card,.welcome-stats>span,.live-row,.modal-card,.profile-panel,.dashboard-card,.account-panel,.comment-list{background:#fff!important;color:#18251f!important;border-color:#dce8e0!important}
+.search-box input,.sort-label select,.field-label input,.field-label textarea,.field-label select,.modal-card input,.modal-card textarea{color:#18251f!important}
+.search-box input::placeholder,.field-label input::placeholder,.modal-card input::placeholder{color:#829087!important}
+.gold-btn{background:#0e6b4f!important;border-color:#0e6b4f!important;color:#fff!important}.gold-btn:hover{background:#09563e!important}
+.ghost-btn{background:#fff!important;border-color:#c9dacf!important;color:#0e6b4f!important}
+.eyebrow,.welcome-row h1 span{color:#0e6b4f!important}
+.welcome-copy,.welcome-stats small,.section-label small,.result-line,.modal-muted,.profile-panel p,.dashboard-welcome p{color:#65766c!important}
+.welcome-stats>span b,.section-heading h2,.product-card h3,.product-card h2,.modal-card h2,.dashboard-welcome h2{color:#18251f!important}
+.category-chip{color:#4f6257!important}.category-chip.active,.category-chip:hover{border-color:#0e6b4f!important;background:#eaf5ee!important;color:#0e6b4f!important}
+.product-card{box-shadow:0 6px 22px #143a2510}.product-card:hover{border-color:#8ab9a0!important}
+.product-media{background:#edf5ef!important}
+.live-row{background:#fff!important}.live-avatar{background:#eaf5ee!important;border-color:#c3dfcd!important;color:#0e6b4f!important}
+.live-outline{border-color:#e84b4b88!important;background:#fff1f1!important;color:#d83232!important}
+.modal-backdrop{background:#10261bb8!important}.modal-card{box-shadow:0 20px 80px #06180f40!important}
+.field-label{color:#31473a!important}.field-label input,.field-label textarea,.field-label select,.modal-card textarea{background:#fff!important;border-color:#cbdcd1!important}
+.text-link{color:#0e6b4f!important}
+.mobile-nav{background:#fff!important;border-top:1px solid #dce8e0!important;box-shadow:0 -6px 22px #173d2710!important}
+.mobile-nav button{color:#6b7d72!important}.mobile-nav button.active{color:#0e6b4f!important}
+.toast{background:#0e6b4f!important;color:#fff!important}
+@media(max-width:700px){.site-header{background:#fff!important}.welcome-row{padding-top:30px}.product-grid{gap:11px}.product-card{border-radius:13px}}
