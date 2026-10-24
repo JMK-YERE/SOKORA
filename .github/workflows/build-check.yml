@@ -2,9 +2,9 @@ name: SOKORA build check
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/cloudflare-d1-foundation]
   pull_request:
-    branches: [main]
+    branches: [main, feature/commerce-foundation]
 
 permissions:
   contents: read
@@ -21,5 +21,9 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Run Worker route tests
+        run: npm test
       - name: Build frontend
         run: npm run build
+      - name: Validate Cloudflare Worker bundle
+        run: npx wrangler deploy --dry-run

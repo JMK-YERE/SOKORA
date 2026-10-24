@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:web": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "test": "node --test"
   },
   "dependencies": {
     "postgres": "^3.4.7",
