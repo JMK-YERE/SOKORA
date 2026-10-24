@@ -341,3 +341,11 @@ html,body,.app-shell{background:#080d15;color:#f5f7fb}
   .account-stat-grid{grid-template-columns:1fr}
   .account-topline h1{font-size:24px}
 }
+
+@media(max-width:760px){
+  .account-stat-grid,.account-note{display:none}
+  .dashboard-section-head{margin:18px 0 10px}
+  .dashboard-section-head .eyebrow{margin:0;font-size:11px}
+  .shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .shortcut-grid button{min-height:112px}
+}
