@@ -82,6 +82,81 @@ async function readToken(token, secret) {
   } catch { return null; }
 }
 
+
+async function handleD1ReadRoutes(request, env, url) {
+  if (env.SOKORA_D1_READS !== 'true' || !env.SOKORA_DB) return null;
+  const db = env.SOKORA_DB;
+  const jsonD1 = (data, status = 200) => new Response(JSON.stringify(data), {
+    status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' },
+  });
+  try {
+    if (url.pathname === '/api/feed' && request.method === 'GET') {
+      const rawCursor = url.searchParams.get('cursor');
+      const cursor = rawCursor ? validCursor(rawCursor) : null;
+      if (cursor === undefined) return jsonD1({ error: 'INVALID_CURSOR' }, 400);
+      const rawLimit = Number.parseInt(url.searchParams.get('limit') || '10', 10);
+      const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 30) : 10;
+      const result = await db.prepare(`
+        SELECT v.id AS video_id, v.caption, v.video_url, v.thumbnail_url, v.created_at,
+          p.id AS product_id, p.name AS product_name, p.price_tzs, p.currency, p.location, p.category,
+          p.image_url AS product_image_url, u.id AS seller_id, u.display_name AS seller_name,
+          u.username AS seller_username
+        FROM videos v JOIN products p ON p.id = v.product_id JOIN users u ON u.id = v.seller_id
+        WHERE v.status = 'PUBLISHED' AND p.status = 'ACTIVE' AND u.status = 'ACTIVE'
+          AND (? IS NULL OR v.created_at < ?)
+        ORDER BY v.created_at DESC, v.id DESC LIMIT ?
+      `).bind(cursor, cursor, limit).all();
+      const items = result.results || [];
+      return jsonD1({ items, nextCursor: items.length === limit ? items[items.length - 1].created_at : null });
+    }
+    if (url.pathname === '/api/products' && request.method === 'GET') {
+      const rawLimit = Number.parseInt(url.searchParams.get('limit') || '20', 10);
+      const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 50) : 20;
+      const category = (url.searchParams.get('category') || '').trim().slice(0, 80);
+      const query = (url.searchParams.get('q') || '').trim().slice(0, 120);
+      const sort = url.searchParams.get('sort') || 'newest';
+      const order = sort === 'price-asc' ? 'p.price_tzs ASC' : sort === 'price-desc' ? 'p.price_tzs DESC' : 'p.created_at DESC, p.id DESC';
+      const statement = `
+        SELECT p.id, p.name, p.description, p.price_tzs, p.currency, p.category, p.location, p.image_url, p.created_at,
+          u.id AS seller_id, u.display_name AS seller_name, u.username AS seller_username
+        FROM products p JOIN users u ON u.id = p.seller_id
+        WHERE p.status='ACTIVE' AND u.status='ACTIVE'
+          AND (?='' OR lower(coalesce(p.category,'')) LIKE '%' || lower(?) || '%')
+          AND (?='' OR lower(p.name) LIKE '%' || lower(?) || '%'
+            OR lower(coalesce(p.description,'')) LIKE '%' || lower(?) || '%'
+            OR lower(coalesce(p.location,'')) LIKE '%' || lower(?) || '%'
+            OR lower(coalesce(p.category,'')) LIKE '%' || lower(?) || '%'
+            OR lower(u.username) LIKE '%' || lower(?) || '%'
+            OR lower(u.display_name) LIKE '%' || lower(?) || '%')
+        ORDER BY ${order} LIMIT ?
+      `;
+      const result = await db.prepare(statement).bind(category, category, query, query, query, query, query, query, limit).all();
+      const items = result.results || [];
+      return jsonD1({ items, count: items.length, limit });
+    }
+    const productMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)$/);
+    if (productMatch && request.method === 'GET') {
+      let productId;
+      try { productId = decodeURIComponent(productMatch[1]); } catch { return jsonD1({ error: 'INVALID_PRODUCT_ID' }, 400); }
+      if (!productId || productId.length > 80 || /[\\u0000-\\u001f]/.test(productId)) return jsonD1({ error: 'INVALID_PRODUCT_ID' }, 400);
+      const row = await db.prepare(`
+        SELECT p.id, p.name, p.description, p.price_tzs, p.currency, p.category, p.image_url, p.location, p.created_at,
+          u.id AS seller_id, u.display_name AS seller_name, u.username AS seller_username
+        FROM products p JOIN users u ON u.id=p.seller_id
+        WHERE CAST(p.id AS TEXT)=? AND p.status='ACTIVE' AND u.status='ACTIVE' LIMIT 1
+      `).bind(productId).first();
+      return row ? jsonD1({ product: row }) : jsonD1({ error: 'PRODUCT_NOT_FOUND' }, 404);
+    }
+    return null;
+  } catch (error) {
+    console.error('SOKORA D1 read route failed:', error?.message || 'unknown error');
+    if (url.pathname === '/api/feed') return jsonD1({ error: 'FEED_UNAVAILABLE' }, 503);
+    if (url.pathname === '/api/products') return jsonD1({ error: 'PRODUCTS_UNAVAILABLE' }, 503);
+    if (/^\\/api\\/products\\/[^/]+$/.test(url.pathname)) return jsonD1({ error: 'PRODUCT_UNAVAILABLE' }, 503);
+    return null;
+  }
+}
+
 function validCursor(value) {
   if (value === null || value === '') return null;
   if (value.length > 80 || !Number.isFinite(Date.parse(value))) return undefined;
@@ -108,6 +183,8 @@ async function authenticatedUser(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const d1ReadResponse = await handleD1ReadRoutes(request, env, url);
+    if (d1ReadResponse) return d1ReadResponse;
     const isAuthPost = request.method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname);
     const allowedWrite = (
       (request.method === 'POST' && ['/api/auth/register', '/api/auth/login', '/api/orders', '/api/conversations'].includes(url.pathname)) ||
