@@ -212,7 +212,7 @@ main{max-width:1460px}
 
 /* Marketplace feed mode controls */
 .feed-mode-tabs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 4px}
-.feed-mode-tabs>button{min-height:44px;padding:10px 16px;border:1px solid #ded8cc;border-radius:999px;background:#fff;color:#526359;font:600 13px inherit;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.feed-mode-tabs>button{min-height:44px;padding:10px 16px;border:1px solid #ded8cc;border-radius:999px;background:#fff;color:#526359;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
 .feed-mode-tabs>button:hover{border-color:#9dbda6}
 .feed-mode-tabs>button.active{background:#0e6b4f;border-color:#0e6b4f;color:#fff}
 .nearby-region-label{display:flex;align-items:center;gap:8px;margin-left:auto;color:#64756a;font-size:12px;font-weight:600}
