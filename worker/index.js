@@ -88,6 +88,23 @@ function validCursor(value) {
   return value;
 }
 
+
+async function authenticatedUser(request, env) {
+  if (!env.JWT_SECRET2 || env.JWT_SECRET2.length < 32) return { error: 'AUTH_NOT_CONFIGURED', status: 503 };
+  const token = (request.headers.get('authorization') || '').replace(/^Bearer\\s+/i, '');
+  const payload = await readToken(token, env.JWT_SECRET2);
+  if (!payload) return { error: 'INVALID_SESSION', status: 401 };
+  try {
+    const db = getDatabase(env);
+    const rows = await db`SELECT id, username, display_name, role FROM users WHERE id = ${payload.sub} AND status = 'ACTIVE' LIMIT 1`;
+    if (!rows.length) return { error: 'ACCOUNT_INACTIVE', status: 401 };
+    return { user: rows[0] };
+  } catch (error) {
+    console.error('SOKORA auth lookup failed:', error?.message || 'unknown error');
+    return { error: 'DATABASE_UNAVAILABLE', status: 503 };
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -297,6 +314,216 @@ export default {
       } catch (error) {
         console.error('SOKORA product lookup failed:', error?.message || 'unknown error');
         return json({ error: 'PRODUCT_UNAVAILABLE' }, 503);
+      }
+    }
+
+
+    if (url.pathname === '/api/orders' && request.method === 'POST') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const items = Array.isArray(body.items) ? body.items : [];
+      if (!items.length || items.length > 20) return json({ error: 'INVALID_ORDER_ITEMS' }, 400);
+      const deliveryName = String(body.deliveryName || '').trim().slice(0, 120) || null;
+      const deliveryPhone = String(body.deliveryPhone || '').trim().slice(0, 32) || null;
+      const deliveryAddress = String(body.deliveryAddress || '').trim().slice(0, 500) || null;
+      const buyerNote = String(body.note || '').trim().slice(0, 1000) || null;
+      try {
+        const db = getDatabase(env);
+        const order = await db.begin(async tx => {
+          const normalized = [];
+          for (const item of items) {
+            const productId = String(item.productId || '');
+            const quantity = Number(item.quantity);
+            if (!/^\\d+$/.test(productId) || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) throw new Error('INVALID_ORDER_ITEM');
+            const rows = await tx`SELECT id, seller_id, name, price_tzs FROM products WHERE id = ${productId} AND status = 'ACTIVE' LIMIT 1`;
+            if (!rows.length) throw new Error('PRODUCT_NOT_AVAILABLE');
+            normalized.push({ ...rows[0], quantity });
+          }
+          const sellerIds = new Set(normalized.map(item => String(item.seller_id)));
+          if (sellerIds.size !== 1) throw new Error('ONE_SELLER_PER_ORDER');
+          const subtotal = normalized.reduce((sum, item) => sum + Number(item.price_tzs) * item.quantity, 0);
+          const orderNumber = 'SK-' + crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
+          const created = await tx`INSERT INTO orders (order_number, buyer_id, seller_id, subtotal_tzs, delivery_fee_tzs, total_tzs, delivery_name, delivery_phone, delivery_address, buyer_note) VALUES (${orderNumber}, ${auth.user.id}, ${normalized[0].seller_id}, ${subtotal}, 0, ${subtotal}, ${deliveryName}, ${deliveryPhone}, ${deliveryAddress}, ${buyerNote}) RETURNING id, order_number, status, subtotal_tzs, delivery_fee_tzs, total_tzs, created_at`;
+          for (const item of normalized) {
+            await tx`INSERT INTO order_items (order_id, product_id, product_name, unit_price_tzs, quantity, line_total_tzs) VALUES (${created[0].id}, ${item.id}, ${item.name}, ${item.price_tzs}, ${item.quantity}, ${Number(item.price_tzs) * item.quantity})`;
+          }
+          await tx`INSERT INTO notifications (user_id, kind, title, body, target_url) VALUES (${normalized[0].seller_id}, 'NEW_ORDER', 'Oda mpya', ${'Umepokea oda ' + orderNumber}, ${'/orders/' + created[0].id})`;
+          return { ...created[0], items: normalized.map(item => ({ productId: item.id, name: item.name, quantity: item.quantity, unitPriceTzs: item.price_tzs })) };
+        });
+        return json({ order }, 201);
+      } catch (error) {
+        if (error?.message === 'INVALID_ORDER_ITEM') return json({ error: 'INVALID_ORDER_ITEM' }, 400);
+        if (error?.message === 'PRODUCT_NOT_AVAILABLE') return json({ error: 'PRODUCT_NOT_AVAILABLE' }, 409);
+        if (error?.message === 'ONE_SELLER_PER_ORDER') return json({ error: 'ONE_SELLER_PER_ORDER', message: 'Tengeneza oda tofauti kwa kila duka.' }, 400);
+        console.error('SOKORA order creation failed:', error?.message || 'unknown error');
+        return json({ error: 'ORDER_CREATION_FAILED' }, 503);
+      }
+    }
+
+    if (url.pathname === '/api/orders' && request.method === 'GET') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      try {
+        const db = getDatabase(env);
+        const rows = await db`SELECT o.id, o.order_number, o.buyer_id, o.seller_id, o.status, o.subtotal_tzs, o.delivery_fee_tzs, o.total_tzs, o.created_at, o.updated_at, (o.buyer_id = ${auth.user.id}) AS is_buyer FROM orders o WHERE o.buyer_id = ${auth.user.id} OR o.seller_id = ${auth.user.id} ORDER BY o.created_at DESC LIMIT 100`;
+        return json({ items: rows });
+      } catch (error) {
+        console.error('SOKORA orders list failed:', error?.message || 'unknown error');
+        return json({ error: 'ORDERS_UNAVAILABLE' }, 503);
+      }
+    }
+
+    const orderStatusMatch = url.pathname.match(/^\\/api\\/orders\\/([^/]+)\\/status$/);
+    if (orderStatusMatch && request.method === 'PATCH') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const nextStatus = String(body.status || '').toUpperCase();
+      if (!['CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'].includes(nextStatus)) return json({ error: 'INVALID_ORDER_STATUS' }, 400);
+      try {
+        const db = getDatabase(env);
+        const rows = await db`UPDATE orders SET status = ${nextStatus}, updated_at = NOW() WHERE id::text = ${orderStatusMatch[1]} AND ((${nextStatus} IN ('CONFIRMED','SHIPPED') AND seller_id = ${auth.user.id}) OR (${nextStatus} = 'DELIVERED' AND buyer_id = ${auth.user.id}) OR (${nextStatus} = 'CANCELLED' AND (buyer_id = ${auth.user.id} OR seller_id = ${auth.user.id}))) AND ((${nextStatus} = 'CONFIRMED' AND status = 'PENDING') OR (${nextStatus} = 'SHIPPED' AND status = 'CONFIRMED') OR (${nextStatus} = 'DELIVERED' AND status = 'SHIPPED') OR (${nextStatus} = 'CANCELLED' AND status = 'PENDING')) RETURNING id, order_number, status, updated_at`;
+        if (!rows.length) return json({ error: 'ORDER_NOT_FOUND_OR_TRANSITION_NOT_ALLOWED' }, 409);
+        const detail = await db`SELECT buyer_id, seller_id FROM orders WHERE id = ${rows[0].id}`;
+        const notifyUser = String(auth.user.id) === String(detail[0].buyer_id) ? detail[0].seller_id : detail[0].buyer_id;
+        await db`INSERT INTO notifications (user_id, kind, title, body, target_url) VALUES (${notifyUser}, 'ORDER_UPDATE', 'Hali ya oda imebadilika', ${'Oda ' + rows[0].order_number + ': ' + nextStatus}, ${'/orders/' + rows[0].id})`;
+        return json({ order: rows[0] });
+      } catch (error) {
+        console.error('SOKORA order status update failed:', error?.message || 'unknown error');
+        return json({ error: 'ORDER_UPDATE_FAILED' }, 503);
+      }
+    }
+
+    if (url.pathname === '/api/saved-products' && request.method === 'GET') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      try {
+        const db = getDatabase(env);
+        const rows = await db`SELECT p.id, p.name, p.description, p.price_tzs, p.currency, p.category, p.location, p.created_at, u.username AS seller_username, u.display_name AS seller_name FROM saved_products sp JOIN products p ON p.id = sp.product_id JOIN users u ON u.id = p.seller_id WHERE sp.user_id = ${auth.user.id} AND p.status = 'ACTIVE' ORDER BY sp.created_at DESC LIMIT 200`;
+        return json({ items: rows });
+      } catch (error) {
+        console.error('SOKORA saved products list failed:', error?.message || 'unknown error');
+        return json({ error: 'SAVED_PRODUCTS_UNAVAILABLE' }, 503);
+      }
+    }
+    const savedMatch = url.pathname.match(/^\\/api\\/saved-products\\/([^/]+)$/);
+    if (savedMatch && ['POST', 'DELETE'].includes(request.method)) {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      try {
+        const db = getDatabase(env);
+        if (request.method === 'POST') {
+          const product = await db`SELECT id FROM products WHERE id::text = ${savedMatch[1]} AND status = 'ACTIVE' LIMIT 1`;
+          if (!product.length) return json({ error: 'PRODUCT_NOT_FOUND' }, 404);
+          await db`INSERT INTO saved_products (user_id, product_id) VALUES (${auth.user.id}, ${product[0].id}) ON CONFLICT DO NOTHING`;
+          return json({ saved: true });
+        }
+        await db`DELETE FROM saved_products WHERE user_id = ${auth.user.id} AND product_id::text = ${savedMatch[1]}`;
+        return json({ saved: false });
+      } catch (error) {
+        console.error('SOKORA saved product change failed:', error?.message || 'unknown error');
+        return json({ error: 'SAVED_PRODUCT_UPDATE_FAILED' }, 503);
+      }
+    }
+
+    if (url.pathname === '/api/conversations' && request.method === 'GET') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      try {
+        const db = getDatabase(env);
+        const rows = await db`SELECT c.id, c.product_id, c.updated_at, CASE WHEN c.buyer_id = ${auth.user.id} THEN s.id ELSE b.id END AS other_user_id, CASE WHEN c.buyer_id = ${auth.user.id} THEN s.username ELSE b.username END AS other_username, CASE WHEN c.buyer_id = ${auth.user.id} THEN s.display_name ELSE b.display_name END AS other_display_name, p.name AS product_name FROM conversations c JOIN users b ON b.id = c.buyer_id JOIN users s ON s.id = c.seller_id LEFT JOIN products p ON p.id = c.product_id WHERE c.buyer_id = ${auth.user.id} OR c.seller_id = ${auth.user.id} ORDER BY c.updated_at DESC LIMIT 100`;
+        return json({ items: rows });
+      } catch (error) {
+        console.error('SOKORA conversations list failed:', error?.message || 'unknown error');
+        return json({ error: 'CONVERSATIONS_UNAVAILABLE' }, 503);
+      }
+    }
+    if (url.pathname === '/api/conversations' && request.method === 'POST') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const productId = body.productId == null ? null : String(body.productId);
+      const sellerId = String(body.sellerId || '');
+      if (!/^\\d+$/.test(sellerId) || (productId !== null && !/^\\d+$/.test(productId))) return json({ error: 'INVALID_CONVERSATION_PARTICIPANTS' }, 400);
+      try {
+        const db = getDatabase(env);
+        if (productId) {
+          const products = await db`SELECT id, seller_id FROM products WHERE id::text = ${productId} AND status = 'ACTIVE' LIMIT 1`;
+          if (!products.length || String(products[0].seller_id) !== sellerId) return json({ error: 'PRODUCT_NOT_FOUND' }, 404);
+        }
+        if (String(auth.user.id) === sellerId) return json({ error: 'CANNOT_MESSAGE_SELF' }, 400);
+        const rows = await db`INSERT INTO conversations (buyer_id, seller_id, product_id) VALUES (${auth.user.id}, ${sellerId}, ${productId}) ON CONFLICT (buyer_id, seller_id, (COALESCE(product_id, 0))) DO UPDATE SET updated_at = NOW() RETURNING id, buyer_id, seller_id, product_id, updated_at`;
+        return json({ conversation: rows[0] }, 201);
+      } catch (error) {
+        console.error('SOKORA conversation creation failed:', error?.message || 'unknown error');
+        return json({ error: 'CONVERSATION_CREATION_FAILED' }, 503);
+      }
+    }
+    const messageMatch = url.pathname.match(/^\\/api\\/conversations\\/([^/]+)\\/messages$/);
+    if (messageMatch && ['GET', 'POST'].includes(request.method)) {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      try {
+        const db = getDatabase(env);
+        const conversations = await db`SELECT id FROM conversations WHERE id::text = ${messageMatch[1]} AND (buyer_id = ${auth.user.id} OR seller_id = ${auth.user.id}) LIMIT 1`;
+        if (!conversations.length) return json({ error: 'CONVERSATION_NOT_FOUND' }, 404);
+        if (request.method === 'GET') {
+          const rows = await db`SELECT m.id, m.sender_id, u.username AS sender_username, m.body, m.read_at, m.created_at FROM messages m JOIN users u ON u.id = m.sender_id WHERE m.conversation_id = ${conversations[0].id} ORDER BY m.created_at DESC LIMIT 100`;
+          return json({ items: rows.reverse() });
+        }
+        let body;
+        try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+        const message = String(body.body || '').trim();
+        if (!message || message.length > 4000) return json({ error: 'INVALID_MESSAGE' }, 400);
+        const rows = await db`INSERT INTO messages (conversation_id, sender_id, body) VALUES (${conversations[0].id}, ${auth.user.id}, ${message}) RETURNING id, conversation_id, sender_id, body, created_at`;
+        await db`UPDATE conversations SET updated_at = NOW() WHERE id = ${conversations[0].id}`;
+        const participants = await db`SELECT buyer_id, seller_id FROM conversations WHERE id = ${conversations[0].id}`;
+        const otherUser = String(participants[0].buyer_id) === String(auth.user.id) ? participants[0].seller_id : participants[0].buyer_id;
+        await db`INSERT INTO notifications (user_id, kind, title, body, target_url) VALUES (${otherUser}, 'NEW_MESSAGE', 'Ujumbe mpya', ${message.slice(0, 160)}, ${'/messages/' + conversations[0].id})`;
+        return json({ message: rows[0] }, 201);
+      } catch (error) {
+        console.error('SOKORA conversation messages failed:', error?.message || 'unknown error');
+        return json({ error: 'MESSAGES_UNAVAILABLE' }, 503);
+      }
+    }
+
+    const reviewMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)\\/reviews$/);
+    if (reviewMatch && request.method === 'POST') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const rating = Number(body.rating);
+      const reviewBody = String(body.body || '').trim().slice(0, 2000) || null;
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) return json({ error: 'INVALID_RATING' }, 400);
+      try {
+        const db = getDatabase(env);
+        const eligible = await db`SELECT o.id FROM orders o JOIN order_items oi ON oi.order_id = o.id WHERE o.buyer_id = ${auth.user.id} AND o.status = 'DELIVERED' AND oi.product_id::text = ${reviewMatch[1]} LIMIT 1`;
+        if (!eligible.length) return json({ error: 'REVIEW_REQUIRES_DELIVERED_ORDER' }, 403);
+        const rows = await db`INSERT INTO product_reviews (order_id, product_id, buyer_id, rating, body) SELECT ${eligible[0].id}, p.id, ${auth.user.id}, ${rating}, ${reviewBody} FROM products p WHERE p.id::text = ${reviewMatch[1]} AND p.status = 'ACTIVE' RETURNING id, product_id, rating, body, created_at`;
+        if (!rows.length) return json({ error: 'PRODUCT_NOT_FOUND' }, 404);
+        return json({ review: rows[0] }, 201);
+      } catch (error) {
+        if (error?.code === '23505') return json({ error: 'REVIEW_ALREADY_EXISTS' }, 409);
+        console.error('SOKORA product review failed:', error?.message || 'unknown error');
+        return json({ error: 'REVIEW_CREATION_FAILED' }, 503);
+      }
+    }
+
+    if (url.pathname === '/api/notifications' && request.method === 'GET') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      try {
+        const db = getDatabase(env);
+        const rows = await db`SELECT id, kind, title, body, target_url, read_at, created_at FROM notifications WHERE user_id = ${auth.user.id} ORDER BY created_at DESC LIMIT 100`;
+        return json({ items: rows, unreadCount: rows.filter(item => !item.read_at).length });
+      } catch (error) {
+        console.error('SOKORA notifications list failed:', error?.message || 'unknown error');
+        return json({ error: 'NOTIFICATIONS_UNAVAILABLE' }, 503);
       }
     }
 
