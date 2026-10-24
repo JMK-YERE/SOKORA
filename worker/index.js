@@ -353,7 +353,7 @@ export default {
           for (const item of items) {
             const productId = String(item.productId || '');
             const quantity = Number(item.quantity);
-            if (!/^\\d+$/.test(productId) || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) throw new Error('INVALID_ORDER_ITEM');
+            if (!/^\d+$/.test(productId) || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) throw new Error('INVALID_ORDER_ITEM');
             const rows = await tx`SELECT id, seller_id, name, price_tzs FROM products WHERE id = ${productId} AND status = 'ACTIVE' LIMIT 1`;
             if (!rows.length) throw new Error('PRODUCT_NOT_AVAILABLE');
             normalized.push({ ...rows[0], quantity });
@@ -465,7 +465,7 @@ export default {
       try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
       const productId = body.productId == null ? null : String(body.productId);
       const sellerId = String(body.sellerId || '');
-      if (!/^\\d+$/.test(sellerId) || (productId !== null && !/^\\d+$/.test(productId))) return json({ error: 'INVALID_CONVERSATION_PARTICIPANTS' }, 400);
+      if (!/^\d+$/.test(sellerId) || (productId !== null && !/^\d+$/.test(productId))) return json({ error: 'INVALID_CONVERSATION_PARTICIPANTS' }, 400);
       try {
         const db = getDatabase(env);
         if (productId) {
@@ -598,7 +598,7 @@ export default {
       let body;
       try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
       const productId = String(body.productId || '');
-      if (!/^\\d+$/.test(productId)) return json({ error: 'INVALID_PRODUCT_ID' }, 400);
+      if (!/^\d+$/.test(productId)) return json({ error: 'INVALID_PRODUCT_ID' }, 400);
       try {
         const db = getDatabase(env);
         const sessions = await db`SELECT id, seller_id, status FROM live_sessions WHERE id::text = ${livePinMatch[1]} LIMIT 1`;
