@@ -134,7 +134,7 @@ async function handleD1ReadRoutes(request, env, url) {
       const items = result.results || [];
       return jsonD1({ items, count: items.length, limit });
     }
-    const productMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)$/);
+    const productMatch = url.pathname.match(/^\/api\/products\/([^/]+)$/);
     if (productMatch && request.method === 'GET') {
       let productId;
       try { productId = decodeURIComponent(productMatch[1]); } catch { return jsonD1({ error: 'INVALID_PRODUCT_ID' }, 400); }
@@ -152,7 +152,7 @@ async function handleD1ReadRoutes(request, env, url) {
     console.error('SOKORA D1 read route failed:', error?.message || 'unknown error');
     if (url.pathname === '/api/feed') return jsonD1({ error: 'FEED_UNAVAILABLE' }, 503);
     if (url.pathname === '/api/products') return jsonD1({ error: 'PRODUCTS_UNAVAILABLE' }, 503);
-    if (/^\\/api\\/products\\/[^/]+$/.test(url.pathname)) return jsonD1({ error: 'PRODUCT_UNAVAILABLE' }, 503);
+    if (/^\/api\/products\/[^/]+$/.test(url.pathname)) return jsonD1({ error: 'PRODUCT_UNAVAILABLE' }, 503);
     return null;
   }
 }
