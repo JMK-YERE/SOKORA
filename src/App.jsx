@@ -237,6 +237,8 @@ export default function App() {
     notify('Umetoka kwenye akaunti yako.');
   }
   const current = selected || videos[0];
+  // The hero only uses media attached to genuine SOKORA API listings; never substitute unrelated stock photos.
+  const heroMedia = videos.filter((item) => !item.demo && !item.local && (item.image || item.video)).slice(0, 3);
 
   async function shareVideo(video) {
     const url = window.location.href;
@@ -337,11 +339,11 @@ export default function App() {
               <button className="industry-primary-cta" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Gundua bidhaa <span>→</span></button>
               <div className="industry-proof"><span>✓ Bei kwa TSh</span><span>✓ Wauzaji wa Tanzania</span><span>✓ Mawasiliano ya moja kwa moja</span></div>
             </div>
-            <div className="industry-feature-art" aria-label="Picha za bidhaa zinazopatikana sokoni">
-              <div className="feature-photo feature-photo-main"><img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=85" alt="Laptop ya biashara" /><span>Elektroniki</span></div>
-              <div className="feature-photo feature-photo-top"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=85" alt="Viatu vya mtindo" /><span>Mitindo</span></div>
-              <div className="feature-photo feature-photo-bottom"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=500&q=85" alt="Samani za nyumbani" /><span>Nyumba</span></div>
-              <div className="feature-float float-top">Bidhaa mbalimbali</div><div className="feature-float float-bottom">Soko la Tanzania</div>
+            <div className="industry-feature-art" aria-label="Picha na video halisi za bidhaa zilizowekwa SOKORA">
+              {heroMedia[0] ? <div className="feature-photo feature-photo-main">{heroMedia[0].video ? <video src={heroMedia[0].video} muted playsInline autoPlay loop /> : <img src={heroMedia[0].image} alt={heroMedia[0].product} loading="lazy" />}<span>{heroMedia[0].product}</span></div> : <div className="feature-photo-empty feature-photo-main"><strong>Picha halisi za bidhaa</strong><span>Zitaonekana matangazo ya wauzaji yanapopatikana</span></div>}
+              {heroMedia[1] ? <div className="feature-photo feature-photo-top">{heroMedia[1].video ? <video src={heroMedia[1].video} muted playsInline autoPlay loop /> : <img src={heroMedia[1].image} alt={heroMedia[1].product} loading="lazy" />}<span>{heroMedia[1].product}</span></div> : null}
+              {heroMedia[2] ? <div className="feature-photo feature-photo-bottom">{heroMedia[2].video ? <video src={heroMedia[2].video} muted playsInline autoPlay loop /> : <img src={heroMedia[2].image} alt={heroMedia[2].product} loading="lazy" />}<span>{heroMedia[2].product}</span></div> : null}
+              <div className="feature-float float-top">Media za wauzaji</div><div className="feature-float float-bottom">SOKORA Tanzania</div>
             </div>
           </div>
           <aside className="industry-seller-panel">
@@ -369,6 +371,9 @@ export default function App() {
             <a className="tanzania-store-card" href="https://www.naneka.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">NK</span><span className="store-copy"><strong>Naneka</strong><small>Vifaa vya elektroniki, simu na bidhaa za nyumbani</small><em>Nunua mtandaoni ↗</em></span></a>
             <a className="tanzania-store-card" href="https://www.shopping.co.tz/products/" target="_blank" rel="noopener noreferrer"><span className="store-mark">ST</span><span className="store-copy"><strong>Shopping.co.tz</strong><small>Elektroniki, vifaa vya nyumbani, groceries, zana na bidhaa nyingi</small><em>Angalia bidhaa ↗</em></span></a>
             <a className="tanzania-store-card" href="https://www.nuvia.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">NV</span><span className="store-copy"><strong>Nuvia</strong><small>Bidhaa kutoka maduka mengi ya ndani na makundi mbalimbali</small><em>Gundua maduka ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://myshop.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">MS</span><span className="store-copy"><strong>MyShop Tanzania</strong><small>Maduka na bidhaa za wauzaji wa Tanzania, bei kwa TSh</small><em>Angalia bidhaa mpya ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://sokoni.co.tz/?lang=en" target="_blank" rel="noopener noreferrer"><span className="store-mark">SK</span><span className="store-copy"><strong>Sokoni Tanzania</strong><small>Bidhaa, groceries, simu, vifaa, fashion na huduma za karibu</small><em>Gundua matangazo ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://www.sokoniapp.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">SA</span><span className="store-copy"><strong>Sokoni App</strong><small>Mboga, matunda, nafaka, viungo na bidhaa za chakula</small><em>Angalia katalogi ↗</em></span></a>
             <a className="tanzania-store-card" href="https://kariakoohub.com/" target="_blank" rel="noopener noreferrer"><span className="store-mark">KH</span><span className="store-copy"><strong>Kariakoo Hub</strong><small>Simu, kompyuta, elektroniki, samani na bidhaa za nyumbani</small><em>Angalia katalogi ↗</em></span></a>
             <a className="tanzania-store-card" href="https://www.nidadanish.com/" target="_blank" rel="noopener noreferrer"><span className="store-mark">ND</span><span className="store-copy"><strong>NidaDanish</strong><small>Vifaa vya nyumbani, elektroniki, fashion, hardware na zaidi</small><em>Angalia katalogi ↗</em></span></a>
             <a className="tanzania-store-card" href="https://impala.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">IP</span><span className="store-copy"><strong>Impala</strong><small>Elektroniki, vifaa vya nyumbani, zana na ujenzi</small><em>Angalia katalogi ↗</em></span></a>
@@ -376,7 +381,7 @@ export default function App() {
             <a className="tanzania-store-card" href="https://zudua.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">ZU</span><span className="store-copy"><strong>Zudua</strong><small>Nyumbani, jikoni, shule, mitindo na lifestyle</small><em>Tembelea duka ↗</em></span></a>
             <a className="tanzania-store-card" href="https://unustore.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">UN</span><span className="store-copy"><strong>Unustore</strong><small>Elektroniki, simu, kompyuta na wauzaji wa Tanzania</small><em>Gundua bidhaa ↗</em></span></a>
           </div>
-          <div className="tanzania-source-note"><strong>Kwa nini bidhaa hizi hazijaingizwa kama matangazo ya SOKORA?</strong><span>Hatunakili picha, video, bei au orodha za maduka mengine bila ruhusa au muunganisho rasmi. Matangazo ya SOKORA yataonyesha media za muuzaji aliyeweka bidhaa, eneo lake na bei iliyothibitishwa. Hii inazuia bidhaa za zamani au matangazo ya kubuni kuonekana kama yanapatikana sasa.</span></div>
+          <div className="tanzania-source-note"><strong>Kwa nini bidhaa hizi hazijaingizwa kama matangazo ya SOKORA?</strong><span>Viungo hivi vinafungua katalogi za wauzaji; si uagizaji wa bidhaa ndani ya SOKORA. Picha/video za ukurasa mkuu sasa zinatokana na matangazo halisi ya SOKORA yanapopatikana—picha za stock zisizohusiana hazitumiki tena. Ili kuonyesha katalogi nzima ya maduka haya ndani ya SOKORA, tunahitaji API/feed rasmi au ruhusa ya wauzaji, pamoja na njia ya kusawazisha bei na stock. Hatutadai bidhaa inapatikana sasa bila uthibitisho.</span></div>
         </section>
 
         <section className="market-section" id="marketplace-products">
