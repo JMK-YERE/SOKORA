@@ -9,21 +9,21 @@ function makeD1({ all = [], first = null, fail = false } = {}) {
     prepare(sql) {
       calls.push({ sql, values: [] });
       const call = calls[calls.length - 1];
-      return {
+      const result = {
+        async all() {
+          if (fail) throw new Error('simulated D1 failure');
+          return { results: all };
+        },
+        async first() {
+          if (fail) throw new Error('simulated D1 failure');
+          return first;
+        },
         bind(...values) {
           call.values = values;
-          return {
-            async all() {
-              if (fail) throw new Error('simulated D1 failure');
-              return { results: all };
-            },
-            async first() {
-              if (fail) throw new Error('simulated D1 failure');
-              return first;
-            },
-          };
+          return result;
         },
       };
+      return result;
     },
   };
 }
