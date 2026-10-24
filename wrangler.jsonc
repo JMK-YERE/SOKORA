@@ -12,14 +12,6 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "previews": {
-    "hyperdrive": [
-      {
-        "binding": "sokora_hyperdrive",
-        "id": "c2538b4fe4a846bfb597e8f7d0c4edf2"
-      }
-    ]
-  },
   "hyperdrive": [
     {
       "binding": "sokora_hyperdrive",
