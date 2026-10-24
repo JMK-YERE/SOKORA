@@ -1051,3 +1051,16 @@ footer a{color:#1558a6!important}
   .feature-photo-empty{min-height:220px!important}
 }
 @media(prefers-reduced-motion:reduce){.hero-copy-slider h1,.hero-copy-slider p{animation:none!important}*{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* Product/video grid progressive reveal */
+.view-more-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:28px 12px 12px;text-align:center}
+.view-more-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 24px;border:1px solid #1558a6;border-radius:999px;background:#1558a6;color:#fff;font-size:15px;font-weight:850;box-shadow:0 8px 22px #1558a624;transition:transform .18s,background .18s,box-shadow .18s}
+.view-more-btn span{color:#e6f0ff;font-weight:650}
+.view-more-btn b{font-size:20px;line-height:1}
+.view-more-btn:hover{background:#0c417f;box-shadow:0 12px 26px #1558a630;transform:translateY(-2px)}
+.view-more-btn:focus-visible{outline:3px solid #78b5ff;outline-offset:3px}
+.view-more-wrap small{color:#526984;font-size:13px;font-weight:650}
+.view-more-btn.view-less-btn{background:#fff;color:#1558a6}
+.view-more-btn.view-less-btn span{color:#526984}
+@media(max-width:600px){.view-more-wrap{padding-top:20px}.view-more-btn{width:min(100%,320px);min-height:46px;font-size:14px}}
