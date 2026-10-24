@@ -249,11 +249,18 @@ export default function App() {
     notify('Umetoka kwenye akaunti yako.');
   }
   const current = selected || videos[0];
-  // The hero only uses media attached to genuine SOKORA API listings; never substitute unrelated stock photos.
-  const heroMedia = videos.filter((item) => !item.demo && !item.local && (item.image || item.video)).slice(0, 3);
+  // Use genuine SOKORA listings when available. If the catalogue is empty, show clearly labelled category imagery so the hero is never blank or misleading.
+  const realHeroMedia = videos.filter((item) => !item.demo && !item.local && (item.image || item.video)).slice(0, 4);
+  const showcaseMedia = [
+    { id: 'showcase-electronics', product: 'Elektroniki na simu', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=85', video: '', isShowcase: true },
+    { id: 'showcase-fashion', product: 'Mitindo na viatu', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=85', video: '', isShowcase: true },
+    { id: 'showcase-home', product: 'Nyumba na samani', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=85', video: '', isShowcase: true },
+    { id: 'showcase-lifestyle', product: 'Bidhaa za kila siku', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=85', video: '', isShowcase: true },
+  ];
+  const heroMedia = realHeroMedia.length ? realHeroMedia : showcaseMedia;
 
   useEffect(() => {
-    const id = window.setInterval(() => setHeroSlide((currentSlide) => (currentSlide + 1) % 4), 6500);
+    const id = window.setInterval(() => setHeroSlide((currentSlide) => (currentSlide + 1) % 4), 4800);
     return () => window.clearInterval(id);
   }, []);
 
@@ -360,9 +367,9 @@ export default function App() {
               <div className="hero-slide-controls" aria-label="Badilisha ujumbe wa ukurasa mkuu"><button aria-label="Ujumbe uliotangulia" onClick={() => setHeroSlide((heroSlide + 3) % 4)}>‹</button>{[0,1,2,3].map((n) => <button key={n} className={heroSlide === n ? 'hero-dot active' : 'hero-dot'} aria-label={'Ujumbe '+(n+1)} aria-pressed={heroSlide===n} onClick={() => setHeroSlide(n)} />)}<button aria-label="Ujumbe unaofuata" onClick={() => setHeroSlide((heroSlide + 1) % 4)}>›</button></div>
             </div>
             <div className="industry-feature-art" aria-label="Picha na video za bidhaa zilizowekwa na wauzaji SOKORA">
-              {heroMedia.length ? <div className="feature-photo feature-photo-main hero-media-slide" key={heroMedia[heroSlide % heroMedia.length].id}>{heroMedia[heroSlide % heroMedia.length].video ? <video src={heroMedia[heroSlide % heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[heroSlide % heroMedia.length].image} alt={heroMedia[heroSlide % heroMedia.length].product} loading="lazy" />}<span>{heroMedia[heroSlide % heroMedia.length].product}</span></div> : <div className="feature-photo-empty feature-photo-main"><strong>Picha halisi za bidhaa za Tanzania</strong><span>Zitaonekana hapa bidhaa zikiwekwa na wauzaji waliothibitishwa. Hatutumii picha za kubuni.</span></div>}
-              {heroMedia.length > 1 ? <div className="feature-photo feature-photo-top hero-media-secondary" key={'secondary-'+heroMedia[(heroSlide+1)%heroMedia.length].id}>{heroMedia[(heroSlide+1)%heroMedia.length].video ? <video src={heroMedia[(heroSlide+1)%heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[(heroSlide+1)%heroMedia.length].image} alt={heroMedia[(heroSlide+1)%heroMedia.length].product} loading="lazy" />}<span>{heroMedia[(heroSlide+1)%heroMedia.length].product}</span></div> : null}
-              {heroMedia.length > 2 ? <div className="feature-photo feature-photo-bottom hero-media-secondary" key={'third-'+heroMedia[(heroSlide+2)%heroMedia.length].id}>{heroMedia[(heroSlide+2)%heroMedia.length].video ? <video src={heroMedia[(heroSlide+2)%heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[(heroSlide+2)%heroMedia.length].image} alt={heroMedia[(heroSlide+2)%heroMedia.length].product} loading="lazy" />}<span>{heroMedia[(heroSlide+2)%heroMedia.length].product}</span></div> : null}
+              {heroMedia.length ? <div className="feature-photo feature-photo-main hero-media-slide" key={heroMedia[heroSlide % heroMedia.length].id}>{heroMedia[heroSlide % heroMedia.length].video ? <video src={heroMedia[heroSlide % heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[heroSlide % heroMedia.length].image} alt={heroMedia[heroSlide % heroMedia.length].product} loading="lazy" />}<span>{heroMedia[heroSlide % heroMedia.length].isShowcase ? 'Picha ya kuonyesha kundi · ' + heroMedia[heroSlide % heroMedia.length].product : heroMedia[heroSlide % heroMedia.length].product}</span></div> : <div className="feature-photo-empty feature-photo-main"><strong>Picha halisi za bidhaa za Tanzania</strong><span>Zitaonekana hapa bidhaa zikiwekwa na wauzaji waliothibitishwa. Hatutumii picha za kubuni.</span></div>}
+              {heroMedia.length > 1 ? <div className="feature-photo feature-photo-top hero-media-secondary" key={'secondary-'+heroMedia[(heroSlide+1)%heroMedia.length].id}>{heroMedia[(heroSlide+1)%heroMedia.length].video ? <video src={heroMedia[(heroSlide+1)%heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[(heroSlide+1)%heroMedia.length].image} alt={heroMedia[(heroSlide+1)%heroMedia.length].product} loading="lazy" />}<span>{heroMedia[(heroSlide+1)%heroMedia.length].isShowcase ? 'Kundi · ' + heroMedia[(heroSlide+1)%heroMedia.length].product : heroMedia[(heroSlide+1)%heroMedia.length].product}</span></div> : null}
+              {heroMedia.length > 2 ? <div className="feature-photo feature-photo-bottom hero-media-secondary" key={'third-'+heroMedia[(heroSlide+2)%heroMedia.length].id}>{heroMedia[(heroSlide+2)%heroMedia.length].video ? <video src={heroMedia[(heroSlide+2)%heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[(heroSlide+2)%heroMedia.length].image} alt={heroMedia[(heroSlide+2)%heroMedia.length].product} loading="lazy" />}<span>{heroMedia[(heroSlide+2)%heroMedia.length].isShowcase ? 'Kundi · ' + heroMedia[(heroSlide+2)%heroMedia.length].product : heroMedia[(heroSlide+2)%heroMedia.length].product}</span></div> : null}
               <div className="feature-float float-top">Media za wauzaji</div><div className="feature-float float-bottom">SOKORA Tanzania</div>
             </div>
           </div>
