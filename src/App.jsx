@@ -141,10 +141,18 @@ export default function App() {
       });
       const normalizedVideos = feedRows.filter((row) => !isDemoRecord(row)).map((row, i) => normalizeProduct(row, i, true));
       const normalizedProducts = productRows.filter((row) => !isDemoRecord(row)).map((row, i) => normalizeProduct(row, i, false));
-      const normalized = normalizedVideos.length ? normalizedVideos : normalizedProducts;
+      // Show both real product listings and seller videos together; a non-empty video feed must not hide the product catalog.
+      const combined = [...normalizedProducts, ...normalizedVideos];
+      const seen = new Set();
+      const normalized = combined.filter((item) => {
+        const key = [item.id, item.product, item.seller].join('|').toLocaleLowerCase('sw');
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
       if (normalized.length) {
         setVideos(normalized);
-        setMode(normalizedVideos.length ? 'video-api' : 'api');
+        setMode(normalizedVideos.length && normalizedProducts.length ? 'mixed-api' : (normalizedVideos.length ? 'video-api' : 'api'));
       } else {
         setVideos([]);
         setMode('empty-api');
