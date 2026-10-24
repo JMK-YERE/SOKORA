@@ -13,6 +13,24 @@ const categoryShowcases = [
   { name: 'Huduma na biashara', filter: 'Huduma', image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85', alt: 'Watu wakifanya kazi' },
   { name: 'Vifaa vya nyumbani', filter: 'Nyumba', image: 'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=900&q=85', alt: 'Vifaa vya nyumbani' },
 ];
+
+const marketplaceCategories = [
+  ['Vifaa vya nyumbani','Nyumba'], ['TV, sauti na burudani','Elektroniki'], ['Mitindo na mavazi','Mitindo'],
+  ['Vito na accessories','Mitindo'], ['Simu na accessories','Elektroniki'], ['Vifaa vya afya','Huduma'],
+  ['Elektroniki','Elektroniki'], ['Samani','Nyumba'], ['Mapambo ya nyumba','Nyumba'], ['Laptop','Elektroniki'],
+  ['Hardware na magari','Magari'], ['Wauzaji wa magari','Magari'], ['Vitabu','Biashara'], ['Vyombo vya muziki','Elektroniki'],
+  ['Vifaa vya biashara','Biashara'], ['Vifaa vya ofisi','Biashara'], ['Jikoni na dining','Nyumba'],
+  ['Vifaa vya michezo','Biashara'], ['Bidhaa za watoto','Biashara'], ['Baiskeli','Magari'],
+  ['Midoli na display','Nyumba'], ['Mifuko na luggage','Mitindo'], ['Taa na mwanga','Nyumba'],
+  ['Michezo ya video','Elektroniki'], ['Kompyuta desktop','Elektroniki'], ['Vifaa vya umeme','Elektroniki'],
+  ['Urembo na personal care','Huduma'], ['Nishati na power','Elektroniki'], ['Viatu','Mitindo'],
+  ['Bidhaa za sauti na video','Elektroniki'], ['Vifaa vya utamaduni','Mitindo'], ['Huduma za afya na urembo','Huduma'],
+  ['Groceries na pet care','Biashara'], ['Usalama na surveillance','Elektroniki'], ['Automotive','Magari'],
+  ['Huduma za wanyama','Huduma'], ['Burudani na media','Biashara'], ['Chakula na vinywaji','Biashara'],
+  ['Gaming accessories','Elektroniki'], ['Afya na wellness','Huduma'], ['Bidhaa za plastiki','Nyumba'],
+  ['Vitabu vya shule','Biashara'], ['Mashine za kufulia','Nyumba'], ['Nyinginezo','Biashara']
+];
+
 const sellerMediaShowcase = [
   { title: 'Mitindo na mavazi', region: 'Dar es Salaam', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=700&q=85' },
   { title: 'Simu na vifaa', region: 'Kariakoo', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=700&q=85' },
@@ -208,6 +226,18 @@ export default function App() {
     return results;
   }, [videos, category, query, sortBy, feedTab, nearbyRegion, following]);
 
+  const shopSummaries = useMemo(() => {
+    const shops = new Map();
+    videos.filter((item) => !item.demo && !item.local && item.seller && item.seller !== '@sokora_seller').forEach((item) => {
+      const key = item.seller;
+      const currentShop = shops.get(key) || { seller: key, location: item.location || 'Tanzania', count: 0 };
+      currentShop.count += 1;
+      if (currentShop.location === 'Tanzania' && item.location) currentShop.location = item.location;
+      shops.set(key, currentShop);
+    });
+    return Array.from(shops.values());
+  }, [videos]);
+
   useEffect(() => { setVisibleProducts(12); }, [query, category, feedTab, nearbyRegion, sortBy]);
 
   const closeModal = () => { setModal(''); setSelected(null); setCommentText(''); setAuthPassword(''); };
@@ -366,12 +396,13 @@ export default function App() {
       </header>
 
       {!authUser ? <main id="home">
-        <nav className="commerce-nav" aria-label="Urambazaji wa soko">
-          <button className="commerce-nav-active" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Makundi yote</button>
-          <button onClick={() => { setCategory('Elektroniki'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Elektroniki</button>
-          <button onClick={() => { setCategory('Nyumba'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Nyumba na samani</button>
-          <button onClick={() => { setCategory('Mitindo'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Mitindo</button>
-          <button onClick={() => openAuth('register')}>Uza kupitia SOKORA</button>
+        <nav className="commerce-nav myshop-style-nav" aria-label="Urambazaji wa soko">
+          <button className="commerce-nav-active" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Nyumbani</button>
+          <button onClick={() => document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' })}>Bidhaa</button>
+          <button onClick={() => document.getElementById('sokora-shops')?.scrollIntoView({ behavior: 'smooth' })}>Maduka yote</button>
+          <button onClick={() => { if (!authUser) { openAuth('login'); return; } setDashboardSection('saved'); document.querySelector('.account-layout')?.scrollIntoView({ behavior: 'smooth' }); }}>Bidhaa nilizohifadhi</button>
+          <button onClick={() => openAuth('login')}>Ingia</button>
+          <button onClick={() => authUser ? (setDashboardSection('settings'), document.querySelector('.account-layout')?.scrollIntoView({ behavior: 'smooth' })) : openAuth('login')}>Mipangilio</button>
         </nav>
 
         <section className="industry-hero">
@@ -384,8 +415,8 @@ export default function App() {
             <div className="industry-feature-copy">
               <p className="eyebrow">SOKORA · SOKO LA TANZANIA</p>
               <div className="hero-copy-slider" aria-live="polite" aria-atomic="true">
-                <h1 key={heroSlide}>{['Tafuta bidhaa.','Gundua biashara.','Nunua kwa uhakika.','Ungana na wauzaji.'][heroSlide % 4]}<br /><span>{['Ungana na wauzaji.','Kutoka Tanzania nzima.','Bei kwa TSh.','Moja kwa moja.'][heroSlide % 4]}</span></h1>
-                <p key={'desc-'+heroSlide}>{['Gundua bidhaa na biashara kutoka Tanzania nzima, kwa bei zinazoonekana na mawasiliano ya moja kwa moja na muuzaji.','Tafuta maduka na bidhaa kulingana na kundi, bei na eneo la muuzaji.','Linganisha bidhaa zinazotangazwa na wasiliana na muuzaji kabla ya kununua.','Una bidhaa za kuuza? Fungua akaunti ya muuzaji na jiandae kuweka matangazo yako.'][heroSlide % 4]}</p>
+                <h1 key={heroSlide}>{['Nunua vizuri.','Uza kwa urahisi.','Gundua bidhaa.','Kuza biashara yako.'][heroSlide % 4]}<br /><span>{['Grow with SOKORA.','Kutoka Tanzania nzima.','Bei kwa TSh.','Kwa urahisi.'][heroSlide % 4]}</span></h1>
+                <p key={'desc-'+heroSlide}>{['Nunua bidhaa kwa urahisi, wasiliana na wauzaji na gundua biashara mbalimbali kwenye jukwaa moja.','Tafuta bidhaa kulingana na kundi, bei na eneo la muuzaji kote Tanzania.','Linganisha matangazo halisi na wasiliana na muuzaji kabla ya kununua.','Una bidhaa za kuuza? Fungua akaunti ya muuzaji na anza kujenga biashara yako.'][heroSlide % 4]}</p>
               </div>
               <div className="hero-cta-row"><button className="industry-primary-cta" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Gundua bidhaa <span>→</span></button><button className="hero-sell-cta" onClick={() => openAuth('register')}>Nataka kuuza <span>↗</span></button></div>
               <div className="industry-proof"><span>✓ Bei kwa TSh</span><span>✓ Wauzaji wa Tanzania</span><span>✓ Mawasiliano ya moja kwa moja</span></div>
@@ -411,6 +442,13 @@ export default function App() {
           <div><span className="benefit-icon">▤</span><div><b>Bei zilizo wazi</b><small>Bei za bidhaa kwa TSh</small></div></div>
           <div><span className="benefit-icon">↗</span><div><b>Wasiliana na muuzaji</b><small>Uliza kuhusu bidhaa moja kwa moja</small></div></div>
           <div><span className="benefit-icon">◎</span><div><b>Kwa Tanzania</b><small>Biashara kutoka mikoa mbalimbali</small></div></div>
+        </section>
+
+        
+        <section className="market-category-section" aria-labelledby="market-category-title">
+          <div className="section-heading"><div><p className="eyebrow">TAFUTA KWA MAKUNDI</p><h2 id="market-category-title">Makundi ya bidhaa</h2></div><button className="category-showcase-more" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Angalia bidhaa zote →</button></div>
+          <p className="market-category-intro">Chagua kundi moja ili kuchuja matangazo halisi yanayopatikana SOKORA.</p>
+          <div className="market-category-grid">{marketplaceCategories.map(([name, filter]) => <button className="market-category-item" key={name} onClick={() => { setCategory(filter); setQuery(''); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}><span className="market-category-icon" aria-hidden="true">{filter === 'Nyumba' ? '⌂' : filter === 'Mitindo' ? '◇' : filter === 'Magari' ? '▰' : filter === 'Huduma' ? '✳' : filter === 'Elektroniki' ? '▣' : '▤'}</span><span>{name}</span><b>›</b></button>)}</div>
         </section>
 
         <section className="tanzania-sources" aria-labelledby="tanzania-sources-title">
@@ -472,8 +510,15 @@ export default function App() {
           <p className="showcase-disclaimer">Video hizi ni za kuonyesha muundo wa video kwenye SOKORA, si bidhaa zinazouzwa wala video za wauzaji wetu. Video halisi za wauzaji zitaonekana hapa kupitia API ya SOKORA zikishapakiwa.</p>
         </section>
 
+        
+        <section className="sokora-shops-section" id="sokora-shops" aria-labelledby="sokora-shops-title">
+          <div className="section-heading"><div><p className="eyebrow">MADUKA YA TANZANIA</p><h2 id="sokora-shops-title">Maduka yote</h2></div><button className="category-showcase-more" onClick={() => document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' })}>Bidhaa zote →</button></div>
+          <p className="market-category-intro">Maduka hapa hutokana na matangazo halisi yaliyopokelewa na SOKORA API. Hatubuni maduka au majina ya wauzaji.</p>
+          {shopSummaries.length ? <div className="sokora-shops-grid">{shopSummaries.slice(0,8).map((shop) => <article className="sokora-shop-card" key={shop.seller}><div className="sokora-shop-avatar">{shop.seller.replace(/^@/,'').slice(0,2).toUpperCase()}</div><div className="sokora-shop-copy"><strong>{shop.seller}</strong><span>{shop.location}</span><small>{shop.count} tangazo{shop.count===1?'':' '} kwenye soko</small></div><button onClick={() => { setQuery(shop.seller.replace(/^@/,'')); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Tazama duka</button></article>)}</div> : <div className="shops-empty-state"><span>▦</span><div><strong>Maduka ya SOKORA yataonekana hapa</strong><p>Kwa sasa API haijarudisha matangazo ya wauzaji. Tunapoanza kupokea matangazo halisi, maduka yataorodheshwa hapa moja kwa moja.</p></div><button onClick={() => openAuth('register')}>Anza kuuza</button></div>}
+        </section>
+
         <section className="market-section" id="marketplace-products">
-          <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'loading' ? 'Inapakia soko…' : mode === 'video-api' ? 'Video kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : mode === 'empty-api' ? 'Hakuna matangazo bado' : mode === 'api-error' ? 'API haipatikani' : 'Data za mfano'}</span></div>
+          <div className="section-heading"><div><p className="eyebrow">BIDHAA ZA SASA</p><h2>Bidhaa za hivi karibuni</h2></div><span className="source-note">{mode === 'loading' ? 'Inapakia soko…' : mode === 'video-api' ? 'Video kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : mode === 'empty-api' ? 'Hakuna matangazo bado' : mode === 'api-error' ? 'API haipatikani' : 'Data za mfano'}</span></div>
           <div className="category-row" aria-label="Makundi ya bidhaa">{categories.map((name) => <button key={name} className={'category-chip ' + (category === name ? 'active' : '')} onClick={() => setCategory(name)}>{name}</button>)}</div>
           <div className="result-line"><span>{filtered.length} matokeo</span><label className="sort-label">Panga kwa <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}><option value="recommended">Vinavyopendekezwa</option><option value="price-low">Bei: chini kwenda juu</option><option value="price-high">Bei: juu kwenda chini</option></select></label></div>
           {mode === 'api-error' ? <div className="empty-state"><span>⚠</span><h3>Imeshindikana kupakia soko</h3><p>Muunganisho wa API umeshindwa. Jaribu tena baada ya muda; bidhaa za mfano hazitaonyeshwa kama bidhaa halisi.</p><button className="gold-btn" onClick={() => window.location.reload()}>Jaribu tena</button></div> : mode === 'loading' ? <div className="empty-state"><span>…</span><h3>Inapakia matangazo</h3><p>Tunasoma bidhaa kutoka SOKORA API.</p></div> : mode === 'empty-api' && !filtered.length ? <div className="empty-market-state"><div className="empty-state"><span>🛍️</span><h3>Bado hakuna matangazo ya umma</h3><p>Bidhaa halisi zitaonekana hapa baada ya wauzaji kuweka matangazo kupitia API. Kwa sasa unaweza kuvinjari makundi haya kwa picha.</p></div><div className="empty-market-gallery" aria-label="Picha za makundi ya bidhaa"><div className="empty-market-gallery-heading"><h3>Gundua kwa picha</h3><p>Picha za kuonyesha makundi, si matangazo ya bidhaa zinazopatikana sasa.</p></div><div className="empty-market-gallery-grid">{categoryShowcases.map((item) => <button className="empty-market-image-card" key={item.name} onClick={() => { setCategory(item.filter); setQuery(''); }}><img src={item.image} alt={item.alt} loading="lazy" /><span className="empty-market-image-shade" /><strong>{item.name}</strong><span className="empty-market-image-arrow">→</span></button>)}</div></div></div> : filtered.length ? <><div className="product-grid">{filtered.slice(0, visibleProducts).map((video) => <article className="product-card" key={video.id}>
