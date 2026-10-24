@@ -198,6 +198,27 @@ export default {
       }
     }
 
+    if (url.pathname === '/api/health/d1') {
+      try {
+        if (!env.SOKORA_DB || typeof env.SOKORA_DB.prepare !== 'function') {
+          return json({ ok: false, service: 'sokora-api', database: 'd1_binding_missing' }, 503);
+        }
+        const result = await env.SOKORA_DB.prepare(
+          "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name <> '_cf_KV'"
+        ).first();
+        return json({
+          ok: true,
+          service: 'sokora-api',
+          database: 'd1_connected',
+          tables: Number(result?.table_count || 0),
+          migration: 'foundation',
+        });
+      } catch (error) {
+        console.error('SOKORA D1 health check failed:', error?.message || 'unknown error');
+        return json({ ok: false, service: 'sokora-api', database: 'd1_unavailable' }, 503);
+      }
+    }
+
     if (url.pathname === '/api/health') {
       try {
         if (!env.sokora_hyperdrive?.connectionString) {
