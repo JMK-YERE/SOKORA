@@ -91,7 +91,7 @@ function validCursor(value) {
 
 async function authenticatedUser(request, env) {
   if (!env.JWT_SECRET2 || env.JWT_SECRET2.length < 32) return { error: 'AUTH_NOT_CONFIGURED', status: 503 };
-  const token = (request.headers.get('authorization') || '').replace(/^Bearer\\s+/i, '');
+  const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
   const payload = await readToken(token, env.JWT_SECRET2);
   if (!payload) return { error: 'INVALID_SESSION', status: 401 };
   try {
