@@ -253,7 +253,7 @@ export default {
         const rows = await db`
           SELECT
             p.id, p.name, p.description, p.price_tzs, p.currency,
-            p.category, p.location, p.created_at,
+            p.category, p.location, p.image_url, p.created_at,
             u.id AS seller_id, u.display_name AS seller_name,
             u.username AS seller_username
           FROM products p
@@ -299,7 +299,7 @@ export default {
         const rows = await db`
           SELECT
             p.id, p.name, p.description, p.price_tzs, p.currency,
-            p.location, p.created_at,
+            p.category, p.image_url, p.location, p.created_at,
             u.id AS seller_id, u.display_name AS seller_name,
             u.username AS seller_username
           FROM products p
@@ -524,6 +524,74 @@ export default {
       } catch (error) {
         console.error('SOKORA notifications list failed:', error?.message || 'unknown error');
         return json({ error: 'NOTIFICATIONS_UNAVAILABLE' }, 503);
+      }
+    }
+
+
+    const sellerMatch = url.pathname.match(/^\\/api\\/sellers\\/([^/]+)$/);
+    if (sellerMatch && request.method === 'GET') {
+      let username;
+      try { username = decodeURIComponent(sellerMatch[1]).replace(/^@/, '').toLowerCase(); }
+      catch { return json({ error: 'INVALID_SELLER' }, 400); }
+      try {
+        const db = getDatabase(env);
+        const sellers = await db`SELECT u.id, u.username, u.display_name, u.avatar_url, sp.business_name, sp.description, sp.region, sp.district, sp.verification_status FROM users u LEFT JOIN seller_profiles sp ON sp.user_id = u.id WHERE lower(u.username) = ${username} AND u.status = 'ACTIVE' LIMIT 1`;
+        if (!sellers.length) return json({ error: 'SELLER_NOT_FOUND' }, 404);
+        const seller = sellers[0];
+        const products = await db`SELECT id, name, description, price_tzs, currency, category, location, image_url, created_at FROM products WHERE seller_id = ${seller.id} AND status = 'ACTIVE' ORDER BY created_at DESC LIMIT 100`;
+        const metrics = await db`SELECT COUNT(*)::int AS followers FROM follows WHERE seller_id = ${seller.id}`;
+        const rating = await db`SELECT ROUND(AVG(pr.rating)::numeric, 1) AS rating, COUNT(pr.id)::int AS review_count FROM product_reviews pr JOIN products p ON p.id = pr.product_id WHERE p.seller_id = ${seller.id}`;
+        return json({ seller: { ...seller, verified: seller.verification_status === 'VERIFIED', followers: metrics[0]?.followers || 0, rating: rating[0]?.rating || null, reviewCount: rating[0]?.review_count || 0 }, products });
+      } catch (error) {
+        console.error('SOKORA seller store lookup failed:', error?.message || 'unknown error');
+        return json({ error: 'SELLER_STORE_UNAVAILABLE' }, 503);
+      }
+    }
+
+    const reviewsGetMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)\\/reviews$/);
+    if (reviewsGetMatch && request.method === 'GET') {
+      try {
+        const db = getDatabase(env);
+        const rows = await db`SELECT pr.id, pr.rating, pr.body, pr.created_at, u.username, u.display_name FROM product_reviews pr JOIN users u ON u.id = pr.buyer_id WHERE pr.product_id::text = ${reviewsGetMatch[1]} ORDER BY pr.created_at DESC LIMIT 100`;
+        const summary = await db`SELECT ROUND(AVG(rating)::numeric, 1) AS rating, COUNT(*)::int AS count FROM product_reviews WHERE product_id::text = ${reviewsGetMatch[1]}`;
+        return json({ items: rows, summary: summary[0] });
+      } catch (error) {
+        console.error('SOKORA reviews lookup failed:', error?.message || 'unknown error');
+        return json({ error: 'REVIEWS_UNAVAILABLE' }, 503);
+      }
+    }
+
+    const livePinMatch = url.pathname.match(/^\\/api\\/live\\/([^/]+)\\/pin$/);
+    if (livePinMatch && request.method === 'POST') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'INVALID_JSON' }, 400); }
+      const productId = String(body.productId || '');
+      if (!/^\\d+$/.test(productId)) return json({ error: 'INVALID_PRODUCT_ID' }, 400);
+      try {
+        const db = getDatabase(env);
+        const sessions = await db`SELECT id, seller_id, status FROM live_sessions WHERE id::text = ${livePinMatch[1]} LIMIT 1`;
+        if (!sessions.length || String(sessions[0].seller_id) !== String(auth.user.id)) return json({ error: 'LIVE_SESSION_NOT_FOUND' }, 404);
+        if (sessions[0].status !== 'LIVE') return json({ error: 'LIVE_SESSION_NOT_ACTIVE' }, 409);
+        const products = await db`SELECT id FROM products WHERE id::text = ${productId} AND seller_id = ${auth.user.id} AND status = 'ACTIVE' LIMIT 1`;
+        if (!products.length) return json({ error: 'PRODUCT_NOT_FOUND_OR_NOT_OWNED' }, 404);
+        await db`INSERT INTO live_session_products (live_session_id, product_id, pinned_by) VALUES (${sessions[0].id}, ${products[0].id}, ${auth.user.id}) ON CONFLICT (live_session_id, product_id) DO UPDATE SET pinned_by = EXCLUDED.pinned_by, pinned_at = NOW()`;
+        return json({ pinned: true, liveSessionId: sessions[0].id, productId: products[0].id });
+      } catch (error) {
+        console.error('SOKORA live product pin failed:', error?.message || 'unknown error');
+        return json({ error: 'LIVE_PRODUCT_PIN_FAILED' }, 503);
+      }
+    }
+    const livePinnedMatch = url.pathname.match(/^\\/api\\/live\\/([^/]+)\\/pinned-product$/);
+    if (livePinnedMatch && request.method === 'GET') {
+      try {
+        const db = getDatabase(env);
+        const rows = await db`SELECT p.id, p.name, p.price_tzs, p.currency, p.image_url, p.category, p.location, lsp.pinned_at, u.username AS seller_username FROM live_session_products lsp JOIN products p ON p.id = lsp.product_id JOIN live_sessions ls ON ls.id = lsp.live_session_id JOIN users u ON u.id = p.seller_id WHERE ls.id::text = ${livePinnedMatch[1]} AND ls.status = 'LIVE' AND p.status = 'ACTIVE' ORDER BY lsp.pinned_at DESC LIMIT 1`;
+        return json({ product: rows[0] || null });
+      } catch (error) {
+        console.error('SOKORA live pinned product lookup failed:', error?.message || 'unknown error');
+        return json({ error: 'LIVE_PRODUCT_UNAVAILABLE' }, 503);
       }
     }
 
