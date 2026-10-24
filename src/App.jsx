@@ -497,14 +497,6 @@ export default function App() {
           <div className="welcome-stats"><span><b>{filtered.length}</b><small>Matangazo yanayoonekana</small></span><span><b>24/7</b><small>Gundua kwa muda wako</small></span></div>
         </section>
 
-        <section className="live-row" aria-label="LIVE">
-          <div className="section-label"><span className="live-dot"></span><div><b>LIVE sasa</b><small>Maonyesho ya wafanyabiashara</small></div></div>
-          <div className="live-creators">
-            {liveSessions.length ? liveSessions.map((session) => <button key={session.id} className="live-person" onClick={() => { setSelected({ product: session.title, seller: session.business_name || session.seller_name, liveSessionId: session.id, productId: session.pinned_product_id ? String(session.pinned_product_id) : '' }); askDemo('live'); }}><span className="live-avatar live-avatar-real">●</span><span>{session.business_name || session.seller_name || '@' + session.seller_username}</span></button>) : <p className="live-empty">Hakuna kipindi LIVE kilichoanza kwa sasa. Vipindi halisi vitaonekana hapa.</p>}
-          </div>
-          <button className="live-outline" onClick={() => notify('Utangazaji wa LIVE utawezeshwa baada ya kuunganisha Cloudflare Stream Live.')} disabled>● Anza LIVE</button>
-        </section>
-
         <section className="market-section">
           <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'loading' ? 'Inapakia soko…' : mode === 'video-api' ? 'Video kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : mode === 'empty-api' ? 'Hakuna matangazo bado' : mode === 'api-error' ? 'API haipatikani' : 'Data za mfano'}</span></div>
           <div className="category-row" aria-label="Makundi ya bidhaa">{categories.map((name) => <button key={name} className={'category-chip ' + (category === name ? 'active' : '')} onClick={() => setCategory(name)}>{name}</button>)}</div>
@@ -542,8 +534,7 @@ export default function App() {
         </section>
       </main>}
 
-      {authUser && !navHidden && <nav className="mobile-nav account-mobile-nav" aria-label="Urambazaji wa akaunti">{[['dashboard','⌂','Mwanzo'],['marketplace','⌕','Soko'],['upload','＋','Weka'],['profile','◉','Wasifu']].map(([id,icon,label]) => <button key={id} className={dashboardSection === id ? 'active' : ''} onClick={() => { if (id === 'upload') askDemo('upload'); else setDashboardSection(id); }}><span>{icon}</span>{label}</button>)}</nav>}
-      {!authUser && <nav className="mobile-nav" aria-label="Urambazaji wa SOKORA">{[['⌂','Nyumbani'],['⌕','Gundua'],['●','LIVE'],['↪','Ingia']].map(([icon, label]) => <button key={label} className={mobileTab === label ? 'active' : ''} onClick={() => { setMobileTab(label); if (label === 'Ingia') openAuth('login'); else if (label === 'LIVE') askDemo('live'); else window.scrollTo({ top: label === 'Gundua' ? 420 : 0, behavior: 'smooth' }); }}><span>{icon}</span>{label}</button>)}</nav>}
+
 
       {toast && <div className="toast" role="status">{toast}</div>}
       {modal && <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}><section className="modal-card" role="dialog" aria-modal="true">
