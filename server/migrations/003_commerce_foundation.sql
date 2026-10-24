@@ -2,6 +2,8 @@
 -- Apply manually to the verified SOKORA Neon project/branch after reviewing.
 BEGIN;
 
+ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT;
+
 CREATE TABLE IF NOT EXISTS orders (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_number TEXT NOT NULL UNIQUE,
