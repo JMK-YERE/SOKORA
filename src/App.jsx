@@ -52,7 +52,9 @@ function isDemoRecord(row) {
   const seller = String(row.seller_username ?? '').toLowerCase().replace(/^@/, '');
   const media = String(row.video_url ?? '').toLowerCase();
   const caption = String(row.caption ?? row.description ?? '').toLowerCase();
+  const seededSellers = new Set(['jiji_gadgets_tz','mariam_fashion','mama_neema_home','jmk_tech','smart_zone_tz','pixel_hub','mwanza_furniture','urban_style_tz','motor_hub_tz','makazi_tanzania','sokora_video_demo','sokora_demo_shop']);
   return id.startsWith('demo-')
+    || seededSellers.has(seller)
     || /^(sokora_)?(video_)?demo/.test(seller)
     || media.includes('storage.googleapis.com/gtv-videos-bucket/sample/')
     || caption.includes('maudhui haya si tangazo la muuzaji halisi')
