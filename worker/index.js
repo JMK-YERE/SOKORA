@@ -563,7 +563,7 @@ export default {
       if (auth.error) return json({ error: auth.error }, auth.status);
       try {
         const db = getDatabase(env);
-        const rows = await db\`SELECT f.seller_id, u.username, u.display_name, f.created_at FROM follows f JOIN users u ON u.id = f.seller_id WHERE f.follower_id = \${auth.user.id} AND u.status = 'ACTIVE' ORDER BY f.created_at DESC LIMIT 500\`;
+        const rows = await db`SELECT f.seller_id, u.username, u.display_name, f.created_at FROM follows f JOIN users u ON u.id = f.seller_id WHERE f.follower_id = ${auth.user.id} AND u.status = 'ACTIVE' ORDER BY f.created_at DESC LIMIT 500`;
         return json({ items: rows, count: rows.length });
       } catch (error) {
         console.error('SOKORA follows list failed:', error?.message || 'unknown error');
@@ -581,19 +581,18 @@ export default {
       try {
         const db = getDatabase(env);
         if (request.method === 'POST') {
-          const seller = await db\`SELECT id FROM users WHERE id = \${sellerId} AND status = 'ACTIVE' LIMIT 1\`;
+          const seller = await db`SELECT id FROM users WHERE id = ${sellerId} AND status = 'ACTIVE' LIMIT 1`;
           if (!seller.length) return json({ error: 'SELLER_NOT_FOUND' }, 404);
-          await db\`INSERT INTO follows (follower_id, seller_id) VALUES (\${auth.user.id}, \${seller[0].id}) ON CONFLICT DO NOTHING\`;
+          await db`INSERT INTO follows (follower_id, seller_id) VALUES (${auth.user.id}, ${seller[0].id}) ON CONFLICT DO NOTHING`;
           return json({ following: true, sellerId: seller[0].id });
         }
-        await db\`DELETE FROM follows WHERE follower_id = \${auth.user.id} AND seller_id = \${sellerId}\`;
+        await db`DELETE FROM follows WHERE follower_id = ${auth.user.id} AND seller_id = ${sellerId}`;
         return json({ following: false, sellerId });
       } catch (error) {
         console.error('SOKORA follow update failed:', error?.message || 'unknown error');
         return json({ error: 'FOLLOW_UPDATE_FAILED' }, 503);
       }
     }
-
     const sellerMatch = url.pathname.match(/^\/api\/sellers\/([^/]+)$/);
     if (sellerMatch && request.method === 'GET') {
       let username;
