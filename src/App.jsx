@@ -3,6 +3,25 @@ import { useEffect, useMemo, useState } from 'react';
 const API = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 const categories = ['Zote', 'Elektroniki', 'Mitindo', 'Nyumba', 'Magari', 'Huduma', 'Vyumba vya kupanga', 'Biashara'];
 
+const categoryShowcases = [
+  { name: 'Mitindo na viatu', filter: 'Mitindo', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85', alt: 'Viatu vya mitindo' },
+  { name: 'Nyumba na samani', filter: 'Nyumba', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=85', alt: 'Samani za sebuleni' },
+  { name: 'Bidhaa za kila siku', filter: 'Biashara', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=85', alt: 'Bidhaa za dukani' },
+  { name: 'Simu na vifaa vya elektroniki', filter: 'Elektroniki', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=85', alt: 'Simu janja' },
+  { name: 'Kilimo na mazao', filter: 'Biashara', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=85', alt: 'Mazao sokoni' },
+  { name: 'Magari na usafiri', filter: 'Magari', image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=85', alt: 'Gari' },
+  { name: 'Huduma na biashara', filter: 'Huduma', image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85', alt: 'Watu wakifanya kazi' },
+  { name: 'Vifaa vya nyumbani', filter: 'Nyumba', image: 'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=900&q=85', alt: 'Vifaa vya nyumbani' },
+];
+const sellerMediaShowcase = [
+  { title: 'Mitindo na mavazi', region: 'Dar es Salaam', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=700&q=85' },
+  { title: 'Simu na vifaa', region: 'Kariakoo', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=700&q=85' },
+  { title: 'Samani za nyumbani', region: 'Dodoma', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=700&q=85' },
+  { title: 'Bidhaa za kila siku', region: 'Mwanza', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=85' },
+  { title: 'Viatu na mitindo', region: 'Arusha', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=85' },
+];
+
+
 
 function useLocalStorageState(key, initialValue) {
   const [value, setValue] = useState(() => {
@@ -409,6 +428,28 @@ export default function App() {
             <a className="tanzania-store-card" href="https://unustore.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">UN</span><span className="store-copy"><strong>Unustore</strong><small>Elektroniki, simu, kompyuta na wauzaji wa Tanzania</small><em>Gundua bidhaa ↗</em></span></a>
           </div>
           <div className="tanzania-source-note"><strong>Kwa nini bidhaa hizi hazijaingizwa kama matangazo ya SOKORA?</strong><span>Viungo hivi vinafungua katalogi za wauzaji; si uagizaji wa bidhaa ndani ya SOKORA. Picha/video za ukurasa mkuu sasa zinatokana na matangazo halisi ya SOKORA yanapopatikana—picha za stock zisizohusiana hazitumiki tena. Ili kuonyesha katalogi nzima ya maduka haya ndani ya SOKORA, tunahitaji API/feed rasmi au ruhusa ya wauzaji, pamoja na njia ya kusawazisha bei na stock. Hatutadai bidhaa inapatikana sasa bila uthibitisho.</span></div>
+        </section>
+
+        <section className="category-showcase-section" aria-labelledby="popular-categories-title">
+          <div className="section-heading"><div><p className="eyebrow">TAFUTA KWA MAKUNDI</p><h2 id="popular-categories-title">Vikundi Maarufu</h2></div><button className="category-showcase-more" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Tazama vyote →</button></div>
+          <div className="category-showcase-grid">
+            {categoryShowcases.map((item) => <button className="category-showcase-card" key={item.name} onClick={() => { setCategory(item.filter); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }} aria-label={'Gundua kundi: ' + item.name}>
+              <img src={item.image} alt={item.alt} loading="lazy" />
+              <span className="category-showcase-shade" />
+              <span className="category-showcase-copy"><strong>{item.name}</strong><small>Picha ya kuonyesha kundi</small></span>
+              <span className="category-showcase-arrow" aria-hidden="true">→</span>
+            </button>)}
+          </div>
+        </section>
+
+        <section className="seller-media-showcase" aria-labelledby="seller-media-title">
+          <div className="section-heading"><div><p className="eyebrow">GUNDUA KWA PICHA</p><h2 id="seller-media-title">Media za wauzaji</h2></div><button className="category-showcase-more" onClick={() => document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' })}>Tazama bidhaa zote →</button></div>
+          <div className="seller-media-showcase-grid">
+            {sellerMediaShowcase.map((item) => <button className="seller-media-showcase-card" key={item.title} onClick={() => { setQuery(item.title.split(' ')[0]); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>
+              <img src={item.image} alt={item.title} loading="lazy" /><span className="seller-media-play" aria-hidden="true">▶</span><strong>{item.title}</strong><small>{item.region} · Picha ya kuonyesha kundi</small>
+            </button>)}
+          </div>
+          <p className="showcase-disclaimer">Picha hizi ni za kuonyesha makundi tu; si matangazo ya wauzaji halisi. Matangazo halisi yataonekana kwenye orodha ya bidhaa yakitolewa na API ya SOKORA.</p>
         </section>
 
         <section className="market-section" id="marketplace-products">
