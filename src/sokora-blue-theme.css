@@ -221,3 +221,32 @@ footer { background: #f4f7fc !important; color: #5b6f88 !important; }
 .empty-market-image-arrow { position:absolute; right:11px; bottom:11px; display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:#fff; color:#0b2e67; font-size:1.25rem; font-weight:800; }
 @media(max-width:900px) { .empty-market-gallery-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:600px) { .empty-market-gallery-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .empty-market-image-card { height:42vw; min-height:155px; } .empty-market-image-card strong { left:10px; bottom:11px; right:38px; font-size:.92rem; } .empty-market-image-arrow { width:28px; height:28px; right:7px; bottom:7px; } }
+
+
+/* MyShop-inspired marketplace layout: SOKORA navy/white, real API data only */
+.myshop-style-nav { justify-content:flex-start; gap:8px; overflow-x:auto; }
+.myshop-style-nav button { white-space:nowrap; }
+.market-category-section, .sokora-shops-section { padding:30px clamp(16px,3.5vw,56px); background:#fff; color:#102f65; }
+.market-category-intro { margin:0 0 18px; color:#64748b; font-size:1rem; line-height:1.6; }
+.market-category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+.market-category-item { display:flex; align-items:center; gap:10px; min-height:58px; padding:10px 12px; border:1px solid #dce6f5; border-radius:9px; background:#fff; color:#173766; text-align:left; cursor:pointer; transition:border-color .15s,background .15s,transform .15s; }
+.market-category-item:hover { border-color:#174ea6; background:#f5f8ff; transform:translateY(-1px); }
+.market-category-item > span:nth-child(2) { flex:1; font-size:.92rem; font-weight:650; line-height:1.25; }
+.market-category-item b { color:#174ea6; font-size:1.3rem; }
+.market-category-icon { display:grid; place-items:center; flex:0 0 34px; width:34px; height:34px; border-radius:8px; background:#edf3ff; color:#0b2e67; font-size:1.2rem; }
+.sokora-shops-section { background:#f6f8fc; border-top:1px solid #e5ebf5; border-bottom:1px solid #e5ebf5; }
+.sokora-shops-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.sokora-shop-card { display:flex; flex-direction:column; align-items:flex-start; min-width:0; padding:18px; border:1px solid #dce6f5; border-radius:12px; background:#fff; box-shadow:0 3px 12px #0b2e6708; }
+.sokora-shop-avatar { display:grid; place-items:center; width:48px; height:48px; margin-bottom:12px; border-radius:50%; background:#e9f0ff; color:#0b2e67; font-size:1.1rem; font-weight:850; }
+.sokora-shop-copy { display:grid; gap:5px; width:100%; min-width:0; }
+.sokora-shop-copy strong { overflow-wrap:anywhere; color:#102f65; font-size:1rem; }
+.sokora-shop-copy span, .sokora-shop-copy small { color:#64748b; font-size:.85rem; line-height:1.4; }
+.sokora-shop-card > button, .shops-empty-state > button { margin-top:15px; border:0; border-radius:7px; padding:10px 13px; background:#0b2e67; color:#fff; font-weight:750; cursor:pointer; }
+.shops-empty-state { display:flex; align-items:center; gap:16px; padding:22px; border:1px dashed #b8c9e4; border-radius:12px; background:#fff; }
+.shops-empty-state > span { display:grid; place-items:center; flex:0 0 48px; width:48px; height:48px; border-radius:10px; background:#edf3ff; color:#0b2e67; font-size:1.6rem; }
+.shops-empty-state > div { flex:1; }
+.shops-empty-state strong { color:#102f65; }
+.shops-empty-state p { margin:5px 0 0; color:#64748b; line-height:1.55; }
+.shops-empty-state > button { margin-top:0; flex-shrink:0; }
+@media(max-width:1000px) { .market-category-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .sokora-shops-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:650px) { .market-category-section,.sokora-shops-section { padding:23px 14px; } .market-category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .market-category-item { gap:7px; min-height:58px; padding:8px; } .market-category-item > span:nth-child(2) { font-size:.8rem; } .market-category-icon { flex-basis:29px; width:29px; height:29px; font-size:1rem; } .sokora-shops-grid { grid-template-columns:1fr; } .shops-empty-state { align-items:flex-start; flex-wrap:wrap; padding:16px; } .shops-empty-state > div { min-width:calc(100% - 70px); } .shops-empty-state > button { margin-left:64px; } }
