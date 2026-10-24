@@ -359,6 +359,22 @@ export default function App() {
           <div><span className="benefit-icon">◎</span><div><b>Kwa Tanzania</b><small>Biashara kutoka mikoa mbalimbali</small></div></div>
         </section>
 
+        <section className="tanzania-sources" aria-labelledby="tanzania-sources-title">
+          <div className="section-heading"><div><p className="eyebrow">BIASHARA ZA NDANI</p><h2 id="tanzania-sources-title">Gundua maduka ya Tanzania</h2></div><span className="source-note">Orodha ya maduka ya umma</span></div>
+          <p className="tanzania-sources-intro">Chunguza bidhaa zinazouzwa na maduka ya Tanzania. Viungo hivi vinafungua katalogi za maduka husika; bei, upatikanaji, picha na video vinathibitishwa kwenye tovuti ya muuzaji.</p>
+          <div className="tanzania-store-grid">
+            <a className="tanzania-store-card" href="https://darshopping.co.tz/products" target="_blank" rel="noopener noreferrer"><span className="store-mark">DS</span><span className="store-copy"><strong>Dar Shopping</strong><small>Simu, vifaa vya nyumbani, kompyuta, mitindo</small><em>Katalogi ya bidhaa ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://www.rebumall.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">RM</span><span className="store-copy"><strong>Rebu Mall</strong><small>Wauzaji wa ndani, nguo, viatu, vifaa vya nyumbani</small><em>Angalia maduka ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://www.kichi.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">KC</span><span className="store-copy"><strong>Kichi Tanzania</strong><small>Simu, kompyuta, vifaa, nguo na viatu</small><em>Angalia bidhaa ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://www.naneka.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">NK</span><span className="store-copy"><strong>Naneka</strong><small>Vifaa vya elektroniki, simu na bidhaa za nyumbani</small><em>Nunua mtandaoni ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://impala.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">IP</span><span className="store-copy"><strong>Impala</strong><small>Elektroniki, vifaa vya nyumbani, zana na ujenzi</small><em>Angalia katalogi ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://findandgetgroup.com/shop" target="_blank" rel="noopener noreferrer"><span className="store-mark">FG</span><span className="store-copy"><strong>Find &amp; Get</strong><small>Bidhaa za familia, watoto, urembo na afya</small><em>Angalia bidhaa ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://zudua.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">ZU</span><span className="store-copy"><strong>Zudua</strong><small>Nyumbani, jikoni, shule, mitindo na lifestyle</small><em>Tembelea duka ↗</em></span></a>
+            <a className="tanzania-store-card" href="https://unustore.co.tz/" target="_blank" rel="noopener noreferrer"><span className="store-mark">UN</span><span className="store-copy"><strong>Unustore</strong><small>Elektroniki, simu, kompyuta na wauzaji wa Tanzania</small><em>Gundua bidhaa ↗</em></span></a>
+          </div>
+          <div className="tanzania-source-note"><strong>Kwa nini bidhaa hizi hazijaingizwa kama matangazo ya SOKORA?</strong><span>Hatunakili picha, video, bei au orodha za maduka mengine bila ruhusa au muunganisho rasmi. Matangazo ya SOKORA yataonyesha media za muuzaji aliyeweka bidhaa, eneo lake na bei iliyothibitishwa. Hii inazuia bidhaa za zamani au matangazo ya kubuni kuonekana kama yanapatikana sasa.</span></div>
+        </section>
+
         <section className="market-section" id="marketplace-products">
           <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'loading' ? 'Inapakia soko…' : mode === 'video-api' ? 'Video kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : mode === 'empty-api' ? 'Hakuna matangazo bado' : mode === 'api-error' ? 'API haipatikani' : 'Data za mfano'}</span></div>
           <div className="category-row" aria-label="Makundi ya bidhaa">{categories.map((name) => <button key={name} className={'category-chip ' + (category === name ? 'active' : '')} onClick={() => setCategory(name)}>{name}</button>)}</div>
