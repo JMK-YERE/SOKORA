@@ -82,3 +82,31 @@ test('D1 reads remain opt-in when the feature flag is off', async () => {
   // in this isolated test environment (no Hyperdrive binding is supplied).
   assert.equal(response.status, 503);
 });
+
+
+test('D1 health endpoint reports binding and table count', async () => {
+  const db = makeD1({ first: { table_count: 18 } });
+  const response = await invoke('/api/health/d1', db, 'false');
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    ok: true,
+    service: 'sokora-api',
+    database: 'd1_connected',
+    tables: 18,
+    migration: 'foundation',
+  });
+});
+
+test('D1 health endpoint fails closed when binding is missing', async () => {
+  const response = await worker.fetch(
+    new Request('https://sokora.test/api/health/d1'),
+    {},
+    {}
+  );
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    service: 'sokora-api',
+    database: 'd1_binding_missing',
+  });
+});
