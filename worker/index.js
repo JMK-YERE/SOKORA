@@ -203,7 +203,7 @@ async function handleD1ReadRoutes(request, env, url) {
     if (/^\/api\/products\/[^/]+$/.test(url.pathname)) return jsonD1({ error: 'PRODUCT_UNAVAILABLE' }, 503);
     if (url.pathname === '/api/live') return jsonD1({ error: 'LIVE_SESSIONS_UNAVAILABLE' }, 503);
     if (url.pathname.startsWith('/api/sellers/')) return jsonD1({ error: 'SELLER_STORE_UNAVAILABLE' }, 503);
-    if (/^\\/api\\/products\\/[^/]+\\/reviews$/.test(url.pathname)) return jsonD1({ error: 'REVIEWS_UNAVAILABLE' }, 503);
+    if (/^\/api\/products\/[^/]+\/reviews$/.test(url.pathname)) return jsonD1({ error: 'REVIEWS_UNAVAILABLE' }, 503);
     return null;
   }
 }
