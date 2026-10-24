@@ -161,3 +161,31 @@ footer { background: #f4f7fc !important; color: #5b6f88 !important; }
   .industry-primary-cta, .hero-sell-cta { width: 100%; justify-content: center; min-height: 48px; }
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
+
+
+/* Image-rich SOKORA category and seller media rails */
+.category-showcase-section, .seller-media-showcase { padding: 28px clamp(16px, 3.5vw, 56px); background: #fff; }
+.category-showcase-section .section-heading, .seller-media-showcase .section-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.category-showcase-section h2, .seller-media-showcase h2 { color:#0b2e67; font-size:clamp(1.45rem,2.2vw,2rem); margin:0; }
+.category-showcase-more { border:0; background:transparent; color:#073b83; font-weight:800; cursor:pointer; padding:10px 4px; white-space:nowrap; }
+.category-showcase-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.category-showcase-card { position:relative; display:block; overflow:hidden; padding:0; border:0; border-radius:13px; min-height:210px; height:clamp(180px,17vw,270px); text-align:left; background:#e8eff9; cursor:pointer; box-shadow:0 3px 12px #0b2e6712; }
+.category-showcase-card img, .seller-media-showcase-card img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease; }
+.category-showcase-card:hover img, .seller-media-showcase-card:hover img { transform:scale(1.055); }
+.category-showcase-shade { position:absolute; inset:28% 0 0; background:linear-gradient(180deg,transparent,rgba(3,24,58,.92)); }
+.category-showcase-copy { position:absolute; left:16px; right:54px; bottom:15px; color:#fff; display:flex; flex-direction:column; gap:4px; }
+.category-showcase-copy strong { font-size:clamp(1rem,1.25vw,1.25rem); line-height:1.25; }
+.category-showcase-copy small { font-size:.8rem; color:#eef4ff; }
+.category-showcase-arrow { position:absolute; right:13px; bottom:13px; width:38px; height:38px; border-radius:50%; background:#fff; color:#073b83; display:grid; place-items:center; font-size:1.4rem; font-weight:800; }
+.seller-media-showcase { background:linear-gradient(110deg,#f5f8ff,#eaf2ff); }
+.seller-media-showcase-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; }
+.seller-media-showcase-card { min-width:0; padding:0 0 12px; overflow:hidden; border:1px solid #dce6f5; border-radius:12px; background:#fff; text-align:left; color:#102f65; cursor:pointer; }
+.seller-media-showcase-card img { height:clamp(140px,12vw,190px); }
+.seller-media-showcase-card strong, .seller-media-showcase-card small { display:block; margin:9px 11px 0; }
+.seller-media-showcase-card strong { font-size:.98rem; }
+.seller-media-showcase-card small { color:#62748f; font-size:.8rem; line-height:1.4; }
+.seller-media-showcase-card { position:relative; }
+.seller-media-play { position:absolute; top:clamp(44px,4.7vw,78px); left:50%; transform:translateX(-50%); width:46px; height:46px; display:grid; place-items:center; border-radius:50%; background:#061f46c9; color:#fff; border:2px solid #ffffffd9; padding-left:3px; }
+.showcase-disclaimer { margin:14px 0 0; color:#536986; font-size:.84rem; }
+@media (max-width:1050px) { .category-showcase-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .seller-media-showcase-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:680px) { .category-showcase-section, .seller-media-showcase { padding:22px 14px; } .category-showcase-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .category-showcase-card { min-height:170px; height:43vw; } .category-showcase-copy { left:10px; bottom:10px; right:40px; } .category-showcase-copy strong { font-size:.93rem; } .category-showcase-copy small { font-size:.68rem; } .category-showcase-arrow { width:30px; height:30px; right:8px; bottom:8px; font-size:1.1rem; } .seller-media-showcase-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .seller-media-showcase-card img { height:150px; } .seller-media-play { top:51px; width:40px; height:40px; } .category-showcase-section .section-heading, .seller-media-showcase .section-heading { align-items:flex-start; } }
