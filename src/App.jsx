@@ -330,12 +330,50 @@ export default function App() {
       </header>
 
       {!authUser ? <main id="home">
-        <section className="welcome-row">
-          <div><p className="eyebrow">🇹🇿 SOKO LA TANZANIA</p><h1>Biashara halisi.<br /><span>Fursa kila mahali.</span></h1><p className="welcome-copy">Gundua bidhaa, huduma na biashara kupitia picha na video fupi kutoka Tanzania nzima.</p></div>
-          <div className="welcome-stats"><span><b>{filtered.length}</b><small>Matangazo yanayoonekana</small></span><span><b>24/7</b><small>Gundua kwa muda wako</small></span></div>
+        <nav className="commerce-nav" aria-label="Urambazaji wa soko">
+          <button className="commerce-nav-active" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Makundi yote</button>
+          <button onClick={() => { setCategory('Elektroniki'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Elektroniki</button>
+          <button onClick={() => { setCategory('Nyumba'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Nyumba na samani</button>
+          <button onClick={() => { setCategory('Mitindo'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Mitindo</button>
+          <button onClick={() => openAuth('register')}>Uza kupitia SOKORA</button>
+        </nav>
+
+        <section className="industry-hero">
+          <aside className="industry-categories">
+            <div className="industry-category-title">Nunua kwa kundi</div>
+            {categories.filter((name) => name !== 'Zote').map((name, i) => <button key={name} onClick={() => { setCategory(name); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}><span className="category-symbol">{['▣','◇','⌂','▤','⚒','⌂','▦'][i]}</span><span>{name}</span><span className="category-chevron">›</span></button>)}
+            <button className="all-category-link" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Angalia makundi yote <span>→</span></button>
+          </aside>
+          <div className="industry-feature">
+            <div className="industry-feature-copy">
+              <p className="eyebrow">SOKORA · SOKO LA TANZANIA</p>
+              <h1>Tafuta bidhaa.<br /><span>Ungana na wauzaji.</span></h1>
+              <p>Gundua bidhaa na biashara kutoka Tanzania nzima, kwa bei zinazoonekana na mawasiliano ya moja kwa moja na muuzaji.</p>
+              <button className="industry-primary-cta" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Gundua bidhaa <span>→</span></button>
+              <div className="industry-proof"><span>✓ Bei kwa TSh</span><span>✓ Wauzaji wa Tanzania</span><span>✓ Mawasiliano ya moja kwa moja</span></div>
+            </div>
+            <div className="industry-feature-art" aria-hidden="true">
+              <div className="feature-orbit orbit-one"></div><div className="feature-orbit orbit-two"></div>
+              <div className="feature-product-card"><span className="feature-product-icon">▣</span><b>SOKORA MARKET</b><small>Tazama · Gundua · Nunua</small><span className="feature-price">Bei kwa TSh</span></div>
+              <span className="feature-float float-top">Bidhaa</span><span className="feature-float float-bottom">Biashara</span>
+            </div>
+          </div>
+          <aside className="industry-seller-panel">
+            <div className="seller-panel-avatar">S</div><h2>Una biashara?</h2><p>Jiunge na SOKORA na anza kuandaa matangazo ya bidhaa zako.</p><button className="seller-join-btn" onClick={() => openAuth('register')}>Fungua akaunti</button><button className="seller-login-btn" onClick={() => openAuth('login')}>Tayari una akaunti? Ingia</button>
+            <div className="seller-panel-divider"></div>
+            <div className="seller-benefit"><span>✓</span><div><b>Wasifu wa muuzaji</b><small>Jitambulishe kwa wateja</small></div></div>
+            <div className="seller-benefit"><span>✓</span><div><b>Matangazo ya bidhaa</b><small>Onyesha bei na eneo</small></div></div>
+          </aside>
         </section>
 
-        <section className="market-section">
+        <section className="commerce-benefits" aria-label="Faida za SOKORA">
+          <div><span className="benefit-icon">⌕</span><div><b>Tafuta kwa urahisi</b><small>Bidhaa, makundi na maeneo</small></div></div>
+          <div><span className="benefit-icon">▤</span><div><b>Bei zilizo wazi</b><small>Bei za bidhaa kwa TSh</small></div></div>
+          <div><span className="benefit-icon">↗</span><div><b>Wasiliana na muuzaji</b><small>Uliza kuhusu bidhaa moja kwa moja</small></div></div>
+          <div><span className="benefit-icon">◎</span><div><b>Kwa Tanzania</b><small>Biashara kutoka mikoa mbalimbali</small></div></div>
+        </section>
+
+        <section className="market-section" id="marketplace-products">
           <div className="section-heading"><div><p className="eyebrow">GUNDUA KITU KIPYA</p><h2>Video na bidhaa</h2></div><span className="source-note">{mode === 'loading' ? 'Inapakia soko…' : mode === 'video-api' ? 'Video kutoka API' : mode === 'api' ? 'Bidhaa kutoka API' : mode === 'empty-api' ? 'Hakuna matangazo bado' : mode === 'api-error' ? 'API haipatikani' : 'Data za mfano'}</span></div>
           <div className="category-row" aria-label="Makundi ya bidhaa">{categories.map((name) => <button key={name} className={'category-chip ' + (category === name ? 'active' : '')} onClick={() => setCategory(name)}>{name}</button>)}</div>
           <div className="result-line"><span>{filtered.length} matokeo</span><label className="sort-label">Panga kwa <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}><option value="recommended">Vinavyopendekezwa</option><option value="price-low">Bei: chini kwenda juu</option><option value="price-high">Bei: juu kwenda chini</option></select></label></div>
