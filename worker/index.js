@@ -138,7 +138,7 @@ async function handleD1ReadRoutes(request, env, url) {
     if (productMatch && request.method === 'GET') {
       let productId;
       try { productId = decodeURIComponent(productMatch[1]); } catch { return jsonD1({ error: 'INVALID_PRODUCT_ID' }, 400); }
-      if (!productId || productId.length > 80 || /[\\u0000-\\u001f]/.test(productId)) return jsonD1({ error: 'INVALID_PRODUCT_ID' }, 400);
+      if (!productId || productId.length > 80 || /[\u0000-\u001f]/.test(productId)) return jsonD1({ error: 'INVALID_PRODUCT_ID' }, 400);
       const row = await db.prepare(`
         SELECT p.id, p.name, p.description, p.price_tzs, p.currency, p.category, p.image_url, p.location, p.created_at,
           u.id AS seller_id, u.display_name AS seller_name, u.username AS seller_username
