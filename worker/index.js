@@ -113,7 +113,7 @@ export default {
       (request.method === 'POST' && ['/api/auth/register', '/api/auth/login', '/api/orders', '/api/conversations'].includes(url.pathname)) ||
       (request.method === 'PATCH' && /^\/api\/orders\/[^/]+\/status$/.test(url.pathname)) ||
       (request.method === 'POST' && (/^\/api\/conversations\/[^/]+\/messages$/.test(url.pathname) || /^\/api\/live\/[^/]+\/pin$/.test(url.pathname) || /^\/api\/products\/[^/]+\/reviews$/.test(url.pathname))) ||
-      ((request.method === 'POST' || request.method === 'DELETE') && /^\/api\/saved-products\/[^/]+$/.test(url.pathname))
+      ((request.method === 'POST' || request.method === 'DELETE') && (/^\/api\/saved-products\/[^/]+$/.test(url.pathname) || /^\/api\/follows\/[^/]+$/.test(url.pathname)))
     );
     if (url.pathname.startsWith('/api/') && request.method !== 'GET' && !isAuthPost && !allowedWrite) {
       return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
@@ -555,6 +555,42 @@ export default {
       } catch (error) {
         console.error('SOKORA live sessions list failed:', error?.message || 'unknown error');
         return json({ error: 'LIVE_SESSIONS_UNAVAILABLE' }, 503);
+      }
+    }
+
+    if (url.pathname === '/api/follows' && request.method === 'GET') {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      try {
+        const db = getDatabase(env);
+        const rows = await db\`SELECT f.seller_id, u.username, u.display_name, f.created_at FROM follows f JOIN users u ON u.id = f.seller_id WHERE f.follower_id = \${auth.user.id} AND u.status = 'ACTIVE' ORDER BY f.created_at DESC LIMIT 500\`;
+        return json({ items: rows, count: rows.length });
+      } catch (error) {
+        console.error('SOKORA follows list failed:', error?.message || 'unknown error');
+        return json({ error: 'FOLLOWS_UNAVAILABLE' }, 503);
+      }
+    }
+
+    const followMatch = url.pathname.match(/^\/api\/follows\/([^/]+)$/);
+    if (followMatch && ['POST', 'DELETE'].includes(request.method)) {
+      const auth = await authenticatedUser(request, env);
+      if (auth.error) return json({ error: auth.error }, auth.status);
+      const sellerId = followMatch[1];
+      if (!/^\d+$/.test(sellerId)) return json({ error: 'INVALID_SELLER_ID' }, 400);
+      if (String(auth.user.id) === sellerId) return json({ error: 'CANNOT_FOLLOW_SELF' }, 400);
+      try {
+        const db = getDatabase(env);
+        if (request.method === 'POST') {
+          const seller = await db\`SELECT id FROM users WHERE id = \${sellerId} AND status = 'ACTIVE' LIMIT 1\`;
+          if (!seller.length) return json({ error: 'SELLER_NOT_FOUND' }, 404);
+          await db\`INSERT INTO follows (follower_id, seller_id) VALUES (\${auth.user.id}, \${seller[0].id}) ON CONFLICT DO NOTHING\`;
+          return json({ following: true, sellerId: seller[0].id });
+        }
+        await db\`DELETE FROM follows WHERE follower_id = \${auth.user.id} AND seller_id = \${sellerId}\`;
+        return json({ following: false, sellerId });
+      } catch (error) {
+        console.error('SOKORA follow update failed:', error?.message || 'unknown error');
+        return json({ error: 'FOLLOW_UPDATE_FAILED' }, 503);
       }
     }
 
