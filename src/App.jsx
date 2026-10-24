@@ -21,6 +21,12 @@ const sellerMediaShowcase = [
   { title: 'Viatu na mitindo', region: 'Arusha', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=85' },
 ];
 
+const videoShowcase = [
+  { title: 'Mitindo na mavazi', category: 'Mitindo', poster: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=85', video: 'https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4' },
+  { title: 'Simu na teknolojia', category: 'Elektroniki', poster: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=85', video: 'https://videos.pexels.com/video-files/856857/856857-hd_1920_1080_25fps.mp4' },
+  { title: 'Samani na nyumba', category: 'Nyumba', poster: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=85', video: 'https://videos.pexels.com/video-files/5495784/5495784-hd_1920_1080_25fps.mp4' },
+];
+
 
 
 function useLocalStorageState(key, initialValue) {
@@ -450,6 +456,20 @@ export default function App() {
             </button>)}
           </div>
           <p className="showcase-disclaimer">Picha hizi ni za kuonyesha makundi tu; si matangazo ya wauzaji halisi. Matangazo halisi yataonekana kwenye orodha ya bidhaa yakitolewa na API ya SOKORA.</p>
+        </section>
+
+        <section className="video-showcase-section" aria-labelledby="video-showcase-title">
+          <div className="section-heading"><div><p className="eyebrow">TAZAMA KABLA YA KUNUNUA</p><h2 id="video-showcase-title">Video za kuangalia bidhaa</h2></div><button className="category-showcase-more" onClick={() => document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' })}>Nenda kwenye soko →</button></div>
+          <div className="video-showcase-grid">
+            {videoShowcase.map((item) => <article className="video-showcase-card" key={item.title}>
+              <video controls playsInline preload="none" poster={item.poster} aria-label={'Video ya kuonyesha ' + item.title}>
+                <source src={item.video} type="video/mp4" />
+                Kivinjari chako hakiwezi kucheza video hii.
+              </video>
+              <div className="video-showcase-caption"><strong>{item.title}</strong><span>Video ya mfano · si tangazo la muuzaji</span><button onClick={() => { setCategory(item.category); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Gundua kundi →</button></div>
+            </article>)}
+          </div>
+          <p className="showcase-disclaimer">Video hizi ni za kuonyesha muundo wa video kwenye SOKORA, si bidhaa zinazouzwa wala video za wauzaji wetu. Video halisi za wauzaji zitaonekana hapa kupitia API ya SOKORA zikishapakiwa.</p>
         </section>
 
         <section className="market-section" id="marketplace-products">
