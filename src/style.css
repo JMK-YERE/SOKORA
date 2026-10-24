@@ -498,3 +498,83 @@ body,.app-shell{background:#f7faf8!important;color:#18251f}
 .mobile-nav button{color:#6b7d72!important}.mobile-nav button.active{color:#0e6b4f!important}
 .toast{background:#0e6b4f!important;color:#fff!important}
 @media(max-width:700px){.site-header{background:#fff!important}.welcome-row{padding-top:30px}.product-grid{gap:11px}.product-card{border-radius:13px}}
+
+
+/* SOKORA: strict green-and-white palette, clear public/private navigation */
+:root{
+ color-scheme:light;
+ color:#20352a;
+ background:#ffffff;
+ --bg:#ffffff;--panel:#ffffff;--panel2:#f0f8f3;--line:#d3e5d9;
+ --muted:#52685b;--gold:#0e6b4f;--red:#0e6b4f;
+}
+html,body,#root,.app-shell{background:#ffffff!important;color:#20352a!important}
+.site-header{background:#ffffff!important;border-bottom:1px solid #d3e5d9!important;box-shadow:0 3px 18px #0e6b4f0d!important}
+.brand,.brand strong{color:#0e6b4f!important}.brand-mark{background:#0e6b4f!important;color:#ffffff!important}
+.brand small{color:#52685b!important}
+.public-header .search-box{background:#f5faf7!important;border-color:#c6ddce!important;color:#20352a!important}
+.search-box input{background:transparent!important;color:#20352a!important}
+.search-box input::placeholder{color:#52685b!important;opacity:1!important}
+.search-box kbd{color:#52685b!important;border-color:#c6ddce!important}
+.gold-btn,.auth-form .gold-btn,.header-actions .gold-btn{
+ background:#0e6b4f!important;border:1px solid #0e6b4f!important;color:#ffffff!important;
+}
+.gold-btn:hover,.auth-form .gold-btn:hover{background:#084d38!important;color:#ffffff!important}
+.ghost-btn{background:#ffffff!important;border:1px solid #a9cbb5!important;color:#0e6b4f!important}
+.text-link,.eyebrow,.welcome-row h1 span{color:#0e6b4f!important}
+.welcome-copy,.welcome-stats small,.section-label small,.result-line,.modal-muted,
+.profile-panel p,.dashboard-welcome p,.sidebar-caption,.source-note,.product-caption,
+.product-bottom span,.disclaimer,.account-topline>div>p:not(.eyebrow),
+.account-identity small,.field-help,.modal-card>p:not(.eyebrow){
+ color:#52685b!important;opacity:1!important;
+}
+.welcome-row h1,.section-heading h2,.product-card h3,.product-card h2,
+.modal-card h2,.dashboard-welcome h2,.account-topline h1,.account-empty-panel h2,
+.profile-panel h2,.account-identity strong,.seller-banner h2{color:#20352a!important}
+.welcome-stats>span,.live-row,.product-card,.profile-panel,.account-empty-panel,
+.dashboard-welcome,.account-sidebar,.account-main,.seller-banner,.modal-card,
+.comment-list,.account-menu-item,.welcome-art,.account-topline,.account-role{
+ background:#ffffff!important;color:#20352a!important;border-color:#d3e5d9!important;
+}
+.product-card{box-shadow:0 5px 20px #0e6b4f0d!important}
+.product-card:hover{border-color:#76ae8c!important}
+.product-media{background:#edf7f0!important}
+.media-placeholder{background:#edf7f0!important;color:#385a46!important}
+.category-chip{background:#ffffff!important;color:#385a46!important;border-color:#c6ddce!important}
+.category-chip.active,.category-chip:hover{background:#e8f5ec!important;color:#0e6b4f!important;border-color:#0e6b4f!important}
+.live-avatar{background:#e8f5ec!important;border-color:#b6d8c1!important;color:#0e6b4f!important}
+.live-outline{background:#e8f5ec!important;border-color:#0e6b4f!important;color:#0e6b4f!important}
+.live-dot,.live-badge{background:#0e6b4f!important;box-shadow:0 0 0 5px #0e6b4f18!important}
+.account-menu-item{color:#385a46!important;background:#ffffff!important}
+.account-menu-item:hover,.account-menu-item.active{background:#e8f5ec!important;color:#0e6b4f!important;border-color:#b6d8c1!important}
+.account-menu-item span,.account-menu-item.active span{color:#0e6b4f!important}
+.account-role,.welcome-pill{background:#e8f5ec!important;color:#0e6b4f!important;border-color:#b6d8c1!important}
+.welcome-art{background:#e8f5ec!important}
+.welcome-art strong,.welcome-art small,.welcome-art span{color:#0e6b4f!important}
+input,textarea,select,.field-label input,.field-label textarea,.field-label select,
+.auth-form input,.modal-card input,.modal-card textarea,.sort-label select,
+.nearby-region-label select,.account-search input{
+ background:#ffffff!important;color:#20352a!important;border-color:#b8d4c2!important;
+}
+input::placeholder,textarea::placeholder,.account-search input::placeholder{
+ color:#52685b!important;opacity:1!important;
+}
+input:focus,textarea:focus,select:focus{border-color:#0e6b4f!important}
+.modal-backdrop{background:#173b29a8!important}
+.modal-card{box-shadow:0 20px 80px #0b28183d!important}
+.toast{background:#0e6b4f!important;color:#ffffff!important;border-color:#0e6b4f!important}
+.mobile-nav{background:#ffffff!important;border-top:1px solid #d3e5d9!important;box-shadow:0 -6px 22px #0e6b4f12!important}
+.mobile-nav button{background:#ffffff!important;color:#52685b!important}
+.mobile-nav button.active{background:#e8f5ec!important;color:#0e6b4f!important;border-color:#b6d8c1!important}
+.mobile-nav button.active span{color:#0e6b4f!important}
+.card-actions button,.follow-mini{color:#0e6b4f!important;border-color:#c6ddce!important}
+.card-actions button.is-liked{color:#0e6b4f!important}
+.empty-state{background:#f5faf7!important;color:#20352a!important;border-color:#d3e5d9!important}
+.empty-state h3,.empty-state p{color:#385a46!important;opacity:1!important}
+.public-header .header-actions .gold-btn{min-height:42px}
+.private-header .header-actions .ghost-btn{min-height:42px}
+@media(max-width:760px){
+ .site-header{background:#ffffff!important}
+ .header-actions .ghost-btn,.header-actions .gold-btn{background:#0e6b4f!important;color:#ffffff!important;border-color:#0e6b4f!important}
+ .mobile-nav{background:#ffffff!important}
+}
