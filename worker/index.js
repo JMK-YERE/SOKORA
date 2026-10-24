@@ -147,6 +147,54 @@ async function handleD1ReadRoutes(request, env, url) {
       `).bind(productId).first();
       return row ? jsonD1({ product: row }) : jsonD1({ error: 'PRODUCT_NOT_FOUND' }, 404);
     }
+
+    if (url.pathname === '/api/live' && request.method === 'GET') {
+      const rawLimit = Number.parseInt(url.searchParams.get('limit') || '8', 10);
+      const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 20) : 8;
+      const result = await db.prepare(`
+        SELECT ls.id, ls.title, ls.started_at, u.id AS seller_id, u.username AS seller_username,
+          u.display_name AS seller_name, sp.business_name, sp.verification_status,
+          p.id AS pinned_product_id, p.name AS pinned_product_name,
+          p.price_tzs AS pinned_product_price_tzs, p.image_url AS pinned_product_image_url
+        FROM live_sessions ls JOIN users u ON u.id=ls.seller_id
+        LEFT JOIN seller_profiles sp ON sp.user_id=u.id
+        LEFT JOIN live_session_products lsp ON lsp.live_session_id=ls.id
+        LEFT JOIN products p ON p.id=lsp.product_id AND p.status='ACTIVE'
+        WHERE ls.status='LIVE' AND u.status='ACTIVE'
+          AND (lsp.pinned_at IS NULL OR lsp.pinned_at=(SELECT MAX(lsp2.pinned_at) FROM live_session_products lsp2 JOIN products p2 ON p2.id=lsp2.product_id WHERE lsp2.live_session_id=ls.id AND p2.status='ACTIVE'))
+        ORDER BY ls.started_at DESC LIMIT ?
+      `).bind(limit).all();
+      return jsonD1({ items: result.results || [] });
+    }
+    const sellerMatch = url.pathname.match(/^\/api\/sellers\/([^/]+)$/);
+    if (sellerMatch && request.method === 'GET') {
+      let username;
+      try { username = decodeURIComponent(sellerMatch[1]).replace(/^@/, '').toLowerCase(); }
+      catch { return jsonD1({ error: 'INVALID_SELLER' }, 400); }
+      const seller = await db.prepare(`
+        SELECT u.id, u.username, u.display_name, u.avatar_url, sp.business_name, sp.description,
+          sp.region, sp.district, sp.verification_status
+        FROM users u LEFT JOIN seller_profiles sp ON sp.user_id=u.id
+        WHERE lower(u.username)=? AND u.status='ACTIVE' LIMIT 1
+      `).bind(username).first();
+      if (!seller) return jsonD1({ error: 'SELLER_NOT_FOUND' }, 404);
+      const [productsResult, followersResult, ratingResult] = await Promise.all([
+        db.prepare("SELECT id, name, description, price_tzs, currency, category, location, image_url, created_at FROM products WHERE seller_id=? AND status='ACTIVE' ORDER BY created_at DESC LIMIT 100").bind(seller.id).all(),
+        db.prepare("SELECT COUNT(*) AS followers FROM follows WHERE seller_id=?").bind(seller.id).first(),
+        db.prepare("SELECT ROUND(AVG(pr.rating),1) AS rating, COUNT(pr.id) AS review_count FROM product_reviews pr JOIN products p ON p.id=pr.product_id WHERE p.seller_id=?").bind(seller.id).first()
+      ]);
+      return jsonD1({ seller: { ...seller, verified: seller.verification_status === 'VERIFIED', followers: Number(followersResult?.followers || 0), rating: ratingResult?.rating ?? null, reviewCount: Number(ratingResult?.review_count || 0) }, products: productsResult.results || [] });
+    }
+    const reviewsMatch = url.pathname.match(/^\/api\/products\/([^/]+)\/reviews$/);
+    if (reviewsMatch && request.method === 'GET') {
+      const result = await db.prepare(`
+        SELECT pr.id, pr.rating, pr.body, pr.created_at, u.username, u.display_name
+        FROM product_reviews pr JOIN users u ON u.id=pr.buyer_id
+        WHERE CAST(pr.product_id AS TEXT)=? ORDER BY pr.created_at DESC LIMIT 100
+      `).bind(reviewsMatch[1]).all();
+      const summary = await db.prepare("SELECT ROUND(AVG(rating),1) AS rating, COUNT(*) AS count FROM product_reviews WHERE CAST(product_id AS TEXT)=?").bind(reviewsMatch[1]).first();
+      return jsonD1({ items: result.results || [], summary: summary || { rating: null, count: 0 } });
+    }
     return null;
   } catch (error) {
     console.error('SOKORA D1 read route failed:', error?.message || 'unknown error');
