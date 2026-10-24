@@ -918,3 +918,69 @@ main { max-width: 1680px !important; }
   .feature-photo-empty { inset:18px 10% 14px 12%; padding:15px; }
   .feature-photo-empty strong { font-size:17px; }
 }
+
+
+/* SOKORA signature palette: midnight ink + plum + coral + warm sand (avoid generic green marketplace look). */
+:root {
+  --bg:#f7f4f0; --panel:#fffdfa; --panel2:#f3eee8; --line:#e6ddd5;
+  --muted:#746b69; --gold:#6941a5; --red:#e76b55;
+  --sokora-ink:#241b2b; --sokora-plum:#6941a5; --sokora-coral:#e76b55; --sokora-sand:#f5e9d9;
+}
+body,.app-shell { background:#f7f4f0 !important; color:#241b2b !important; }
+.site-header { background:#fffdfa !important; border-bottom:1px solid #e8dfd7 !important; }
+.brand-mark { background:#6941a5 !important; color:#fff !important; }
+.brand strong { color:#241b2b !important; }
+.eyebrow,.industry-feature-copy .eyebrow { color:#6941a5 !important; }
+.industry-feature { background:linear-gradient(120deg,#f8eee2 0%,#f3e8f1 54%,#e9e0f3 100%) !important; border-color:#e3d5e8 !important; }
+.industry-feature-copy h1 { color:#241b2b !important; }
+.industry-feature-copy h1 span { color:#6941a5 !important; }
+.industry-feature-copy>p:not(.eyebrow) { color:#665b66 !important; }
+.industry-primary-cta,.seller-join-btn,.gold-btn,.buy-now-btn {
+  background:#6941a5 !important; color:#fff !important; border-color:#6941a5 !important;
+}
+.industry-primary-cta:hover,.seller-join-btn:hover,.gold-btn:hover,.buy-now-btn:hover { background:#4f2e83 !important; }
+.hero-sell-cta { display:inline-flex; align-items:center; gap:10px; min-height:48px; padding:0 18px; border:1px solid #d9c8e6; border-radius:6px; color:#6941a5; background:#fffdfa; font-weight:800; }
+.hero-sell-cta:hover { background:#f1e8f8; }
+.industry-proof { color:#66556d !important; }
+.hero-cta-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.hero-slide-controls { display:flex; align-items:center; gap:8px; margin-top:20px; }
+.hero-slide-controls>button:not(.hero-dot) { display:flex; align-items:center; justify-content:center; width:30px; height:30px; border:1px solid #d9c8e6; border-radius:50%; background:#fffdfa; color:#6941a5; font-size:21px; }
+.hero-slide-controls .hero-dot { width:8px; height:8px; padding:0; border:0; border-radius:99px; background:#d7c8dd; transition:width .2s,background .2s; }
+.hero-slide-controls .hero-dot.active { width:24px; background:#e76b55; }
+.hero-copy-slider h1 { animation:heroTextIn .35s ease both; }
+.hero-copy-slider p { animation:heroTextIn .42s ease both; }
+@keyframes heroTextIn { from { opacity:.25; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
+.industry-categories,.industry-seller-panel,.commerce-benefits,.market-section,.tanzania-sources { background:#fffdfa !important; border-color:#e6ddd5 !important; }
+.industry-categories>button:not(.all-category-link) { background:#fffdfa !important; color:#514653 !important; }
+.industry-categories>button:not(.all-category-link):hover { background:#f5edf8 !important; color:#6941a5 !important; }
+.category-symbol,.benefit-icon,.seller-panel-avatar,.seller-benefit>span,.store-mark,.seller-avatar { background:#f0e7f7 !important; color:#6941a5 !important; }
+.all-category-link { background:#faf4ed !important; color:#6941a5 !important; border-color:#e6ddd5 !important; }
+.commerce-nav { border-color:#e6ddd5 !important; }
+.commerce-nav button:hover,.commerce-nav button.commerce-nav-active { color:#6941a5 !important; border-bottom-color:#e76b55 !important; }
+.category-chip:hover,.category-chip.active { color:#fff !important; background:#6941a5 !important; border-color:#6941a5 !important; }
+.category-chip.active { background:#6941a5 !important; }
+.category-chip { border-color:#e3d9e7 !important; color:#4f4353 !important; }
+.product-bottom strong { color:#bd4e3c !important; }
+.ghost-btn,.seller-login-btn { color:#6941a5 !important; }
+.follow-mini { background:#f1e8f8 !important; color:#6941a5 !important; }
+.card-actions button:hover { background:#f7eff9 !important; }
+.feature-photo { box-shadow:0 18px 44px #34223c25 !important; }
+.feature-photo-empty { border-color:#d7c4e1 !important; background:linear-gradient(145deg,#fffaf3,#f0e5f6) !important; color:#65556b !important; }
+.feature-photo-empty strong { color:#6941a5 !important; }
+.feature-float { color:#6941a5 !important; border-color:#e5d8e9 !important; box-shadow:0 8px 22px #34223c14 !important; }
+.source-note { background:#f8f0e8 !important; border-color:#eadbce !important; }
+.tanzania-source-note { border-left-color:#e76b55 !important; background:#fbf4ed !important; }
+.store-copy em { color:#6941a5 !important; }
+.store-mark { border-radius:11px !important; }
+.empty-state { border-color:#dfd1e4 !important; }
+@media(max-width:760px) {
+ .industry-feature { padding:24px 19px 20px !important; }
+ .industry-feature-copy h1 { font-size:clamp(31px,8.2vw,43px) !important; }
+ .industry-feature-art { min-height:220px; }
+ .hero-cta-row { display:grid; grid-template-columns:1fr; align-items:stretch; }
+ .hero-cta-row button { justify-content:center; width:100%; }
+ .hero-slide-controls { justify-content:center; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .hero-copy-slider h1,.hero-copy-slider p { animation:none !important; }
+}
