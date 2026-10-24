@@ -907,3 +907,14 @@ main { max-width: 1680px !important; }
   .tanzania-store-card { padding:13px; }
   .tanzania-sources-intro { font-size:13px; }
 }
+
+
+/* Keep hero imagery authentic: video support and an honest empty state when no real listing media exists. */
+.feature-photo video { display:block; width:100%; height:100%; object-fit:cover; }
+.feature-photo-empty { position:absolute; inset:28px 8% 24px 10%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px; padding:20px; border:1px dashed #a8c8b0; border-radius:13px; background:linear-gradient(145deg,#f9fcf9,#e3f1e6); text-align:center; color:#4f6655; box-shadow:0 12px 28px #17472b12; }
+.feature-photo-empty strong { max-width:230px; color:#0e6b4f; font-size:clamp(17px,1.4vw,22px); line-height:1.25; }
+.feature-photo-empty span { max-width:220px; font-size:12px; line-height:1.5; }
+@media(max-width:760px) {
+  .feature-photo-empty { inset:18px 10% 14px 12%; padding:15px; }
+  .feature-photo-empty strong { font-size:17px; }
+}
