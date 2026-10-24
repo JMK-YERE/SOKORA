@@ -1,0 +1,163 @@
+/* SOKORA visual refresh — premium navy blue + white marketplace */
+:root {
+  font-family: 'DM Sans', Inter, 'Segoe UI', Arial, sans-serif !important;
+  color: #18304f !important;
+  background: #ffffff !important;
+  font-size: 16px;
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --panel2: #f4f7fc;
+  --line: #dce5f1;
+  --muted: #5e7088;
+  --gold: #164a86;
+  --red: #d94b57;
+}
+html, body, #root, .app-shell { min-height: 100%; background: #fff !important; color: #18304f !important; }
+body { font-size: 16px !important; line-height: 1.6 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+button, input, textarea, select { font-family: inherit !important; font-size: inherit; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #83b6f3 !important; outline-offset: 3px; }
+.site-header { background: rgba(255,255,255,.97) !important; border-bottom: 1px solid #dce5f1 !important; box-shadow: 0 4px 20px #102b5010 !important; backdrop-filter: blur(16px); }
+.brand, .brand strong { color: #102b50 !important; }
+.brand-mark { background: #102b50 !important; color: #fff !important; border-radius: 12px !important; }
+.brand small { color: #5e7088 !important; font-size: 10px !important; font-weight: 750; }
+.search-box { background: #f4f7fc !important; border: 1px solid #d6e1ef !important; color: #173252 !important; border-radius: 12px !important; }
+.search-box input { color: #18304f !important; font-size: 15px !important; }
+.search-box input::placeholder { color: #71829a !important; }
+.search-box kbd { color: #536a86 !important; border-color: #d2deec !important; }
+.gold-btn, .industry-primary-cta, .seller-join-btn, .view-more-btn { background: #102b50 !important; border-color: #102b50 !important; color: #fff !important; box-shadow: 0 8px 20px #102b5018 !important; border-radius: 10px !important; }
+.gold-btn:hover, .industry-primary-cta:hover, .seller-join-btn:hover, .view-more-btn:hover { background: #1b4d82 !important; border-color: #1b4d82 !important; }
+.ghost-btn, .hero-sell-cta, .seller-login-btn { background: #fff !important; color: #102b50 !important; border: 1px solid #b8cbe1 !important; border-radius: 10px !important; }
+.commerce-nav { border-bottom-color: #dce5f1 !important; gap: clamp(12px, 2.4vw, 30px) !important; }
+.commerce-nav button { color: #455a75 !important; font-size: 15px !important; }
+.commerce-nav button:hover, .commerce-nav button.commerce-nav-active { color: #102b50 !important; border-bottom-color: #1e5a99 !important; }
+.industry-hero { grid-template-columns: minmax(190px,.78fr) minmax(360px,2.3fr) minmax(210px,.82fr) !important; gap: 18px !important; }
+.industry-categories, .industry-seller-panel, .commerce-benefits, .market-section, .tanzania-sources { background: #fff !important; border-color: #dce5f1 !important; box-shadow: 0 8px 28px #102b5009; }
+.industry-category-title { color: #102b50 !important; font-size: 18px !important; }
+.industry-categories>button:not(.all-category-link) { background: #fff !important; color: #344c68 !important; font-size: 15px !important; min-height: 45px !important; }
+.industry-categories>button:not(.all-category-link):hover { background: #eef4fc !important; color: #102b50 !important; }
+.category-symbol, .category-chevron { color: #1c5a98 !important; }
+.all-category-link { color: #174f88 !important; background: #f4f8fe !important; }
+.industry-feature { background: linear-gradient(120deg,#f5f8fd 0%,#fff 62%,#edf4fc 100%) !important; border: 1px solid #dce5f1 !important; border-radius: 18px !important; padding: clamp(22px,3vw,36px) !important; box-shadow: 0 12px 32px #102b5010 !important; }
+.industry-feature-copy .eyebrow, .eyebrow { color: #1d5a98 !important; letter-spacing: 1.4px !important; font-size: 12px !important; }
+.industry-feature-copy h1 { color: #102b50 !important; font-size: clamp(36px,3.3vw,54px) !important; line-height: 1.12 !important; letter-spacing: -1.5px !important; font-weight: 850 !important; }
+.industry-feature-copy h1 span { color: #286db1 !important; }
+.industry-feature-copy>p:not(.eyebrow), .hero-copy-slider p { color: #4f627b !important; font-size: 17px !important; line-height: 1.75 !important; }
+.hero-cta-row { gap: 12px !important; }
+.industry-proof { gap: 9px 15px !important; }
+.industry-proof span { color: #3c5571 !important; font-size: 13px !important; }
+.hero-slide-controls { display: flex !important; align-items: center; gap: 9px !important; margin-top: 22px !important; }
+.hero-slide-controls>button:not(.hero-dot) { width: 38px !important; height: 38px !important; border-radius: 50% !important; background: #fff !important; border: 1px solid #b9cce2 !important; color: #102b50 !important; font-size: 23px !important; }
+.hero-dot { width: 10px !important; height: 10px !important; border-radius: 50% !important; background: #c2d2e6 !important; }
+.hero-dot.active { background: #1b5b99 !important; transform: scale(1.25); }
+.industry-feature-art { min-height: 330px !important; }
+.feature-photo { border: 5px solid #fff !important; border-radius: 16px !important; background: #e9f0f9 !important; box-shadow: 0 18px 45px #102b5025 !important; }
+.feature-photo-main { height: 260px !important; }
+.feature-photo img, .feature-photo video { display: block !important; width: 100% !important; height: 100% !important; object-fit: cover !important; }
+.feature-photo span { background: rgba(16,43,80,.92) !important; color: #fff !important; font-size: 12px !important; line-height: 1.4 !important; border-radius: 8px !important; max-width: calc(100% - 20px); }
+.feature-photo-empty { min-height: 260px !important; background: linear-gradient(145deg,#e8f0fb,#f8fbff) !important; border: 1px dashed #aac0db !important; border-radius: 16px !important; color: #102b50 !important; padding: 24px !important; }
+.feature-photo-empty strong { color: #102b50 !important; font-size: 21px !important; }
+.feature-photo-empty span { color: #506781 !important; font-size: 14px !important; }
+.feature-float { background: #fff !important; color: #102b50 !important; border: 1px solid #dce5f1 !important; box-shadow: 0 8px 24px #102b501c !important; border-radius: 10px !important; font-size: 13px !important; }
+.industry-seller-panel { padding: 24px !important; border-radius: 16px !important; }
+.industry-seller-panel h2 { color: #102b50 !important; font-size: 25px !important; }
+.industry-seller-panel p, .seller-benefit small { color: #5b6f88 !important; font-size: 15px !important; }
+.seller-panel-avatar { background: #102b50 !important; color: #fff !important; }
+.seller-benefit>span { color: #1b5b99 !important; background: #eef4fc !important; }
+.commerce-benefits { border-radius: 14px !important; padding: 18px !important; }
+.benefit-icon { color: #1b5b99 !important; background: #eef4fc !important; }
+.commerce-benefits b { color: #173252 !important; font-size: 15px !important; }
+.commerce-benefits small { color: #65778f !important; font-size: 13px !important; }
+.section-heading h2, .section-heading h2, .market-section h2, .tanzania-sources h2 { color: #102b50 !important; font-size: clamp(26px,3vw,36px) !important; letter-spacing: -.6px !important; }
+.source-note, .result-line, .sort-label { color: #62748b !important; }
+.category-chip { color: #435a75 !important; border-color: #d5e1ef !important; background: #fff !important; }
+.category-chip.active, .category-chip:hover { background: #102b50 !important; border-color: #102b50 !important; color: #fff !important; }
+.product-grid { grid-template-columns: repeat(4,minmax(0,1fr)) !important; gap: 18px !important; }
+.product-card { background: #fff !important; border: 1px solid #dce5f1 !important; border-radius: 15px !important; box-shadow: 0 8px 24px #102b500b !important; color: #18304f !important; }
+.product-card:hover { border-color: #9db8d7 !important; box-shadow: 0 14px 32px #102b5017 !important; }
+.product-media { background: #f1f5fb !important; }
+.product-content h3, .product-content h3, .product-card h3 { color: #18304f !important; font-size: 18px !important; line-height: 1.4 !important; }
+.product-content, .product-caption, .product-bottom span, .seller-line { color: #5b6f88 !important; }
+.product-caption { font-size: 14px !important; line-height: 1.55 !important; }
+.product-bottom strong { color: #102b50 !important; font-size: 19px !important; }
+.seller-avatar { background: #eaf1fb !important; color: #102b50 !important; }
+.follow-mini { color: #1b5b99 !important; border-color: #c6d7eb !important; background: #f4f8fe !important; }
+.card-actions { border-top-color: #e6edf6 !important; }
+.card-actions button { color: #435a75 !important; font-size: 13px !important; }
+.card-actions button:hover, .card-actions button.is-liked { color: #1b5b99 !important; }
+.media-placeholder { background: linear-gradient(145deg,#eef4fc,#f8fbff) !important; color: #506781 !important; }
+.empty-state { background: #f7faff !important; border: 1px solid #dce5f1 !important; border-radius: 16px !important; color: #18304f !important; }
+.empty-state h3 { color: #102b50 !important; font-size: 22px !important; }
+.empty-state p { color: #62748b !important; font-size: 15px !important; }
+.tanzania-store-card { background: #fff !important; border-color: #dce5f1 !important; border-radius: 12px !important; }
+.tanzania-store-card:hover { border-color: #94b4d8 !important; box-shadow: 0 10px 26px #102b5010 !important; }
+.store-mark { background: #eef4fc !important; color: #102b50 !important; }
+.store-copy strong { color: #173252 !important; font-size: 16px !important; }
+.store-copy small { color: #62748b !important; font-size: 13px !important; }
+.store-copy em, .tanzania-sources a { color: #1b5b99 !important; }
+.tanzania-source-note { background: #f4f8fe !important; border-color: #dce5f1 !important; color: #526780 !important; }
+.tanzania-source-note strong { color: #102b50 !important; }
+.seller-banner { background: linear-gradient(110deg,#102b50,#1c4d80) !important; border: 0 !important; border-radius: 16px !important; }
+.seller-banner h2, .seller-banner p { color: #fff !important; }
+.banner-icon { background: #ffffff20 !important; color: #fff !important; }
+.disclaimer { color: #687a91 !important; font-size: 13px !important; }
+.view-more-btn { min-height: 48px !important; padding: 12px 24px !important; border-radius: 10px !important; font-size: 15px !important; }
+.view-more-btn span { color: #e5efff !important; }
+.view-more-btn.view-less-btn { background: #fff !important; color: #102b50 !important; border-color: #b9cce2 !important; }
+.view-more-btn.view-less-btn span { color: #526780 !important; }
+.account-sidebar, .account-content, .account-panel, .dashboard-card { background: #fff !important; color: #18304f !important; border-color: #dce5f1 !important; }
+.account-menu-item { color: #4c607a !important; }
+.account-menu-item.active { background: #edf4fc !important; color: #102b50 !important; }
+.modal-overlay { background: rgba(9,27,49,.58) !important; }
+.modal, .auth-modal, .upload-modal, .detail-modal, .sheet { background: #fff !important; color: #18304f !important; border-color: #dce5f1 !important; }
+.modal h2, .modal h3, .auth-modal h2, .upload-modal h2 { color: #102b50 !important; }
+.modal input, .modal textarea, .modal select, .auth-modal input, .upload-modal input, .upload-modal textarea, .upload-modal select { background: #f7faff !important; color: #18304f !important; border-color: #d1deed !important; }
+footer { background: #f4f7fc !important; color: #5b6f88 !important; }
+@media(max-width:1100px) {
+  .industry-hero { grid-template-columns: minmax(0,1fr) minmax(0,2fr) !important; }
+  .industry-seller-panel { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px 18px; }
+  .industry-seller-panel .seller-panel-divider, .industry-seller-panel .seller-benefit { display: none; }
+  .industry-seller-panel h2, .industry-seller-panel p { margin: 0 !important; }
+  .industry-seller-panel .seller-join-btn, .industry-seller-panel .seller-login-btn { grid-column: 3; }
+}
+@media(max-width:760px) {
+  .site-header { height: auto !important; min-height: 68px !important; padding: 10px 14px !important; gap: 10px !important; flex-wrap: wrap; }
+  .brand { min-width: 145px !important; }
+  .brand strong { font-size: 20px !important; }
+  .search-box { min-width: 100% !important; order: 3; max-width: none !important; }
+  .header-actions { margin-left: auto !important; }
+  main { padding: 0 14px !important; }
+  .industry-hero { grid-template-columns: 1fr !important; }
+  .industry-categories { display: none; }
+  .industry-feature { grid-template-columns: 1fr !important; padding: 22px !important; gap: 16px !important; }
+  .industry-feature-copy h1 { font-size: clamp(34px,8.5vw,45px) !important; letter-spacing: -.9px !important; }
+  .industry-feature-copy>p:not(.eyebrow), .hero-copy-slider p { font-size: 16px !important; }
+  .industry-feature-art { min-height: 310px !important; width: 100%; }
+  .feature-photo-main { top: 30px !important; left: 8% !important; width: 80% !important; height: 230px !important; }
+  .feature-photo-top { right: 0 !important; width: 38% !important; height: 110px !important; }
+  .feature-photo-bottom { left: 0 !important; width: 37% !important; height: 105px !important; }
+  .industry-seller-panel { grid-template-columns: auto 1fr !important; }
+  .industry-seller-panel .seller-join-btn, .industry-seller-panel .seller-login-btn { grid-column: 1 / -1; width: 100%; }
+  .industry-seller-panel h2 { font-size: 22px !important; }
+  .industry-proof { display: flex; flex-wrap: wrap; gap: 8px 12px !important; }
+  .industry-proof span { font-size: 12px !important; }
+  .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 12px !important; }
+  .product-media { height: 185px !important; }
+  .product-content { padding: 13px !important; }
+  .product-content h3, .product-card h3 { font-size: 16px !important; }
+  .product-bottom { flex-wrap: wrap; gap: 4px 10px !important; }
+  .product-bottom strong { font-size: 17px !important; }
+  .tanzania-store-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .commerce-benefits { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .seller-banner { padding: 22px !important; align-items: flex-start !important; flex-wrap: wrap; }
+}
+@media(max-width:430px) {
+  .product-grid { grid-template-columns: 1fr 1fr !important; }
+  .product-media { height: 150px !important; }
+  .product-content { padding: 10px !important; }
+  .product-content h3 { font-size: 15px !important; }
+  .tanzania-store-grid { grid-template-columns: 1fr !important; }
+  .commerce-benefits { grid-template-columns: 1fr !important; }
+  .hero-cta-row { display: grid !important; grid-template-columns: 1fr; }
+  .industry-primary-cta, .hero-sell-cta { width: 100%; justify-content: center; min-height: 48px; }
+}
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
