@@ -237,7 +237,14 @@ export default function App() {
 
   const closeModal = () => { setModal(''); setSelected(null); setCommentText(''); setAuthPassword(''); };
   const notify = (message) => setToast(message);
-  const askDemo = (feature) => { setModal(feature); };
+  const askDemo = (feature) => {
+    if (feature === 'upload' && (!authUser || !window.localStorage.getItem('sokora_token'))) {
+      notify('Ingia au jisajili kwanza ili kuweka bidhaa au video.');
+      openAuth('login');
+      return;
+    }
+    setModal(feature);
+  };
   async function submitAuth(event) {
     event?.preventDefault();
     if (authBusy) return;
@@ -402,6 +409,13 @@ export default function App() {
   }
 
   function saveLocalListing() {
+    // Enforce the sign-in requirement again at the action boundary, not only in the UI.
+    if (!authUser || !window.localStorage.getItem('sokora_token')) {
+      setModal('');
+      notify('Ingia au jisajili kwanza ili kuhifadhi tangazo.');
+      openAuth('login');
+      return;
+    }
     if (!uploadFile || !uploadCaption.trim() || !uploadPrice.trim()) {
       notify('Jaza maelezo, bei na uchague picha/video kwanza.'); return;
     }
