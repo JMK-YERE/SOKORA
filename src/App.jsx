@@ -323,10 +323,10 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="site-header">
+      <header className={'site-header ' + (authUser ? 'private-header' : 'public-header')}>
         <a className="brand" href="#home" aria-label="SOKORA nyumbani"><span className="brand-mark">S</span><span><strong>SOKORA</strong><small>TAZAMA · GUNDUA · NUNUA</small></span></a>
-        <label className="search-box"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta bidhaa, biashara, eneo..." aria-label="Tafuta SOKORA" /><kbd>Enter</kbd></label>
-        <div className="header-actions">{authUser && <button className="ghost-btn nav-toggle" aria-expanded={!navHidden} onClick={() => setNavHidden((hidden) => !hidden)}>{navHidden ? '☰ Menyu' : '☰ Ficha menyu'}</button>}<button className="ghost-btn" onClick={() => authUser ? logout() : openAuth('login')}>{authUser ? 'Toka' : 'Ingia'}</button>{authUser && <button className="gold-btn" onClick={() => askDemo('upload')}>＋ Weka bidhaa</button>}</div>
+        {!authUser && <label className="search-box"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta bidhaa, biashara, eneo..." aria-label="Tafuta SOKORA" /><kbd>Enter</kbd></label>}
+        <div className="header-actions">{!authUser ? <button className="gold-btn" onClick={() => openAuth('login')}>Ingia / Jisajili</button> : <button className="ghost-btn" onClick={logout}>Toka kwenye akaunti</button>}</div>
       </header>
 
       {!authUser ? <main id="home">
