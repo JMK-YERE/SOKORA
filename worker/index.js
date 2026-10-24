@@ -111,9 +111,9 @@ export default {
     const isAuthPost = request.method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname);
     const allowedWrite = (
       (request.method === 'POST' && ['/api/auth/register', '/api/auth/login', '/api/orders', '/api/conversations'].includes(url.pathname)) ||
-      (request.method === 'PATCH' && /^\\/api\\/orders\\/[^/]+\\/status$/.test(url.pathname)) ||
-      (request.method === 'POST' && (/^\\/api\\/conversations\\/[^/]+\\/messages$/.test(url.pathname) || /^\\/api\\/live\\/[^/]+\\/pin$/.test(url.pathname) || /^\\/api\\/products\\/[^/]+\\/reviews$/.test(url.pathname))) ||
-      ((request.method === 'POST' || request.method === 'DELETE') && /^\\/api\\/saved-products\\/[^/]+$/.test(url.pathname))
+      (request.method === 'PATCH' && /^\/api\/orders\/[^/]+\/status$/.test(url.pathname)) ||
+      (request.method === 'POST' && (/^\/api\/conversations\/[^/]+\/messages$/.test(url.pathname) || /^\/api\/live\/[^/]+\/pin$/.test(url.pathname) || /^\/api\/products\/[^/]+\/reviews$/.test(url.pathname))) ||
+      ((request.method === 'POST' || request.method === 'DELETE') && /^\/api\/saved-products\/[^/]+$/.test(url.pathname))
     );
     if (url.pathname.startsWith('/api/') && request.method !== 'GET' && !isAuthPost && !allowedWrite) {
       return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
@@ -381,7 +381,7 @@ export default {
       }
     }
 
-    const orderStatusMatch = url.pathname.match(/^\\/api\\/orders\\/([^/]+)\\/status$/);
+    const orderStatusMatch = url.pathname.match(/^\/api\/orders\/([^/]+)\/status$/);
     if (orderStatusMatch && request.method === 'PATCH') {
       const auth = await authenticatedUser(request, env);
       if (auth.error) return json({ error: auth.error }, auth.status);
@@ -415,7 +415,7 @@ export default {
         return json({ error: 'SAVED_PRODUCTS_UNAVAILABLE' }, 503);
       }
     }
-    const savedMatch = url.pathname.match(/^\\/api\\/saved-products\\/([^/]+)$/);
+    const savedMatch = url.pathname.match(/^\/api\/saved-products\/([^/]+)$/);
     if (savedMatch && ['POST', 'DELETE'].includes(request.method)) {
       const auth = await authenticatedUser(request, env);
       if (auth.error) return json({ error: auth.error }, auth.status);
@@ -469,7 +469,7 @@ export default {
         return json({ error: 'CONVERSATION_CREATION_FAILED' }, 503);
       }
     }
-    const messageMatch = url.pathname.match(/^\\/api\\/conversations\\/([^/]+)\\/messages$/);
+    const messageMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/messages$/);
     if (messageMatch && ['GET', 'POST'].includes(request.method)) {
       const auth = await authenticatedUser(request, env);
       if (auth.error) return json({ error: auth.error }, auth.status);
@@ -497,7 +497,7 @@ export default {
       }
     }
 
-    const reviewMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)\\/reviews$/);
+    const reviewMatch = url.pathname.match(/^\/api\/products\/([^/]+)\/reviews$/);
     if (reviewMatch && request.method === 'POST') {
       const auth = await authenticatedUser(request, env);
       if (auth.error) return json({ error: auth.error }, auth.status);
@@ -534,7 +534,7 @@ export default {
     }
 
 
-    const sellerMatch = url.pathname.match(/^\\/api\\/sellers\\/([^/]+)$/);
+    const sellerMatch = url.pathname.match(/^\/api\/sellers\/([^/]+)$/);
     if (sellerMatch && request.method === 'GET') {
       let username;
       try { username = decodeURIComponent(sellerMatch[1]).replace(/^@/, '').toLowerCase(); }
@@ -554,7 +554,7 @@ export default {
       }
     }
 
-    const reviewsGetMatch = url.pathname.match(/^\\/api\\/products\\/([^/]+)\\/reviews$/);
+    const reviewsGetMatch = url.pathname.match(/^\/api\/products\/([^/]+)\/reviews$/);
     if (reviewsGetMatch && request.method === 'GET') {
       try {
         const db = getDatabase(env);
@@ -567,7 +567,7 @@ export default {
       }
     }
 
-    const livePinMatch = url.pathname.match(/^\\/api\\/live\\/([^/]+)\\/pin$/);
+    const livePinMatch = url.pathname.match(/^\/api\/live\/([^/]+)\/pin$/);
     if (livePinMatch && request.method === 'POST') {
       const auth = await authenticatedUser(request, env);
       if (auth.error) return json({ error: auth.error }, auth.status);
@@ -589,7 +589,7 @@ export default {
         return json({ error: 'LIVE_PRODUCT_PIN_FAILED' }, 503);
       }
     }
-    const livePinnedMatch = url.pathname.match(/^\\/api\\/live\\/([^/]+)\\/pinned-product$/);
+    const livePinnedMatch = url.pathname.match(/^\/api\/live\/([^/]+)\/pinned-product$/);
     if (livePinnedMatch && request.method === 'GET') {
       try {
         const db = getDatabase(env);
