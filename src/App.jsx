@@ -260,7 +260,7 @@ export default function App() {
       openAuth('login');
       return;
     }
-    if (!/^\\d+$/.test(String(video.sellerId || ''))) {
+    if (!/^\d+$/.test(String(video.sellerId || ''))) {
       notify('Akaunti ya muuzaji haijaunganishwa na database bado.');
       return;
     }
