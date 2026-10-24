@@ -189,3 +189,18 @@ footer { background: #f4f7fc !important; color: #5b6f88 !important; }
 .showcase-disclaimer { margin:14px 0 0; color:#536986; font-size:.84rem; }
 @media (max-width:1050px) { .category-showcase-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .seller-media-showcase-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:680px) { .category-showcase-section, .seller-media-showcase { padding:22px 14px; } .category-showcase-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .category-showcase-card { min-height:170px; height:43vw; } .category-showcase-copy { left:10px; bottom:10px; right:40px; } .category-showcase-copy strong { font-size:.93rem; } .category-showcase-copy small { font-size:.68rem; } .category-showcase-arrow { width:30px; height:30px; right:8px; bottom:8px; font-size:1.1rem; } .seller-media-showcase-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .seller-media-showcase-card img { height:150px; } .seller-media-play { top:51px; width:40px; height:40px; } .category-showcase-section .section-heading, .seller-media-showcase .section-heading { align-items:flex-start; } }
+
+
+/* Playable video showcase — responsive, navy and white */
+.video-showcase-section { padding:28px clamp(16px,3.5vw,56px); background:#fff; }
+.video-showcase-section .section-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.video-showcase-section h2 { color:#0b2e67; font-size:clamp(1.45rem,2.2vw,2rem); margin:0; }
+.video-showcase-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.video-showcase-card { min-width:0; overflow:hidden; border:1px solid #dce6f5; border-radius:14px; background:#fff; box-shadow:0 4px 16px #0b2e6710; }
+.video-showcase-card video { display:block; width:100%; aspect-ratio:16/10; object-fit:cover; background:#071d3d; }
+.video-showcase-caption { padding:13px 14px 15px; display:grid; gap:7px; color:#102f65; }
+.video-showcase-caption strong { font-size:1.05rem; }
+.video-showcase-caption span { color:#64748b; font-size:.82rem; }
+.video-showcase-caption button { justify-self:start; border:0; background:#0b2e67; color:#fff; border-radius:7px; padding:9px 12px; font-weight:750; cursor:pointer; }
+@media(max-width:900px) { .video-showcase-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .video-showcase-section { padding:22px 14px; } .video-showcase-grid { grid-template-columns:1fr; gap:13px; } .video-showcase-card video { aspect-ratio:16/9; } .video-showcase-section .section-heading { align-items:flex-start; } }
