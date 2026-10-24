@@ -2,9 +2,9 @@ name: SOKORA build check
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/cloudflare-d1-foundation]
   pull_request:
-    branches: [main]
+    branches: [main, feature/commerce-foundation]
 
 permissions:
   contents: read
