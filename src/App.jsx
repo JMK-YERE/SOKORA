@@ -80,6 +80,7 @@ export default function App() {
   const [authUser, setAuthUser] = useState(null);
   const [dashboardSection, setDashboardSection] = useState('dashboard');
   const [navHidden, setNavHidden] = useState(false);
+  const [heroSlide, setHeroSlide] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -240,6 +241,11 @@ export default function App() {
   // The hero only uses media attached to genuine SOKORA API listings; never substitute unrelated stock photos.
   const heroMedia = videos.filter((item) => !item.demo && !item.local && (item.image || item.video)).slice(0, 3);
 
+  useEffect(() => {
+    const id = window.setInterval(() => setHeroSlide((currentSlide) => (currentSlide + 1) % 4), 6500);
+    return () => window.clearInterval(id);
+  }, []);
+
   async function shareVideo(video) {
     const url = window.location.href;
     const text = video.product + ' — ' + money(video.price) + ' kupitia SOKORA';
@@ -334,15 +340,18 @@ export default function App() {
           <div className="industry-feature">
             <div className="industry-feature-copy">
               <p className="eyebrow">SOKORA · SOKO LA TANZANIA</p>
-              <h1>Tafuta bidhaa.<br /><span>Ungana na wauzaji.</span></h1>
-              <p>Gundua bidhaa na biashara kutoka Tanzania nzima, kwa bei zinazoonekana na mawasiliano ya moja kwa moja na muuzaji.</p>
-              <button className="industry-primary-cta" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Gundua bidhaa <span>→</span></button>
+              <div className="hero-copy-slider" aria-live="polite" aria-atomic="true">
+                <h1 key={heroSlide}>{['Tafuta bidhaa.','Gundua biashara.','Nunua kwa uhakika.','Ungana na wauzaji.'][heroSlide % 4]}<br /><span>{['Ungana na wauzaji.','Kutoka Tanzania nzima.','Bei kwa TSh.','Moja kwa moja.'][heroSlide % 4]}</span></h1>
+                <p key={'desc-'+heroSlide}>{['Gundua bidhaa na biashara kutoka Tanzania nzima, kwa bei zinazoonekana na mawasiliano ya moja kwa moja na muuzaji.','Tafuta maduka na bidhaa kulingana na kundi, bei na eneo la muuzaji.','Linganisha bidhaa zinazotangazwa na wasiliana na muuzaji kabla ya kununua.','Una bidhaa za kuuza? Fungua akaunti ya muuzaji na jiandae kuweka matangazo yako.'][heroSlide % 4]}</p>
+              </div>
+              <div className="hero-cta-row"><button className="industry-primary-cta" onClick={() => { setCategory('Zote'); document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }}>Gundua bidhaa <span>→</span></button><button className="hero-sell-cta" onClick={() => openAuth('register')}>Nataka kuuza <span>↗</span></button></div>
               <div className="industry-proof"><span>✓ Bei kwa TSh</span><span>✓ Wauzaji wa Tanzania</span><span>✓ Mawasiliano ya moja kwa moja</span></div>
+              <div className="hero-slide-controls" aria-label="Badilisha ujumbe wa ukurasa mkuu"><button aria-label="Ujumbe uliotangulia" onClick={() => setHeroSlide((heroSlide + 3) % 4)}>‹</button>{[0,1,2,3].map((n) => <button key={n} className={heroSlide === n ? 'hero-dot active' : 'hero-dot'} aria-label={'Ujumbe '+(n+1)} aria-pressed={heroSlide===n} onClick={() => setHeroSlide(n)} />)}<button aria-label="Ujumbe unaofuata" onClick={() => setHeroSlide((heroSlide + 1) % 4)}>›</button></div>
             </div>
-            <div className="industry-feature-art" aria-label="Picha na video halisi za bidhaa zilizowekwa SOKORA">
-              {heroMedia[0] ? <div className="feature-photo feature-photo-main">{heroMedia[0].video ? <video src={heroMedia[0].video} muted playsInline autoPlay loop /> : <img src={heroMedia[0].image} alt={heroMedia[0].product} loading="lazy" />}<span>{heroMedia[0].product}</span></div> : <div className="feature-photo-empty feature-photo-main"><strong>Picha halisi za bidhaa</strong><span>Zitaonekana matangazo ya wauzaji yanapopatikana</span></div>}
-              {heroMedia[1] ? <div className="feature-photo feature-photo-top">{heroMedia[1].video ? <video src={heroMedia[1].video} muted playsInline autoPlay loop /> : <img src={heroMedia[1].image} alt={heroMedia[1].product} loading="lazy" />}<span>{heroMedia[1].product}</span></div> : null}
-              {heroMedia[2] ? <div className="feature-photo feature-photo-bottom">{heroMedia[2].video ? <video src={heroMedia[2].video} muted playsInline autoPlay loop /> : <img src={heroMedia[2].image} alt={heroMedia[2].product} loading="lazy" />}<span>{heroMedia[2].product}</span></div> : null}
+            <div className="industry-feature-art" aria-label="Picha na video za bidhaa zilizowekwa na wauzaji SOKORA">
+              {heroMedia.length ? <div className="feature-photo feature-photo-main hero-media-slide" key={heroMedia[heroSlide % heroMedia.length].id}>{heroMedia[heroSlide % heroMedia.length].video ? <video src={heroMedia[heroSlide % heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[heroSlide % heroMedia.length].image} alt={heroMedia[heroSlide % heroMedia.length].product} loading="lazy" />}<span>{heroMedia[heroSlide % heroMedia.length].product}</span></div> : <div className="feature-photo-empty feature-photo-main"><strong>Picha halisi za bidhaa za Tanzania</strong><span>Zitaonekana hapa bidhaa zikiwekwa na wauzaji waliothibitishwa. Hatutumii picha za kubuni.</span></div>}
+              {heroMedia.length > 1 ? <div className="feature-photo feature-photo-top hero-media-secondary" key={'secondary-'+heroMedia[(heroSlide+1)%heroMedia.length].id}>{heroMedia[(heroSlide+1)%heroMedia.length].video ? <video src={heroMedia[(heroSlide+1)%heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[(heroSlide+1)%heroMedia.length].image} alt={heroMedia[(heroSlide+1)%heroMedia.length].product} loading="lazy" />}<span>{heroMedia[(heroSlide+1)%heroMedia.length].product}</span></div> : null}
+              {heroMedia.length > 2 ? <div className="feature-photo feature-photo-bottom hero-media-secondary" key={'third-'+heroMedia[(heroSlide+2)%heroMedia.length].id}>{heroMedia[(heroSlide+2)%heroMedia.length].video ? <video src={heroMedia[(heroSlide+2)%heroMedia.length].video} muted playsInline autoPlay loop /> : <img src={heroMedia[(heroSlide+2)%heroMedia.length].image} alt={heroMedia[(heroSlide+2)%heroMedia.length].product} loading="lazy" />}<span>{heroMedia[(heroSlide+2)%heroMedia.length].product}</span></div> : null}
               <div className="feature-float float-top">Media za wauzaji</div><div className="feature-float float-bottom">SOKORA Tanzania</div>
             </div>
           </div>
