@@ -64,6 +64,7 @@ function isDemoRecord(row) {
 
 export default function App() {
   const [videos, setVideos] = useState([]);
+  const [liveSessions, setLiveSessions] = useState([]);
   const [mode, setMode] = useState('loading');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Zote');
@@ -141,7 +142,9 @@ export default function App() {
     Promise.all([
       loadJson('/api/feed?limit=30').catch(() => ({ items: [] })),
       loadJson('/api/products?limit=30').catch(() => ({ items: [] })),
-    ]).then(([feedData, productData]) => {
+      loadJson('/api/live?limit=8').catch(() => ({ items: [] })),
+    ]).then(([feedData, productData, liveData]) => {
+      if (alive) setLiveSessions(Array.isArray(liveData?.items) ? liveData.items : []);
       if (!alive) return;
       const feedRows = Array.isArray(feedData) ? feedData : (Array.isArray(feedData.items) ? feedData.items : []);
       const productRows = Array.isArray(productData) ? productData : (Array.isArray(productData.items) ? productData.items : []);
@@ -441,9 +444,9 @@ export default function App() {
         <section className="live-row" aria-label="LIVE">
           <div className="section-label"><span className="live-dot"></span><div><b>LIVE sasa</b><small>Maonyesho ya wafanyabiashara</small></div></div>
           <div className="live-creators">
-            {['Mariam Fashion', 'Dodoma Gadgets', 'Mama Neema', 'JMK Tech'].map((name, i) => <button key={name} className="live-person" onClick={() => { setSelected({ product: name, seller: name }); askDemo('live'); }}><span className={'live-avatar avatar-' + i}>{['MF', 'DG', 'MN', 'JT'][i]}</span><span>{name}</span></button>)}
+            {liveSessions.length ? liveSessions.map((session) => <button key={session.id} className="live-person" onClick={() => { setSelected({ product: session.title, seller: session.business_name || session.seller_name, liveSessionId: session.id, productId: session.pinned_product_id ? String(session.pinned_product_id) : '' }); askDemo('live'); }}><span className="live-avatar live-avatar-real">●</span><span>{session.business_name || session.seller_name || '@' + session.seller_username}</span></button>) : <p className="live-empty">Hakuna kipindi LIVE kilichoanza kwa sasa. Vipindi halisi vitaonekana hapa.</p>}
           </div>
-          <button className="live-outline" onClick={() => askDemo('live')}>● Anza LIVE</button>
+          <button className="live-outline" onClick={() => notify('Utangazaji wa LIVE utawezeshwa baada ya kuunganisha Cloudflare Stream Live.')} disabled>● Anza LIVE</button>
         </section>
 
         <section className="market-section">
