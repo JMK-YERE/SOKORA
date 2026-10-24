@@ -578,3 +578,7 @@ input:focus,textarea:focus,select:focus{border-color:#0e6b4f!important}
  .header-actions .ghost-btn,.header-actions .gold-btn{background:#0e6b4f!important;color:#ffffff!important;border-color:#0e6b4f!important}
  .mobile-nav{background:#ffffff!important}
 }
+
+/* Clear primary purchase action on every real product card. */
+.buy-now-btn{display:block;width:100%;min-height:44px;margin-top:12px;font-weight:800;}
+.buy-now-btn:disabled{opacity:.65;cursor:wait}
