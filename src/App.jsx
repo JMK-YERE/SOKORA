@@ -389,10 +389,10 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className={'site-header ' + (authUser ? 'private-header' : 'public-header')}>
-        <a className="brand" href="#home" aria-label="SOKORA nyumbani"><span className="brand-mark">S</span><span><strong>SOKORA</strong><small>TAZAMA · GUNDUA · NUNUA</small></span></a>
-        {!authUser && <label className="search-box"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta bidhaa, biashara, eneo..." aria-label="Tafuta SOKORA" /><kbd>Enter</kbd></label>}
-        <div className="header-actions">{!authUser ? <button className="gold-btn" onClick={() => openAuth('login')}>Ingia / Jisajili</button> : <button className="ghost-btn" onClick={logout}>Toka kwenye akaunti</button>}</div>
+      <header className={'site-header myshop-header ' + (authUser ? 'private-header' : 'public-header')}>
+        <a className="brand" href="#home" aria-label="SOKORA nyumbani"><span className="brand-mark">S</span><span><strong>SOKORA</strong><small>TAZAMA · GUNDUA · NUNUA</small></span><span className="brand-country">Tanzania</span></a>
+        {!authUser && <label className="search-box"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta bidhaa..." aria-label="Tafuta SOKORA" onKeyDown={(e) => { if (e.key === 'Enter') document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' }); }} /><button type="button" aria-label="Tafuta bidhaa" onClick={() => document.getElementById('marketplace-products')?.scrollIntoView({ behavior: 'smooth' })}>Tafuta</button></label>}
+        <div className="header-actions"><button className="language-toggle" type="button" onClick={() => notify('Lugha ya Kiingereza itaongezwa kwenye mipangilio ya lugha.')}>EN</button>{!authUser ? <button className="gold-btn" onClick={() => openAuth('login')}>Ingia</button> : <button className="ghost-btn" onClick={logout}>Toka kwenye akaunti</button>}</div>
       </header>
 
       {!authUser ? <main id="home">
@@ -531,7 +531,15 @@ export default function App() {
         </section>
 
         <section className="seller-banner"><div className="banner-icon">↗</div><div><p className="eyebrow">WEKA BIASHARA YAKO</p><h2>Bidhaa yako inastahili kuonekana.</h2><p>Andaa tangazo lenye picha au video, bei na eneo la biashara yako.</p></div>{authUser && <button className="gold-btn" onClick={() => askDemo('upload')}>＋ Tengeneza tangazo</button>}</section>
-        <p className="disclaimer">SOKORA Web · Taarifa zilizoandikwa “mfano” ni za kuonyesha muonekano tu. Likes, follows na matangazo ya kifaa hiki hazijahifadhiwa kwenye akaunti au database ya umma.</p>
+        <p className="disclaimer">SOKORA · Bei na maelezo hutegemea taarifa zilizotolewa na wauzaji. Hakikisha unathibitisha bidhaa kabla ya kufanya malipo.</p>
+        
+        <footer className="marketplace-footer">
+          <div className="marketplace-footer-brand"><a className="brand footer-brand" href="#home"><span className="brand-mark">S</span><span><strong>SOKORA</strong><small>TAZAMA · GUNDUA · NUNUA</small></span></a><p>SOKORA ni soko la mtandaoni linalowaunganisha wanunuzi na wauzaji nchini Tanzania.</p><span className="footer-country">Tanzania</span></div>
+          <div className="marketplace-footer-column"><strong>Viungo vya haraka</strong><button onClick={() => document.getElementById('marketplace-products')?.scrollIntoView({behavior:'smooth'})}>Bidhaa</button><button onClick={() => document.getElementById('sokora-shops')?.scrollIntoView({behavior:'smooth'})}>Maduka yote</button><button onClick={() => authUser ? setDashboardSection('saved') : openAuth('login')}>Zilizohifadhiwa</button><button onClick={() => openAuth('register')}>Anza kuuza</button></div>
+          <div className="marketplace-footer-column"><strong>Makundi maarufu</strong>{marketplaceCategories.slice(0,5).map(([name,filter]) => <button key={name} onClick={() => { setCategory(filter); document.getElementById('marketplace-products')?.scrollIntoView({behavior:'smooth'}); }}>{name}</button>)}</div>
+          <div className="marketplace-footer-column"><strong>Msaada na taarifa</strong><button onClick={() => notify('Taarifa za SOKORA zitaongezwa hapa.')}>Kuhusu SOKORA</button><button onClick={() => notify('Masharti ya matumizi yatachapishwa hapa.')}>Masharti ya matumizi</button><button onClick={() => notify('Sera ya faragha itaongezwa hapa.')}>Sera ya faragha</button><button onClick={() => notify('Tafadhali tumia njia rasmi za mawasiliano za SOKORA.')}>Msaada kwa wateja</button></div>
+          <div className="marketplace-footer-bottom"><span>© {new Date().getFullYear()} SOKORA Tanzania.</span><span>Bei huonyeshwa kwa TSh pale zinapotolewa na muuzaji.</span></div>
+        </footer>
       </main> : <main className={'account-layout ' + (navHidden ? 'nav-is-hidden' : '')}>
         {!navHidden && <aside className="account-sidebar" aria-label="Menyu ya akaunti">
           <div className="account-identity"><span className="account-avatar">{String(authUser.display_name || authUser.displayName || authUser.username || 'S').slice(0,1).toUpperCase()}</span><div><strong>{authUser.display_name || authUser.displayName || authUser.username || 'Akaunti ya SOKORA'}</strong><small>@{authUser.username || 'mtumiaji'}</small></div></div>
