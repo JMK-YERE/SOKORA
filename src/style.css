@@ -582,3 +582,15 @@ input:focus,textarea:focus,select:focus{border-color:#0e6b4f!important}
 /* Clear primary purchase action on every real product card. */
 .buy-now-btn{display:block;width:100%;min-height:44px;margin-top:12px;font-weight:800;}
 .buy-now-btn:disabled{opacity:.65;cursor:wait}
+
+.orders-panel{display:grid;gap:18px}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.panel-heading h2{margin:4px 0 0}
+.orders-list{display:grid;gap:12px}
+.order-row{display:grid;grid-template-columns:minmax(120px,1.3fr) minmax(110px,.8fr) auto minmax(160px,1fr);align-items:center;gap:14px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+.order-row p{margin:5px 0 0;color:var(--muted);font-size:.9rem}
+.order-status{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.76rem;font-weight:800;letter-spacing:.02em}
+.status-pending{color:#f3b84b}.status-confirmed{color:#a7d8c1}.status-shipped{color:#a9caff}.status-delivered{color:#7de0a8}.status-cancelled{color:#ff9d9d}
+.order-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.order-actions .gold-btn,.order-actions .ghost-btn{min-height:38px;padding:8px 12px;font-size:.82rem}
+@media(max-width:760px){.order-row{grid-template-columns:1fr auto}.order-row .order-status{justify-self:start}.order-actions{grid-column:1/-1;justify-content:flex-start}}
