@@ -166,6 +166,50 @@ app.get('/api/feed', async (req, res) => {
   }
 });
 
+app.get('/api/products', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_NOT_CONFIGURED' });
+  const rawLimit = Number.parseInt(String(req.query.limit || '30'), 10);
+  const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 60) : 30;
+  const offsetValue = Number.parseInt(String(req.query.offset || '0'), 10);
+  const offset = Number.isFinite(offsetValue) ? Math.max(offsetValue, 0) : 0;
+  const search = String(req.query.q || '').trim().slice(0, 100);
+  const category = String(req.query.category || '').trim().slice(0, 80);
+  const location = String(req.query.location || '').trim().slice(0, 100);
+  try {
+    const result = await pool.query(
+      `SELECT
+         p.id, p.name, p.description, p.price_tzs, p.currency,
+         p.category, p.location, p.created_at,
+         u.id AS seller_id, u.display_name AS seller_name,
+         u.username AS seller_username, u.phone AS seller_phone,
+         media.thumbnail_url, media.video_url
+       FROM products p
+       JOIN users u ON u.id = p.seller_id
+       LEFT JOIN LATERAL (
+         SELECT v.thumbnail_url, v.video_url
+         FROM videos v
+         WHERE v.product_id = p.id
+           AND v.seller_id = p.seller_id
+           AND v.status = 'PUBLISHED'
+         ORDER BY v.created_at DESC, v.id DESC
+         LIMIT 1
+       ) media ON TRUE
+       WHERE p.status = 'ACTIVE'
+         AND u.status = 'ACTIVE'
+         AND ($1 = '' OR p.name ILIKE '%' || $1 || '%' OR coalesce(p.description, '') ILIKE '%' || $1 || '%')
+         AND ($2 = '' OR coalesce(p.category, '') ILIKE '%' || $2 || '%')
+         AND ($3 = '' OR coalesce(p.location, '') ILIKE '%' || $3 || '%')
+       ORDER BY p.created_at DESC, p.id DESC
+       LIMIT $4 OFFSET $5`,
+      [search, category, location, limit, offset],
+    );
+    res.json({ items: result.rows, limit, offset, hasMore: result.rows.length === limit });
+  } catch (error) {
+    console.error('GET /api/products failed:', error.message);
+    res.status(500).json({ error: 'PRODUCTS_QUERY_FAILED' });
+  }
+});
+
 app.get('/api/products/:id', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_NOT_CONFIGURED' });
   try {
